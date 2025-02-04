@@ -1,8 +1,20 @@
+import { Sidebar } from "@/components/dashboard/Sidebar";
+import { StatsCards } from "@/components/dashboard/StatsCards";
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold">Welcome to EduAssist</h1>
-      <p>Select a quiz to start practicing.</p>
-    </main>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar />
+      <main className="flex-1 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-600">Welcome back, Professor!</p>
+            </div>
+          </div>
+          <StatsCards />
+        </div>
+      </main>
+    </div>
   );
 }
