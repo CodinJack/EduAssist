@@ -1,6 +1,9 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useUserStore } from "@/store/userStore";
+import { DashboardCard } from "@/components/dashboard/dashboardCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
@@ -21,8 +24,8 @@ export default function Dashboard() {
       
       <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl">
         <DashboardCard title="Total Quizzes" value={totalQuizzes} />
-        <DashboardCard title="Average Score" value={`${avgScore}%`} />
-        <DashboardCard title="Your Rank" value={`#${rank}`} />
+        <DashboardCard title="Average Score" value={avgScore} />
+        <DashboardCard title="Your Rank" value={rank} />
       </div>
       
       <div className="mt-10 flex flex-wrap gap-4">
@@ -37,18 +40,5 @@ export default function Dashboard() {
         </Button>
       </div>
     </div>
-  );
-}
-
-function DashboardCard({ title, value }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="bg-white/20 backdrop-blur-lg p-6 rounded-xl shadow-lg text-center"
-    >
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="text-3xl font-bold mt-2">{value}</p>
-    </motion.div>
   );
 }

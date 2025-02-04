@@ -1,5 +1,5 @@
-import { Sidebar } from "@/components/dashboard/Sidebar";
-import { StatsCards } from "@/components/dashboard/StatsCards";
+import { Sidebar } from "@/components/dashboard/SideBar";
+import { StatsCards } from "@/components/dashboard/StatsCard";
 export default function Home() {
   return (
     <div className="flex min-h-screen bg-gray-50">

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +10,6 @@ import {
   ChevronLeft,
   GraduationCap,
 } from "lucide-react";
-
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", active: true },
   { icon: Users, label: "Students" },
@@ -19,10 +17,8 @@ const menuItems = [
   { icon: FileText, label: "Assignments" },
   { icon: Settings, label: "Settings" },
 ];
-
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-
   return (
     <div
       className={`${
@@ -35,13 +31,12 @@ export function Sidebar() {
           <span className="font-semibold text-lg text-gray-800">TeachAssist</span>
         )}
       </div>
-
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {menuItems.map((item) => (
             <li key={item.label}>
               <Button
-                variant="default" 
+                variant={item.active ? "default" : "ghost"}
                 className={`w-full justify-start ${
                   collapsed ? "px-2" : "px-4"
                 } ${item.active ? "bg-primary-50 text-primary-500" : ""}`}
@@ -53,7 +48,6 @@ export function Sidebar() {
           ))}
         </ul>
       </nav>
-
       <div className="p-4 border-t border-gray-200">
         <Button
           variant="ghost"
