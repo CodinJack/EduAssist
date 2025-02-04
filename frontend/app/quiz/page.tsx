@@ -13,7 +13,7 @@ export default function QuizList() {
       <ul>
         {quizzes.map((quiz) => (
           <li key={quiz.id}>
-            <Link href={`/quizzes/${quiz.id}`}>
+            <Link href={`/quiz/${quiz.id}`}>
               <span className="text-blue-500">{quiz.title}</span>
             </Link>
           </li>
