@@ -2,12 +2,6 @@
 import React, { useState } from 'react';
 import {
   Users,
-  Calendar,
-  FileText,
-  Settings,
-  ChevronLeft,
-  GraduationCap,
-  Bell,
   Search,
   Clock,
   BookOpen,
