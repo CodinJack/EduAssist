@@ -10,12 +10,16 @@ model = genai.GenerativeModel("models/gemini-1.5-flash")
 
 
 def getResponse(prompt: str):
+    print("sending request")
     response = model.generate_content(
         f"{prompt}. Generate in plain text without markdown"
     )
+    print("request received")
     return response.text
 
 
-while True:
-    prompt = input("Enter prompt: ")
-    getResponse
+if __name__ == "__main__":
+    while True:
+        prompt = input("Enter prompt: ")
+        response = getResponse(prompt)
+        print(response)
