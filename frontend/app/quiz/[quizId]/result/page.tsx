@@ -3,13 +3,13 @@ import { useQuizStore } from "@/store/quizStore";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
-import ResultCard from "@/components/resultCard";
+import ResultCard from "@/components/ResultCard";
 
 const correctAnswers = {
   "1": "4",
   "2": "Paris",
   "3": "Guido van Rossum",
-}; // Example correct answers
+};
 
 export default function QuizResult() {
   const { answers } = useQuizStore();

@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Circle } from "lucide-react";
+
 const activities = [
   {
     time: "10:30 AM",
@@ -17,6 +18,7 @@ const activities = [
     description: "Sarah posted a question in Chemistry forum",
   },
 ];
+
 export const ActivityTimeline = () => {
   return (
     <Card className="p-6">

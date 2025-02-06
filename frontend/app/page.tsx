@@ -1,5 +1,5 @@
-import { Sidebar } from "@/components/dashboard/SideBar";
-import { StatsCards } from "@/components/dashboard/StatsCard";
+"use client";
+import  Sidebar from "@/components/dashboard/Sidebar";
 export default function Home() {
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -9,10 +9,9 @@ export default function Home() {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">Welcome back, Professor!</p>
+              <p className="text-gray-600">Welcome back, Student!</p>
             </div>
           </div>
-          <StatsCards />
         </div>
       </main>
     </div>

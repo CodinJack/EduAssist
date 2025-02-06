@@ -8,6 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
 const data = [
   { month: "Jan", performance: 65 },
   { month: "Feb", performance: 70 },
@@ -16,6 +17,7 @@ const data = [
   { month: "May", performance: 85 },
   { month: "Jun", performance: 82 },
 ];
+
 export const StudentProgress = () => {
   return (
     <Card className="p-6">

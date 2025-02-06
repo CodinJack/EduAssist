@@ -3,7 +3,7 @@ interface DashboardCardProps{
     title : string, 
     value : number
 }
-export function DashboardCard({ title, value } : DashboardCardProps) {
+export default function DashboardCard({ title, value } : DashboardCardProps) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}

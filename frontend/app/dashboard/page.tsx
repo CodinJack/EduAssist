@@ -1,44 +1,65 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Sidebar from "@/components/dashboard/Sidebar";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { ActivityTimeline } from "@/components/dashboard/ActivityTimeline";
+import { UpcomingClasses } from "@/components/dashboard/UpcomingClasses";
+import { StudentProgress } from "@/components/dashboard/StudentProgress";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { Users, BookOpen, Clock, Award } from "lucide-react";
 import { motion } from "framer-motion";
-import { useUserStore } from "@/store/userStore";
-import { DashboardCard } from "@/components/dashboard/dashboardCard";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
 
 export default function Dashboard() {
-  const router = useRouter();
-  const { username, totalQuizzes, avgScore, rank } = useUserStore();
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 p-8 text-white">
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-4xl font-extrabold drop-shadow-lg"
-      >
-        Welcome, {username}! 🚀
-      </motion.h1>
+    <div className="relative flex min-h-screen bg-white text-black overflow-hidden">
       
-      <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl">
-        <DashboardCard title="Total Quizzes" value={totalQuizzes} />
-        <DashboardCard title="Average Score" value={avgScore} />
-        <DashboardCard title="Your Rank" value={rank} />
-      </div>
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       
-      <div className="mt-10 flex flex-wrap gap-4">
-        <Button onClick={() => router.push("/quiz")} className="bg-white text-black px-6 py-3 rounded-xl shadow-md text-lg">
-          📜 Take a Quiz
-        </Button>
-        <Button onClick={() => router.push("/leaderboard")} className="bg-white text-black px-6 py-3 rounded-xl shadow-md text-lg">
-          🏆 View Leaderboard
-        </Button>
-        <Button onClick={() => router.push("/results")} className="bg-white text-black px-6 py-3 rounded-xl shadow-md text-lg">
-          📊 My Results
-        </Button>
-      </div>
+      <main className={`relative flex-1 transition-all duration-500 ease-in-out ${collapsed ? "ml-20" : "ml-64"}`}>
+        <div className="p-8 max-w-7xl mx-auto">
+          <motion.div 
+            className="flex justify-between items-center mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="space-y-1">
+              <h1 className="text-5xl font-extrabold text-blue-700 drop-shadow-sm">Dashboard</h1>
+              <p className="text-lg text-black opacity-80">Welcome back, Student!</p>
+            </div>
+          </motion.div>
+
+          {/* Stats Cards */}
+          <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+            <StatsCard title="Total Students" value="256" icon={Users} trend={{ value: "12% vs last month", positive: true }} className="bg-white border border-blue-600 shadow-blue-600/30 " />
+            <StatsCard title="Active Courses" value="8" icon={BookOpen} trend={{ value: "2 new this month", positive: true }} className="bg-white border border-lime-300 shadow-lime-300/30 " />
+            <StatsCard title="Hours Taught" value="124" icon={Clock} trend={{ value: "18 this week", positive: true }} className="bg-white border border-blue-600 shadow-blue-600/30 " />
+            <StatsCard title="Avg. Performance" value="85%" icon={Award} trend={{ value: "5% vs last month", positive: true }} className="bg-white border border-lime-300 shadow-lime-300/30 " />
+          </motion.div>
+
+          {/* Content Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <motion.div className="lg:col-span-2 bg-white bg-opacity-90 backdrop-blur-lg rounded-xl shadow-sm border border-blue-600 p-6 hover:shadow-lg transition-shadow duration-300">
+              <StudentProgress />
+            </motion.div>
+            <motion.div className="bg-white bg-opacity-90 backdrop-blur-lg rounded-xl shadow-sm border border-lime-300 p-6 hover:shadow-lg transition-shadow duration-300">
+              <QuickActions />
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <motion.div className="bg-white bg-opacity-90 backdrop-blur-lg rounded-xl shadow-lg border border-blue-600 p-6 hover:shadow-lg transition-shadow duration-300" >
+              <ActivityTimeline />
+            </motion.div>
+            <motion.div className="bg-white bg-opacity-90 backdrop-blur-lg rounded-xl shadow-lg border border-lime-300 p-6 hover:shadow-lg transition-shadow duration-300" >
+              <UpcomingClasses />
+            </motion.div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
