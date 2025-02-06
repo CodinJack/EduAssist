@@ -1,10 +1,14 @@
+"use client";
+
+import React from "react";
+
 interface ResultCardProps {
     questionId: string;
     userAnswer: string;
     correctAnswer: string;
   }
   
-  export default function ResultCard({ questionId, userAnswer, correctAnswer }: ResultCardProps) {
+export default function ResultCard({ questionId, userAnswer, correctAnswer }: ResultCardProps) {
     const isCorrect = userAnswer === correctAnswer;
   
     return (
