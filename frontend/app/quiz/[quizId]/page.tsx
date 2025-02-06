@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import QuizQuestion from "@/components/quizQuestion";
-import ProgressBar from "@/components/progressBar";
+import React from "react";
+import QuizQuestion from "@/components/QuizQuestion";
+import ProgressBar from "@/components/ProgressBar";
 import { useRouter } from "next/navigation";
 import { useQuizStore } from "@/store/quizStore";
 
