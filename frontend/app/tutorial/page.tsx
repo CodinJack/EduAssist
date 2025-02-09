@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TextField, Button, MenuItem, Select, Card, CardContent, Typography, Box } from "@mui/material";
+import Sidebar from "@/components/dashboard/Sidebar";
+import { Search } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const API_KEY = "AIzaSyBJIx6IBWpX66SrLHNpHjHjAPwNkW51La0";
 const CHANNEL_ID = "UCSIRmKsrk-tYW8p736ZYhfg";
@@ -14,33 +25,41 @@ interface Tutorial {
 
 const classes = ["Class 9", "Class 10"];
 const subjects = ["Maths", "Science"];
-const chapters: { [key: string]: { [key: string]: string[] } } = {
+const chapters = {
   "Class 9": {
     Maths: [
-      "Number Systems", "Polynomials", "Coordinate Geometry", "Linear Equations in Two Variables", "Introduction to Euclid’s Geometry", 
-      "Lines and Angles", "Triangles", "Quadrilaterals", "Circles", "Heron’s Formula", "Surface Areas and Volumes", "Statistics"
+      "Number Systems", "Polynomials", "Coordinate Geometry", "Linear Equations in Two Variables",
+      "Introduction to Euclid's Geometry", "Lines and Angles", "Triangles", "Quadrilaterals",
+      "Circles", "Heron's Formula", "Surface Areas and Volumes", "Statistics"
     ],
     Science: [
-      "Matter in Our Surroundings", "Is Matter Around Us Pure", "Atoms and Molecules", "Structure of The Atom", "The Fundamental Unit of Life", 
-      "Tissues", "Diversity in Living Organisms", "Motion", "Force and Laws of Motion", "Gravitation", "Work and Energy", "Sound", 
-      "Why Do We Fall ill", "Natural Resources", "Improvement in Food Resources"
+      "Matter in Our Surroundings", "Is Matter Around Us Pure", "Atoms and Molecules",
+      "Structure of The Atom", "The Fundamental Unit of Life", "Tissues",
+      "Diversity in Living Organisms", "Motion", "Force and Laws of Motion",
+      "Gravitation", "Work and Energy", "Sound", "Why Do We Fall ill",
+      "Natural Resources", "Improvement in Food Resources"
     ]
   },
   "Class 10": {
     Maths: [
-      "Real Numbers", "Polynomials", "Pair of Linear Equations in Two Variables", "Quadratic Equations", "Arithmetic Progressions", 
-      "Triangles", "Coordinate Geometry", "Introduction to Trigonometry", "Some Applications of Trigonometry", "Circles", 
-      "Constructions", "Areas Related to Circles", "Surface Areas and Volumes", "Statistics", "Probability"
+      "Real Numbers", "Polynomials", "Pair of Linear Equations in Two Variables",
+      "Quadratic Equations", "Arithmetic Progressions", "Triangles", "Coordinate Geometry",
+      "Introduction to Trigonometry", "Some Applications of Trigonometry", "Circles",
+      "Constructions", "Areas Related to Circles", "Surface Areas and Volumes",
+      "Statistics", "Probability"
     ],
     Science: [
-      "Chemical reactions and equations", "Acids, Bases and Salt", "Metals and Non-metals", "Carbon and Its Compounds", "Life Processes", 
-      "Control and Coordination", "How Do Organisms Reproduce?", "Heredity and Evolution", "Light Reflection and Refraction", 
-      "The Human Eye and Colourful World", "Electricity", "Magnetic Effects of Electric Current", "Our Environment"
+      "Chemical reactions and equations", "Acids, Bases and Salt", "Metals and Non-metals",
+      "Carbon and Its Compounds", "Life Processes", "Control and Coordination",
+      "How Do Organisms Reproduce?", "Heredity and Evolution", "Light Reflection and Refraction",
+      "The Human Eye and Colourful World", "Electricity", "Magnetic Effects of Electric Current",
+      "Our Environment"
     ]
   }
 };
 
 export default function TutorialPage() {
+  const [collapsed, setCollapsed] = useState(false);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedChapter, setSelectedChapter] = useState("");
@@ -65,8 +84,8 @@ export default function TutorialPage() {
     }
   };
 
-   const fetchSearchResults = async () => {
-    const query = `${selectedChapter || searchQuery} ${selectedClass} ${selectedSubject} `.trim();
+  const fetchSearchResults = async () => {
+    const query = `${selectedChapter || searchQuery} ${selectedClass} ${selectedSubject}`.trim();
     if (!query) return;
     try {
       const res = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet&q=${query}&type=playlist&maxResults=10`);
@@ -86,128 +105,116 @@ export default function TutorialPage() {
     }
   };
 
-
   return (
-    <Box sx={{ padding: "24px", maxWidth: "1200px", margin: "auto", textAlign:"center"}}>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{
-          fontFamily: "'Poppins', sans-serif", 
-          fontWeight: "600",
-          color: "#2C3E50", 
-          textTransform: "uppercase", 
-          letterSpacing: "1.5px", 
-          textAlign: "center", 
-        }}
-      >
-        Tutorial Section
-      </Typography>
-
+    <div className="relative flex min-h-screen bg-slate-50 text-black overflow-hidden">
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       
-      <Box sx={{ display: "flex", gap: "16px", flexWrap: "", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
-      <Select
-          value={selectedClass}
-          onChange={(e) => setSelectedClass(e.target.value)}
-          displayEmpty
-        >
-          <MenuItem value="" disabled>Select Class</MenuItem>
-          {classes.map((cls) => (
-            <MenuItem key={cls} value={cls}>{cls}</MenuItem>
-          ))}
-        </Select>
-
-        <Select
-          value={selectedSubject}
-          onChange={(e) => setSelectedSubject(e.target.value)}
-          displayEmpty
-          disabled={!selectedClass}
-        >
-          <MenuItem value="" disabled>Select Subject</MenuItem>
-          {subjects.map((subject) => (
-            <MenuItem key={subject} value={subject}>{subject}</MenuItem>
-          ))}
-        </Select>
-
-        <Select
-          value={selectedChapter}
-          onChange={(e) => setSelectedChapter(e.target.value)}
-          displayEmpty
-          disabled={!selectedClass || !selectedSubject}
-        >
-          <MenuItem value="" disabled>Select Chapter</MenuItem>
-          {selectedClass && selectedSubject && chapters[selectedClass]?.[selectedSubject]?.map((chapter) => (
-            <MenuItem key={chapter} value={chapter}>{chapter}</MenuItem>
-          ))}
-        </Select>
-
-        <TextField
-          placeholder="Enter topic name"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          fullWidth
-        />
-        <Button
-            variant="contained"
-            color="primary"
-            onClick={fetchSearchResults}
-            sx={{
-              fontSize: "1 rem", // Increases text size
-              padding: "12px 24px", // Adds more padding
-              minWidth: "150px", // Ensures a minimum width
-              borderRadius: "8px", // Makes the button look smoother
-            }}
+      <main className={`relative flex-1 transition-all duration-500 ease-in-out ${collapsed ? "ml-20" : "ml-64"}`}>
+        <div className="p-8 max-w-7xl mx-auto">
+          <motion.div 
+            className="flex justify-between items-center mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-          Search
-        </Button>
-      
-      </Box>
+            <div className="space-y-1">
+              <h1 className="text-5xl font-extrabold text-blue-700 drop-shadow-sm">Tutorials</h1>
+              <p className="text-lg text-black opacity-80">Browse educational content</p>
+            </div>
+          </motion.div>
 
-      
-      <Box sx={{ justifyContent:"center " ,display: "", overflowX: "auto", gap: "16px", marginTop: "16px", paddingBottom: "16px" }}>
-        {tutorials.map((tutorial) => (
-          <Card key={tutorial.id} sx={{ minWidth: "300px" }}>
-            <CardContent>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                textAlign: "center",
-                gap: "0.5rem",
-              }}
+          <motion.div 
+            className="flex flex-wrap gap-4 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Class" />
+              </SelectTrigger>
+              <SelectContent>
+                {classes.map((cls) => (
+                  <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select 
+              value={selectedSubject} 
+              onValueChange={setSelectedSubject}
+              disabled={!selectedClass}
             >
-              <Typography
-                variant="h6"
-                sx={{
-                  fontFamily: "'Pacifico', cursive",
-                  fontSize: "1.2rem",
-                  fontWeight: "bold",
-                  color: "#00000",
-                  textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
-                  textAlign: "center",
-                }}
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Subject" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects.map((subject) => (
+                  <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select 
+              value={selectedChapter} 
+              onValueChange={setSelectedChapter}
+              disabled={!selectedClass || !selectedSubject}
+            >
+              <SelectTrigger className="w-[280px]">
+                <SelectValue placeholder="Select Chapter" />
+              </SelectTrigger>
+              <SelectContent>
+                {selectedClass && selectedSubject && chapters[selectedClass]?.[selectedSubject]?.map((chapter) => (
+                  <SelectItem key={chapter} value={chapter}>{chapter}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex gap-2 flex-1">
+              <Input
+                placeholder="Search topics..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+              <Button 
+                onClick={fetchSearchResults}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {tutorial.title}
-              </Typography>
+                <Search className="w-4 h-4 mr-2" />
+                Search
+              </Button>
+            </div>
+          </motion.div>
 
-              <iframe
-                style={{
-                  width: "60%", // Increased for better alignment
-                  height: "250px",
-                  borderRadius: "10px",
-                  margin: "1rem",
-                  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-                }}
-                src={tutorial.videoUrl}
-                allowFullScreen
-              ></iframe>
-            </Box>
-
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-    </Box>
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            {tutorials.map((tutorial) => (
+              <motion.div
+                key={tutorial.id}
+                className="bg-white rounded-xl shadow-lg border border-blue-600 overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="p-4">
+                  <h3 className="text-xl font-bold text-blue-700 mb-4">{tutorial.title}</h3>
+                  <div className="relative aspect-video rounded-lg overflow-hidden">
+                    <iframe
+                      className="absolute w-full h-full"
+                      src={tutorial.videoUrl}
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </main>
+    </div>
   );
 }

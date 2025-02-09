@@ -99,7 +99,7 @@ export default function QuizPage() {
   const selectedAnswer = answers[currentQuestion.id];
 
   return (
-    <div className=" bg-gray-50 py-4 px-4 sm:px-4 lg:px-6">
+    <div className=" bg-slate-50 py-4 px-4 sm:px-4 lg:px-6">
       {/* Quiz Header */}
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
