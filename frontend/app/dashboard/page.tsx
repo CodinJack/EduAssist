@@ -14,7 +14,7 @@ export default function Dashboard() {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="relative flex min-h-screen bg-white text-black overflow-hidden">
+    <div className="relative flex min-h-screen bg-slate-50 text-black overflow-hidden">
       
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       
