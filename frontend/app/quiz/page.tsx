@@ -2,12 +2,6 @@
 import React, { useState } from 'react';
 import {
   Users,
-  Calendar,
-  FileText,
-  Settings,
-  ChevronLeft,
-  GraduationCap,
-  Bell,
   Search,
   Clock,
   BookOpen,
@@ -88,7 +82,7 @@ const QuizList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Reuse the Sidebar component */}
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
