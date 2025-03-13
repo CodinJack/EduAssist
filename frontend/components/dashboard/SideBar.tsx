@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: FileText, label: "Practice Problems", path: "/tutorial" },
   { icon: FileText, label: "Quizzes", path: "/quiz" },
   { icon: FileText, label: "Leaderboard", path: "/leaderboard" },
