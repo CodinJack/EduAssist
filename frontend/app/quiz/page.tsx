@@ -167,21 +167,13 @@ const QuizList = () => {
                       <Timer className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-600">{quiz.timeLimit} Minutes</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">{quiz.completions} Completed</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">{quiz.avgScore}% Avg Score</span>
-                    </div>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-500">
                       <Clock className="w-4 h-4 inline mr-1" />
-                      Due {new Date(quiz.dueDate).toLocaleDateString()}
-                    </div>
+                      Due {new Date(quiz.dueDate).toISOString().split("T")[0]}
+                      </div>
                     <Button variant="outline" className="hover:bg-blue-50 hover:text-blue-600">
                       Start Quiz
                     </Button>
