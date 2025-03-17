@@ -21,7 +21,7 @@ const data = [
 export const StudentProgress = () => {
   return (
     <Card className="p-6">
-      <h2 className="text-lg font-semibold mb-4">Class Performance Trend</h2>
+      <h2 className="text-lg font-semibold mb-4">Performance Trend</h2>
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>

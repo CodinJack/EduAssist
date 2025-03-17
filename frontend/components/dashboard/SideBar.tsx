@@ -4,23 +4,21 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
+  User,
   Users,
-  Calendar,
   FileText,
   Settings,
   ChevronLeft,
   GraduationCap,
   Bell,
-  Search,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: FileText, label: "Practice Problems", path: "/tutorial" },
+  { icon: FileText, label: "Practice", path: "/tutorial" },
   { icon: FileText, label: "Quizzes", path: "/quiz" },
-  { icon: FileText, label: "Leaderboard", path: "/leaderboard" },
-  { icon: Users, label: "Profile", path: "/profile" },
+  { icon: Users, label: "Leaderboard", path: "/leaderboard" },
+  { icon: User, label: "Profile", path: "/profile" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
