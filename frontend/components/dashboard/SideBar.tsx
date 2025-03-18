@@ -11,15 +11,17 @@ import {
   ChevronLeft,
   GraduationCap,
   Bell,
+  LogOut
 } from "lucide-react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: FileText, label: "Practice", path: "/tutorial" },
+  { icon: FileText, label: "Practice", path: "/practice" },
   { icon: FileText, label: "Quizzes", path: "/quiz" },
+  { icon: FileText, label: "Tutorial", path: "/tutorial"},
   { icon: Users, label: "Leaderboard", path: "/leaderboard" },
   { icon: User, label: "Profile", path: "/profile" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: LogOut, label: "Log Out", path: "/settings" },
 ];
 
 export default function Sidebar({ collapsed, setCollapsed }) {
@@ -85,7 +87,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         {!collapsed ? (
           <div className="py-4 flex items-center gap-3">
             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-              <Users className="w-5 h-5 text-gray-500" />
+              <User className="w-5 h-5 text-gray-500" />
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-sm font-medium text-gray-900 truncate">Jai Khanna</h4>
@@ -102,7 +104,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         ) : (
           <div className="py-4 flex justify-center">
             <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-              <Users className="w-5 h-5 text-gray-500" />
+              <User className="w-5 h-5 text-gray-500" />
             </div>
           </div>
         )}
