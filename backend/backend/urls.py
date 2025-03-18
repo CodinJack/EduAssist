@@ -17,9 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from quiz.views import create_quiz, get_quiz_questions
+from quiz.views import submit_test 
 
 urlpatterns = [
     path('quiz/create/', create_quiz, name='create-quiz'),
     path('quiz/<int:quiz_id>/', get_quiz_questions, name='get-quiz'),
+    path("submit_test/", submit_test, name="submit-test"),
 ]
 

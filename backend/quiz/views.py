@@ -5,6 +5,8 @@ from rest_framework.decorators import api_view
 from .models import Quiz, Question
 from .serializers import QuizSerializer
 from .utils import generate_questions
+from django.http import JsonResponse
+from .utils import store_test_results
 import json
 
 @api_view(['POST'])
@@ -55,3 +57,20 @@ def get_quiz_questions(request, quiz_id):
         return Response(serializer.data)
     except Quiz.DoesNotExist:
         return Response({"error": "Quiz not found"}, status=404)
+    
+
+
+def submit_test(request):
+    if request.method == "POST":
+        data = request.json  # Assuming JSON input
+        user_id = data.get("user_id")
+        test_id = data.get("test_id")
+        weak_tags = data.get("weak_tags", [])
+        score = data.get("score", 0)
+
+        if not user_id or not test_id:
+            return JsonResponse({"error": "User ID and Test ID required"}, status=400)
+
+        message = store_test_results(user_id, test_id, weak_tags, score)
+        return JsonResponse({"message": message})
+
