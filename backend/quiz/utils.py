@@ -13,7 +13,7 @@ def generate_questions(topic, num_questions, difficulty):
     model = genai.GenerativeModel("gemini-2.0-flash")  # Use Gemini API
 
     prompt = f"""
-    Generate {num_questions} multiple-choice quiz questions on {topic} with difficulty {difficulty} (where Beginner is the easiest, Intermediate being medium-level and Advanced being hard questions).
+    Generate {num_questions} multiple-choice quiz questions on {topic} with 2-3 tags each and difficulty {difficulty} (where Beginner is the easiest, Intermediate being medium-level and Advanced being hard questions) and the options should be like "a" : "x", "b" : "y", "c" : "z", "d" : "s".
     Each question should be in JSON format like this:
     
     {{
