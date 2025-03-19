@@ -21,7 +21,9 @@ def generate_questions(topic, num_questions, difficulty):
         "difficulty" : "Beginner",
         "tags": ["geography", "capital cities"],
         "correct_answer": "c",
-        "attempted_option": ""
+        "attempted_option": "",
+        "hint" :"It is popular for having the Eiffel Tower",
+        "solution" : "Paris is the answer, and blah blah its a popular place famous for it croissants and Eiffel Tower"
     }}
     """
 
