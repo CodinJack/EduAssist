@@ -1,57 +1,61 @@
-from django.shortcuts import render
-
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from .models import Quiz, Question
-from .serializers import QuizSerializer
-from .utils import generate_questions
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import json
+from firebase_config import db
+from .utils import generate_questions
 
-@api_view(['POST'])
+@csrf_exempt
 def create_quiz(request):
-    topic = request.data.get("topic")
-    num_questions = request.data.get("num_questions")
-    difficulty = request.data.get("difficulty")
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            topic = data.get("topic")
+            num_questions = data.get("num_questions")
+            difficulty = data.get("difficulty")
 
-    if not topic or not num_questions or not difficulty:
-        return Response({"error": "Topic and number of questions and difficulty are required"}, status=400)
+            if not topic or not num_questions or not difficulty:
+                return JsonResponse({"error": "Topic, number of questions, and difficulty are required"}, status=400)
 
-    # Generate questions using Gemini API
-    questions_json = generate_questions(topic, num_questions, difficulty)
-    print(f"Generated Questions: {questions_json}")  # Debugging
-    cleaned_json = questions_json.strip("```json").strip("```")
+            # Generate questions using Gemini API
+            questions_json = generate_questions(topic, num_questions, difficulty)
+            print(f"Generated Questions: {questions_json}")  # Debugging
+            cleaned_json = questions_json.strip("```json").strip("```")
 
+            try:
+                questions_data = json.loads(cleaned_json)  # Convert string to JSON
+            except json.JSONDecodeError:
+                print("ERROR: Invalid JSON format received from Gemini API")  # Debugging
+                return JsonResponse({"error": "Invalid JSON format received from Gemini API"}, status=500)
+
+            # Store quiz in Firestore
+            quiz_data = {
+                "topic": topic,
+                "num_questions": num_questions,
+                "difficulty": difficulty,
+                "questions": questions_data
+            }
+            doc_ref = db.collection("quizzes").add(quiz_data)
+
+            return JsonResponse({"id": doc_ref[1].id, "message": "Quiz created successfully"}, status=201)
+        
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+def get_all_quizzes(request):
     try:
-        questions_data = json.loads(cleaned_json)  # Convert string to JSON
-    except json.JSONDecodeError:
-        print("ERROR: Invalid JSON format received from Gemini API")  # Debugging
-        return Response({"error": "Invalid JSON format received from Gemini API"}, status=500)
+        quizzes_ref = db.collection("quizzes").get()
+        quizzes = [{"id": doc.id, **doc.to_dict()} for doc in quizzes_ref]
+        return JsonResponse(quizzes, safe=False, status=200)
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
-    # Create and save quiz
-    quiz = Quiz.objects.create(topic=topic, num_questions=num_questions, difficulty=difficulty)
-
-    # Save questions
-    for q in questions_data:
-        Question.objects.create(
-            quiz=quiz,
-            text=q["question"],
-            option1=q["options"]["a"],
-            option2=q["options"]["b"],
-            option3=q["options"]["c"],
-            option4=q["options"]["d"],
-            correct_answer=q["correct_answer"],
-            difficulty=q["difficulty"],
-            attempted_option="",
-            tags=q["tags"]
-        )
-
-    return Response(QuizSerializer(quiz).data)
-
-@api_view(['GET'])
-def get_quiz_questions(request, quiz_id):
+def get_quiz(request, quiz_id):
     try:
-        quiz = Quiz.objects.get(id=quiz_id)
-        serializer = QuizSerializer(quiz)
-        return Response(serializer.data)
-    except Quiz.DoesNotExist:
-        return Response({"error": "Quiz not found"}, status=404)
+        doc = db.collection("quizzes").document(quiz_id).get()
+        if not doc.exists:
+            return JsonResponse({"error": "Quiz not found"}, status=404)
+        return JsonResponse({"id": doc.id, **doc.to_dict()}, status=200)
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

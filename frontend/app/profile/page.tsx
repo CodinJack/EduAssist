@@ -9,7 +9,7 @@ import Image from "next/image";
 const user = {
   name: "Jai Khanna",
   email: "jai.khanna@example.com",
-  profilePic: "/default.png", 
+  profilePic: "/default.png",
 };
 
 // Mock Quiz Data
@@ -40,6 +40,7 @@ const ProfilePage = () => {
       {/* Main Content */}
       <div className={`p-8 flex-1 transition-all ${collapsed ? "ml-16" : "ml-64"}`}>
         
+
         {/* Profile Header */}
         <div className="flex items-center gap-6 bg-white p-6 rounded-lg shadow-md">
           <Image

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import Sidebar from '@/components/dashboard/Sidebar';
 
-const quizzes = [
+const quizze
   {
     id: 1,
     title: "Introduction to React Fundamentals",
