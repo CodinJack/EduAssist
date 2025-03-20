@@ -1,37 +1,43 @@
-import { db, collection, addDoc, getDocs, doc, getDoc } from "./firebaseConfig";
+import { db, collection, addDoc, getDocs, doc, getDoc } from "../firebaseConfig";
 
-// Collection name in Firestore
+// Firestore collection name
 const QUIZZES_COLLECTION = "quizzes";
 
-//Create a Quiz
-export const createQuiz = async ({ topic, num_questions, difficulty }) => {
+// Create a new quiz
+export const createQuiz = async ({ title, subject, questionCount, timeLimit, difficulty, dueDate }) => {
   try {
     const quizRef = await addDoc(collection(db, QUIZZES_COLLECTION), {
-      topic,
-      num_questions,
+      title,
+      subject,
+      questionCount,
+      timeLimit,
       difficulty,
+      dueDate,
       createdAt: new Date().toISOString(),
     });
-    return { id: quizRef.id, topic, num_questions, difficulty };
+    return { id: quizRef.id, title, subject, questionCount, timeLimit, difficulty, dueDate };
   } catch (error) {
     console.error("Error creating quiz:", error);
-    throw error
+    throw error;
   }
 };
 
-//Get All Quizzes
+// Fetch all quizzes
 export const getAllQuizzes = async () => {
   try {
     const querySnapshot = await getDocs(collection(db, QUIZZES_COLLECTION));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
   } catch (error) {
     console.error("Error fetching quizzes:", error);
     throw error;
   }
 };
 
-//Get Quiz by ID
-export const getQuiz = async ({ id }) => {
+// Fetch a specific quiz by ID
+export const getQuizById = async (id) => {
   try {
     const quizDoc = await getDoc(doc(db, QUIZZES_COLLECTION, id));
     if (quizDoc.exists()) {

@@ -15,10 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path
-from quiz.views import create_quiz, get_all_quizzes, get_quiz, submit_test 
+from quiz.views import create_quiz, get_all_quizzes, get_quiz, submit_quiz
 urlpatterns = [
     path("api/quizzes/create_quiz", create_quiz, name="create_quiz"),
     path("api/quizzes/get_all_quizzes", get_all_quizzes, name="get_all_quizzes"),
-    path("api/quizzes/get_quiz/<str:id>", get_quiz, name="get_quiz"),
-    path("api/quizzes/submit_test/<str:id>", submit_test, name="submit_test")
+    path("api/quizzes/get_quiz/<str:quiz_id>", get_quiz, name="get_quiz"),
+    path("api/quizzes/submit_test/<str:quiz_id>", submit_quiz, name="submit_quiz")
 ]

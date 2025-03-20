@@ -2,16 +2,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from firebase_config import db
-from .utils import generate_questions
+from .utils import generate_questions, store_test_results
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Quiz, Question
-from .serializers import QuizSerializer
-from django.http import JsonResponse
-from .utils import store_test_results
-import json
 @csrf_exempt
+
 def create_quiz(request):
     if request.method == "POST":
         try:
@@ -26,7 +22,7 @@ def create_quiz(request):
             # Generate questions using Gemini API
             questions_json = generate_questions(topic, num_questions, difficulty)
             print(f"Generated Questions: {questions_json}")  # Debugging
-            cleaned_json = questions_json.strip("```json").strip("```")
+            cleaned_json = questions_json.strip("json").strip("")
 
             try:
                 questions_data = json.loads(cleaned_json)  # Convert string to JSON
@@ -67,17 +63,43 @@ def get_quiz(request, quiz_id):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-def submit_test(request):
-    if request.method == "POST":
-        data = request.json  # Assuming JSON input
-        user_id = data.get("user_id")
-        test_id = data.get("test_id")
-        weak_tags = data.get("weak_tags", [])
-        score = data.get("score", 0)
 
-        if not user_id or not test_id:
-            return JsonResponse({"error": "User ID and Test ID required"}, status=400)
+def submit_quiz(request, quiz_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request method"}, status=400)
 
-        message = store_test_results(user_id, test_id, weak_tags, score)
-        return JsonResponse({"message": message})
+    data = json.loads(request.body)  # Get attempted answers from request
+    user_id = data.get("user_id")  # Assuming user_id is sent in the request
 
+    # Fetch quiz details from Firestore
+    quiz_ref = db.collection("quizzes").document(quiz_id)
+    quiz_doc = quiz_ref.get()
+
+    if not quiz_doc.exists:
+        return JsonResponse({"error": "Quiz not found"}, status=404)
+
+    quiz_data = quiz_doc.to_dict()
+    questions = quiz_data.get("questions", [])
+
+    # Track wrong answers per tag
+    tag_wrong_count = {}
+
+    for question in questions:
+        question_id = str(question["id"])
+        selected_option = data.get(question_id)  # User's selected option
+
+        # Check if the selected option is correct
+        if selected_option and selected_option != question["correct_option"]:
+            for tag in question["tags"]:  # Tags are stored as a list
+                tag_wrong_count[tag] = tag_wrong_count.get(tag, 0) + 1
+
+    # Threshold for weak topics
+    threshold = 3
+    weak_tags = [tag for tag, count in tag_wrong_count.items() if count >= threshold]
+
+    # Store weak topics in Firestore if any exist
+    if weak_tags:
+        weaklist_ref = db.collection("weaklist").document(user_id)
+        weaklist_ref.set({"weak_tags": weak_tags}, merge=True)
+
+    return JsonResponse({"message": "Quiz submitted successfully", "weak_tags": weak_tags})

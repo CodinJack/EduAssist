@@ -22,7 +22,7 @@ FIREBASE_CRED_PATH = os.path.join(BASE_DIR1, "firebase_config.json")  # Points t
 
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(FIREBASE_CRED_PATH)
+    cred = credentials.Certificate(r"F:\EduAssist\EduAssist\backend\firebase_config.json")
     firebase_admin.initialize_app(cred)
 
 db = firestore.client() 
