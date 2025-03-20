@@ -21,7 +21,9 @@ def generate_questions(topic, num_questions, difficulty):
         "difficulty" : "Beginner",
         "tags": ["geography", "capital cities"],
         "correct_answer": "c",
-        "attempted_option": ""
+        "attempted_option": "",
+        "hints" : "Famous for Eiffel Tower",
+        "solution" : "Paris is the capital of France and famous for Eiffel Tower and croissants."
     }}
     """
 
