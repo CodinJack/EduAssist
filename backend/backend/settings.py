@@ -14,7 +14,8 @@ from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-
+from dotenv import load_dotenv
+load_dotenv()  
 
 import os
 BASE_DIR1 = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Points to EduAssist/backend
@@ -22,7 +23,7 @@ FIREBASE_CRED_PATH = os.path.join(BASE_DIR1, "firebase_config.json")  # Points t
 
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(r"F:\EduAssist\EduAssist\backend\firebase_config.json")
+    cred = credentials.Certificate(os.getenv("FIREBASE_CONFIG_PATH"))
     firebase_admin.initialize_app(cred)
 
 db = firestore.client() 
