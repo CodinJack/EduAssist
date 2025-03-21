@@ -35,10 +35,12 @@ schema_view = get_schema_view(
 )
 
 
+from practice.views import create_practice_questions
 urlpatterns = [
     path("auth/", include('userAuth.urls')),
     path("api/quizzes/create_quiz", create_quiz, name="create_quiz"),
     path("api/quizzes/get_all_quizzes", get_all_quizzes, name="get_all_quizzes"),
     path("api/quizzes/get_quiz/<str:quiz_id>", get_quiz, name="get_quiz"),
     path("api/quizzes/submit_test/<str:quiz_id>", submit_quiz, name="submit_quiz"),
+    path("api/practice/create_practice_questions/", create_practice_questions, name="create_practice_questions")
 ]
