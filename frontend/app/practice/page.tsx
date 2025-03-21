@@ -4,19 +4,20 @@ import { useRouter } from "next/navigation";
 import { Search, Clock, BookOpen, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import Sidebar from "@/components/dashboard/Sidebar";
+import {createPracticeQuestions} from "@/services/practiceService"; 
 
 const weakTags = ["Data Structures", "Algorithms", "Databases", "Math", "Networking"];
 
 const PracticePage = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState("");
-
+  const [questions, setQuestions] = useState<any[]>([]);
   const router = useRouter();
 
-  const handleStartPractice = (selectedTopic: string) => {
-    router.push(`/practice/${encodeURIComponent(selectedTopic)}`);
+  const handleStartPractice = async (topic: string) => {
+    if (!topic) return alert("Please enter a topic!");
+    router.push(`/practice/${encodeURIComponent(topic)}`);
   };
 
   return (

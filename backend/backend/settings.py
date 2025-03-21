@@ -14,7 +14,8 @@ from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-
+from dotenv import load_dotenv
+load_dotenv()  
 
 import os
 BASE_DIR1 = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Points to EduAssist/backend
@@ -22,7 +23,7 @@ FIREBASE_CRED_PATH = os.path.join(BASE_DIR1, "firebase_config.json")  # Points t
 
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(r"F:\EduAssist\EduAssist\backend\firebase_config.json")
+    cred = credentials.Certificate(os.getenv("FIREBASE_CONFIG_PATH"))
     firebase_admin.initialize_app(cred)
 
 db = firestore.client() 
@@ -56,10 +57,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'quiz',
+    'practice'
+    'authjwt',
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
-
+AUTH_USER_MODEL = 'authjwt.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -69,9 +74,15 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    'authjwt.middleware.FirebaseAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
+
+CORS_ALLOW_ALL_ORIGINS = True  # For development, allows all origins (change for production)
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]  # Allow necessary methods
+CORS_ALLOW_HEADERS = ["*"]
 
 TEMPLATES = [
     {

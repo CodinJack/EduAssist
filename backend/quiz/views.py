@@ -6,8 +6,12 @@ from .utils import generate_questions, store_test_results
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3b89cd29070a18e369c6e33ad8e0e1f73716c97f
 @csrf_exempt
+
 def create_quiz(request):
     if request.method == "POST":
         try:
@@ -22,7 +26,7 @@ def create_quiz(request):
             # Generate questions using Gemini API
             questions_json = generate_questions(topic, num_questions, difficulty)
             print(f"Generated Questions: {questions_json}")  # Debugging
-            cleaned_json = questions_json.strip("```json").strip("```")
+            cleaned_json = questions_json.strip("json").strip("")
 
             try:
                 questions_data = json.loads(cleaned_json)  # Convert string to JSON
@@ -102,4 +106,8 @@ def submit_quiz(request, quiz_id):
         weaklist_ref = db.collection("weaklist").document(user_id)
         weaklist_ref.set({"weak_tags": weak_tags}, merge=True)
 
+<<<<<<< HEAD
     return JsonResponse({"message": "Quiz submitted successfully", "weak_tags": weak_tags})
+=======
+    return JsonResponse({"message": "Quiz submitted successfully", "weak_tags": weak_tags})
+>>>>>>> 3b89cd29070a18e369c6e33ad8e0e1f73716c97f

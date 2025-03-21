@@ -54,7 +54,11 @@ const QuizList = () => {
     return colors[difficulty] || "text-gray-600 bg-gray-50";
   };
   const getDifficultyNumber = (difficulty: string) => {
+<<<<<<< HEAD
     const vals: Record<string, Number> = {
+=======
+    const vals: Record<string, number> = {
+>>>>>>> 3b89cd29070a18e369c6e33ad8e0e1f73716c97f
       Beginner: 2,
       Intermediate: 2.5,
       Advanced: 3,
@@ -72,7 +76,11 @@ const QuizList = () => {
 
       {/* Main Content */}
       <div className={`transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}>
+<<<<<<< HEAD
         {/* Header */}
+=======
+      {/* Header */}
+>>>>>>> 3b89cd29070a18e369c6e33ad8e0e1f73716c97f
         <div className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-800">Quizzes</h1>
           <Button className="bg-blue-600 hover:bg-blue-700">Create New Quiz</Button>
@@ -129,7 +137,7 @@ const QuizList = () => {
                       <p className="text-sm text-gray-500">{quiz.subject}</p>
                     </div>
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${getDifficultyColor(quiz.difficulty)}`}>
-                      {quiz.difficulty}
+                    {quiz.difficulty}
                     </span>
                   </div>
 

@@ -1,9 +1,12 @@
 frontend/node_modules/
 backend/venv/
-backend/__pycache__/
 backend/db.sqlite3
 backend/firebase_config.json
-backend/quiz/__pycache__
 .env
 backend/.env
 frontend/firebaseConfig.ts
+.env.local
+firebaseConfig.ts
+**/__pycache__/
+__pycache__
+
