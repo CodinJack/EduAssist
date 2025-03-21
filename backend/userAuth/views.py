@@ -14,38 +14,54 @@ load_dotenv()
 
 FIREBASE_WEB_API_KEY = os.getenv("FIREBASE_WEB_API_KEY")
 
-@csrf_exempt
+
+@api_view(['POST'])
 def register_user(request):
     """
-    Endpoint to register a new Firebase user.
+    Create a user in Firebase Authentication and store in Firestore with transaction rollback.
     """
+    email = request.data.get('email')
+    password = request.data.get('password')
 
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Invalid request method'}, status=405)
+    if not email or not password:
+        return Response({'error': 'Email and password are required.'}, status=400)
+
+    db = firestore.client()
+    transaction = db.transaction()
 
     try:
-        data = json.loads(request.body)
-        email = data.get('email')
-        password = data.get('password')
-
-        if not email or not password:
-            return JsonResponse({'error': 'Email and password are required'}, status=400)
-
-        # Create user in Firebase Authentication
         user = auth.create_user(email=email, password=password)
 
-        # Store the user in Firestore
-        db = firestore.client()
-        db.collection('users').document(user.uid).set({
-            'email': email,
-            'created_at': firestore.SERVER_TIMESTAMP
+        @firestore.transactional
+        def store_user(transaction, uid, email):
+            user_ref = db.collection('users').document(uid)
+            transaction.set(user_ref, {
+                'userID': uid,
+                'email': email,
+                'weak_topics': [],
+                'number_of_tests_attempted': 0,
+                'total_marks': 0,
+                'created_at': firestore.SERVER_TIMESTAMP
+            })
+
+        store_user(transaction, user.uid, email)
+
+        return Response({
+            "uid": user.uid,
+            "email": user.email,
+            "message": "User created successfully."
         })
 
-        return JsonResponse({'message': 'User registered successfully', 'uid': user.uid})
-    
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
-
+        try:
+            auth.delete_user(user.uid)
+            return Response({"error": str(e), "rollback": "User deleted from Firebase Auth"}, status=400)
+        except Exception as rollback_error:
+            return Response({
+                "error": str(e),
+                "rollback_error": str(rollback_error),
+                "message": "Failed to delete Firebase Auth user during rollback."
+            }, status=500)
 
 @csrf_exempt
 def login_user(request):
@@ -88,13 +104,123 @@ def login_user(request):
         return JsonResponse({'error': str(e)}, status=400)
 
 @api_view(['GET'])
-@permission_classes([FirebaseAuthentication])
 def get_user(request):
     """
     Get the current authenticated Firebase user.
     """
-    user = request.user  # Extract user from Firebase token
+    uid = request.firebaseUser['user_id']
+    print(get_user_by_uid(uid))
     return Response({
-        "uid": user['uid'],
-        "email": user.get('email')
+        "details": get_user_by_uid(uid),
     })
+
+
+def get_user_by_uid(uid):
+    """
+    Get Firebase Authentication user and Firestore user document by UID.
+    """
+    try:
+        # Fetch user from Firebase Authentication
+        firebase_user = auth.get_user(uid)
+
+        # Fetch user document from Firestore
+        db = firestore.client()
+        user_doc = db.collection('users').document(uid).get()
+
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+        else:
+            user_data = {"error": "User document not found in Firestore"}
+
+        # Combine Firebase Auth and Firestore data
+        result = {
+            "auth_user": {
+                "uid": firebase_user.uid,
+                "email": firebase_user.email,
+                "phone_number": firebase_user.phone_number,
+                "disabled": firebase_user.disabled,
+                "created_at": firebase_user.user_metadata.creation_timestamp,
+                "last_sign_in": firebase_user.user_metadata.last_sign_in_timestamp
+            },
+            "firestore_user": user_data
+        }
+
+        # Pretty-print the combined result
+        print(json.dumps(result, indent=4, default=str))
+
+        return result
+
+    except Exception as e:
+        return {"error": str(e)}
+
+@api_view(['POST'])
+def update_weak_topics(request):
+    """
+    Update the weak topics of a Firestore user document.
+    """
+    try:
+        uid = request.firebaseUser['user_id']
+        db = firestore.client()
+        user_ref = db.collection('users').document(uid)
+
+        # Get request data
+        data = json.loads(request.body)
+        new_topics = data.get('weak_topics', [])
+
+        # Check if user document exists
+        user_doc = user_ref.get()
+        if not user_doc.exists:
+            return JsonResponse({"error": "User not found"}, status=404)
+
+        # Retrieve current weak topics
+        current_topics = user_doc.get('weak_topics') or []
+
+        # Combine and remove duplicates
+        updated_topics = list(set(current_topics + new_topics))
+
+        # Update Firestore document
+        user_ref.update({'weak_topics': updated_topics})
+
+        return JsonResponse({
+            "message": "Weak topics updated successfully",
+            "weak_topics": updated_topics
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@api_view(['POST'])
+def update_total_marks(request):
+    """
+    Update the total marks of a Firestore user document.
+    """
+    try:
+        uid = request.firebaseUser['user_id']
+        db = firestore.client()
+        user_ref = db.collection('users').document(uid)
+
+        # Get request data
+        data = json.loads(request.body)
+        new_marks = data.get('marks', 0)
+
+        # Check if user document exists
+        user_doc = user_ref.get()
+        if not user_doc.exists:
+            return JsonResponse({"error": "User not found"}, status=404)
+
+        # Retrieve current total marks
+        current_marks = user_doc.get('total_marks') or 0
+
+        # Add new marks to total
+        updated_marks = current_marks + new_marks
+
+        # Update Firestore document
+        user_ref.update({'total_marks': updated_marks})
+        user_ref.update({'number_of_tests_attempted': user_doc.get('number_of_tests_attempted')+1})
+        return JsonResponse({
+            "message": "Total marks and number of tests updated successfully",
+            "total_marks": updated_marks
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
