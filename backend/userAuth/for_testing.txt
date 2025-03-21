@@ -1,0 +1,67 @@
+import it into postman by pasting curl commands
+https://learning.postman.com/docs/getting-started/importing-and-exporting/importing-curl-commands/
+
+first you need to register a user.
+
+curl -X POST 'http://localhost:8080/auth/register/' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+    "email": "test1@gmail.com",
+    "password": "rakim123"
+}
+'
+
+then for login:
+curl -X POST 'http://localhost:8080/auth/login/' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+    "email": "test1@gmail.com",
+    "password": "rakim123"
+}
+'
+this will return an ID token, use that for further requests. need to store it in a cookie
+
+updating user_fields:
+
+weak_topics
+curl -X POST 'http://localhost:8080/auth/update_weak_topics/' \
+  --header 'Authorization: Bearer <insert token here>' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+    "weak_topics": ["math", "science"]
+}
+'
+
+total_marks
+curl -X POST 'http://localhost:8080/auth/update_total_marks/' \
+  --header 'Authorization: Bearer <insert token here>' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+    "marks": 50
+}
+'
+
+bookmarked_questions
+curl -X POST 'http://localhost:8080/auth/update_bookmarked_questions/' \
+  --header 'Authorization: Bearer <insert token here>' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+  "question": {
+    "q": "What is 2 + 2?",
+    "a": "4",
+    "remarks": "damn bro is cooked"
+  }
+}
+'
+
+get current user details
+curl -X GET 'http://localhost:8080/auth/user' \
+  --header 'Authorization: Bearer <insert token here>' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+    "email": "rakimmiddya@gmail.com",
+    "password": "fdsfds"
+}
+'
+
+this figures out the user based on the ID token passed in authentication

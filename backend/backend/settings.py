@@ -58,10 +58,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'quiz',
-    'authjwt',
+    'userAuth',
+    'drf_yasg',
 ]
-
-AUTH_USER_MODEL = 'authjwt.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -71,7 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'authjwt.middleware.FirebaseAuthMiddleware',
+    'userAuth.middleware.FirebaseAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -94,7 +93,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-
+FIREBASE_ADMIN_CREDENTIAL = 'backend/userAuth/firebase-adminsdk.json'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -146,3 +145,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],  # Remove DRF auth
+}
+SWAGGER_SETTINGS = {
+    'DEFAULT_API_URL': 'http://localhost:8080',
+    'USE_SESSION_AUTH': False,                 # Disable session auth
+    'JSON_EDITOR': True,                       # Enable JSON editor
+    'SHOW_REQUEST_HEADERS': True,              # Show request headers
+    'VALIDATOR_URL': None,                     # Disable validator to prevent errors
+}

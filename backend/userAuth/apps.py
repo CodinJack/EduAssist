@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class AuthjwtConfig(AppConfig):
+class UserauthConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "authjwt"
+    name = "userAuth"

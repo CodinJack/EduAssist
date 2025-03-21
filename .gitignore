@@ -7,4 +7,3 @@ backend/firebase_config.json
 firebaseConfig.ts
 **/__pycache__/
 __pycache__
-

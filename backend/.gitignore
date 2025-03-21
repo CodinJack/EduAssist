@@ -3,3 +3,4 @@ firebase_config.json
 authjwt/firebase_admin.json
 **/__pycache__/
 __pycache__
+userAuth/firebase.json
