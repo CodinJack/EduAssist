@@ -1,0 +1,251 @@
+{
+  "yaakVersion": "2024.13.0",
+  "yaakSchema": 2,
+  "timestamp": "2025-03-21T09:56:30.826458700",
+  "resources": {
+    "workspaces": [
+      {
+        "model": "workspace",
+        "id": "wk_CLTnIFBJH0",
+        "createdAt": "2025-02-06T18:21:18",
+        "updatedAt": "2025-02-06T18:21:18",
+        "name": "Yaak",
+        "description": "",
+        "variables": [],
+        "settingValidateCertificates": true,
+        "settingFollowRedirects": true,
+        "settingRequestTimeout": 0
+      }
+    ],
+    "environments": [],
+    "folders": [
+      {
+        "model": "folder",
+        "id": "fl_gDm6xMd8vM",
+        "createdAt": "2025-03-18T18:00:55",
+        "updatedAt": "2025-03-18T18:01:04",
+        "workspaceId": "wk_CLTnIFBJH0",
+        "folderId": null,
+        "name": "Eduassist",
+        "sortPriority": -1742320800000.0
+      }
+    ],
+    "httpRequests": [
+      {
+        "model": "http_request",
+        "id": "rq_pu1XxUdNf6",
+        "createdAt": "2025-03-21T09:39:18",
+        "updatedAt": "2025-03-21T09:46:37",
+        "workspaceId": "wk_CLTnIFBJH0",
+        "folderId": "fl_gDm6xMd8vM",
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n  \"question\": {\n    \"q\": \"What is 2 + 2?\",\n    \"a\": \"4\",\n    \"remarks\": \"damn bro is cooked\"\n  }\n}\n"
+        },
+        "bodyType": "application/json",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Authorization",
+            "value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImEwODA2N2Q4M2YwY2Y5YzcxNjQyNjUwYzUyMWQ0ZWZhNWI2YTNlMDkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vZWR1YXNzaXN0LTljZGE3IiwiYXVkIjoiZWR1YXNzaXN0LTljZGE3IiwiYXV0aF90aW1lIjoxNzQyNTQ4MzgxLCJ1c2VyX2lkIjoiNndyTHk0a3paOE0zUTU5Q3RPdENRSHJBcDZjMiIsInN1YiI6IjZ3ckx5NGt6WjhNM1E1OUN0T3RDUUhyQXA2YzIiLCJpYXQiOjE3NDI1NDgzODEsImV4cCI6MTc0MjU1MTk4MSwiZW1haWwiOiJ0ZXN0MUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZW1haWwiOlsidGVzdDFAZ21haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.M9fOJ1uCq2FNifgNBKQ4zbl2s6NRnSHHGElHyjdgRD6Y6AfJqHOZvgsfPl2baIF5IrS3-O3hHHfc0G35qRXPAnhGfA9vpPRCKbsYKZ6hyxoWvXsy7yM5psiLL7OSqzoepNpER9drkHaK2xOfod1BRDcQieLXmxHd4YSBrhKyZ6EUPLu_8zhWUNTqgDzTJU33CC9sNYB8foIg6frCj9_2VCuOgmBZn7NuJ8nP00-8aFHWbOT-qsTYNCd1rIQ5yuvv07ko2gaIrax3zlIbhDdZR_l78b4s6ygcKsh4NlzI1jcKnQdNVlp--SJCHJv_9-fEfXqNZ82WGEKFmlzG-4NOow"
+          },
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "enabled": true,
+            "name": "",
+            "value": ""
+          }
+        ],
+        "method": "POST",
+        "name": "Update Bookmarked Questions",
+        "sortPriority": -0.0003,
+        "url": "http://localhost:8080/auth/update_bookmarked_questions/",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_GD6jowqbPn",
+        "createdAt": "2025-03-21T09:21:44",
+        "updatedAt": "2025-03-21T09:22:50",
+        "workspaceId": "wk_CLTnIFBJH0",
+        "folderId": "fl_gDm6xMd8vM",
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n    \"marks\": 50\n}\n"
+        },
+        "bodyType": "application/json",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Authorization",
+            "value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImEwODA2N2Q4M2YwY2Y5YzcxNjQyNjUwYzUyMWQ0ZWZhNWI2YTNlMDkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vZWR1YXNzaXN0LTljZGE3IiwiYXVkIjoiZWR1YXNzaXN0LTljZGE3IiwiYXV0aF90aW1lIjoxNzQyNTQ4MzgxLCJ1c2VyX2lkIjoiNndyTHk0a3paOE0zUTU5Q3RPdENRSHJBcDZjMiIsInN1YiI6IjZ3ckx5NGt6WjhNM1E1OUN0T3RDUUhyQXA2YzIiLCJpYXQiOjE3NDI1NDgzODEsImV4cCI6MTc0MjU1MTk4MSwiZW1haWwiOiJ0ZXN0MUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZW1haWwiOlsidGVzdDFAZ21haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.M9fOJ1uCq2FNifgNBKQ4zbl2s6NRnSHHGElHyjdgRD6Y6AfJqHOZvgsfPl2baIF5IrS3-O3hHHfc0G35qRXPAnhGfA9vpPRCKbsYKZ6hyxoWvXsy7yM5psiLL7OSqzoepNpER9drkHaK2xOfod1BRDcQieLXmxHd4YSBrhKyZ6EUPLu_8zhWUNTqgDzTJU33CC9sNYB8foIg6frCj9_2VCuOgmBZn7NuJ8nP00-8aFHWbOT-qsTYNCd1rIQ5yuvv07ko2gaIrax3zlIbhDdZR_l78b4s6ygcKsh4NlzI1jcKnQdNVlp--SJCHJv_9-fEfXqNZ82WGEKFmlzG-4NOow"
+          },
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "enabled": true,
+            "name": "",
+            "value": ""
+          }
+        ],
+        "method": "POST",
+        "name": "Update Total Marks",
+        "sortPriority": -0.0003,
+        "url": "http://localhost:8080/auth/update_total_marks/",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_l77gm0H8dJ",
+        "createdAt": "2025-03-21T09:18:55",
+        "updatedAt": "2025-03-21T09:21:19",
+        "workspaceId": "wk_CLTnIFBJH0",
+        "folderId": "fl_gDm6xMd8vM",
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n    \"weak_topics\": [\"math\", \"science\"]\n}\n"
+        },
+        "bodyType": "application/json",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Authorization",
+            "value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImEwODA2N2Q4M2YwY2Y5YzcxNjQyNjUwYzUyMWQ0ZWZhNWI2YTNlMDkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vZWR1YXNzaXN0LTljZGE3IiwiYXVkIjoiZWR1YXNzaXN0LTljZGE3IiwiYXV0aF90aW1lIjoxNzQyNTQ4MzgxLCJ1c2VyX2lkIjoiNndyTHk0a3paOE0zUTU5Q3RPdENRSHJBcDZjMiIsInN1YiI6IjZ3ckx5NGt6WjhNM1E1OUN0T3RDUUhyQXA2YzIiLCJpYXQiOjE3NDI1NDgzODEsImV4cCI6MTc0MjU1MTk4MSwiZW1haWwiOiJ0ZXN0MUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZW1haWwiOlsidGVzdDFAZ21haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.M9fOJ1uCq2FNifgNBKQ4zbl2s6NRnSHHGElHyjdgRD6Y6AfJqHOZvgsfPl2baIF5IrS3-O3hHHfc0G35qRXPAnhGfA9vpPRCKbsYKZ6hyxoWvXsy7yM5psiLL7OSqzoepNpER9drkHaK2xOfod1BRDcQieLXmxHd4YSBrhKyZ6EUPLu_8zhWUNTqgDzTJU33CC9sNYB8foIg6frCj9_2VCuOgmBZn7NuJ8nP00-8aFHWbOT-qsTYNCd1rIQ5yuvv07ko2gaIrax3zlIbhDdZR_l78b4s6ygcKsh4NlzI1jcKnQdNVlp--SJCHJv_9-fEfXqNZ82WGEKFmlzG-4NOow"
+          },
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "enabled": true,
+            "name": "",
+            "value": ""
+          }
+        ],
+        "method": "POST",
+        "name": "Update Weak Topics",
+        "sortPriority": -0.0003,
+        "url": "http://localhost:8080/auth/update_weak_topics/",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_dBtj1fFsRy",
+        "createdAt": "2025-03-21T08:55:55",
+        "updatedAt": "2025-03-21T08:56:06",
+        "workspaceId": "wk_CLTnIFBJH0",
+        "folderId": "fl_gDm6xMd8vM",
+        "authentication": {},
+        "authenticationType": null,
+        "body": {},
+        "bodyType": null,
+        "headers": [],
+        "method": "GET",
+        "name": "Get User Details by UID",
+        "sortPriority": -0.0002,
+        "url": "",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_o3nDl58mhE",
+        "createdAt": "2025-03-21T04:53:20",
+        "updatedAt": "2025-03-21T09:50:59",
+        "workspaceId": "wk_CLTnIFBJH0",
+        "folderId": "fl_gDm6xMd8vM",
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n    \"email\": \"rakimmiddya@gmail.com\",\n    \"password\": \"fdsfds\"\n}\n"
+        },
+        "bodyType": "application/json",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Authorization",
+            "value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImEwODA2N2Q4M2YwY2Y5YzcxNjQyNjUwYzUyMWQ0ZWZhNWI2YTNlMDkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vZWR1YXNzaXN0LTljZGE3IiwiYXVkIjoiZWR1YXNzaXN0LTljZGE3IiwiYXV0aF90aW1lIjoxNzQyNTQ4MzgxLCJ1c2VyX2lkIjoiNndyTHk0a3paOE0zUTU5Q3RPdENRSHJBcDZjMiIsInN1YiI6IjZ3ckx5NGt6WjhNM1E1OUN0T3RDUUhyQXA2YzIiLCJpYXQiOjE3NDI1NDgzODEsImV4cCI6MTc0MjU1MTk4MSwiZW1haWwiOiJ0ZXN0MUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZW1haWwiOlsidGVzdDFAZ21haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.M9fOJ1uCq2FNifgNBKQ4zbl2s6NRnSHHGElHyjdgRD6Y6AfJqHOZvgsfPl2baIF5IrS3-O3hHHfc0G35qRXPAnhGfA9vpPRCKbsYKZ6hyxoWvXsy7yM5psiLL7OSqzoepNpER9drkHaK2xOfod1BRDcQieLXmxHd4YSBrhKyZ6EUPLu_8zhWUNTqgDzTJU33CC9sNYB8foIg6frCj9_2VCuOgmBZn7NuJ8nP00-8aFHWbOT-qsTYNCd1rIQ5yuvv07ko2gaIrax3zlIbhDdZR_l78b4s6ygcKsh4NlzI1jcKnQdNVlp--SJCHJv_9-fEfXqNZ82WGEKFmlzG-4NOow"
+          },
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "enabled": true,
+            "name": "",
+            "value": ""
+          }
+        ],
+        "method": "GET",
+        "name": "Get current user details",
+        "sortPriority": -0.0003,
+        "url": "http://localhost:8080/auth/user",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_eVk7nNDWdu",
+        "createdAt": "2025-03-20T17:49:18",
+        "updatedAt": "2025-03-21T09:12:59",
+        "workspaceId": "wk_CLTnIFBJH0",
+        "folderId": "fl_gDm6xMd8vM",
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n    \"email\": \"test1@gmail.com\",\n    \"password\": \"rakim123\"\n}\n"
+        },
+        "bodyType": "application/json",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "method": "POST",
+        "name": "Login User",
+        "sortPriority": -0.0002,
+        "url": "http://localhost:8080/auth/login/",
+        "urlParameters": []
+      },
+      {
+        "model": "http_request",
+        "id": "rq_ET2J9l9PoW",
+        "createdAt": "2025-03-18T18:07:11",
+        "updatedAt": "2025-03-21T09:12:49",
+        "workspaceId": "wk_CLTnIFBJH0",
+        "folderId": "fl_gDm6xMd8vM",
+        "authentication": {},
+        "authenticationType": null,
+        "body": {
+          "text": "{\n    \"email\": \"test1@gmail.com\",\n    \"password\": \"rakim123\"\n}\n"
+        },
+        "bodyType": "application/json",
+        "headers": [
+          {
+            "enabled": true,
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "method": "POST",
+        "name": "Register User",
+        "sortPriority": -0.0001,
+        "url": "http://localhost:8080/auth/register/",
+        "urlParameters": []
+      }
+    ],
+    "grpcRequests": []
+  }
+}

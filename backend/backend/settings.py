@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'quiz',
     'userAuth',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -146,4 +147,11 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],  # Remove DRF auth
+}
+SWAGGER_SETTINGS = {
+    'DEFAULT_API_URL': 'http://localhost:8080',
+    'USE_SESSION_AUTH': False,                 # Disable session auth
+    'JSON_EDITOR': True,                       # Enable JSON editor
+    'SHOW_REQUEST_HEADERS': True,              # Show request headers
+    'VALIDATOR_URL': None,                     # Disable validator to prevent errors
 }

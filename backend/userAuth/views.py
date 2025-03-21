@@ -224,3 +224,45 @@ def update_total_marks(request):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+@api_view(['POST'])
+def update_bookmarked_questions(request):
+    """
+    Update the `bookmarked_questions` of a Firestore user document.
+    Creates the field if it doesn't exist and avoids duplicates.
+    """
+    try:
+        uid = request.firebaseUser['user_id']
+        db = firestore.client()
+        user_ref = db.collection('users').document(uid)
+
+        # ✅ Get request data
+        data = json.loads(request.body)
+        new_question = data.get('question', {})
+
+        if not new_question:
+            return JsonResponse({"error": "No question provided"}, status=400)
+
+        # ✅ Check if the user document exists
+        user_doc = user_ref.get()
+        if not user_doc.exists:
+            return JsonResponse({"error": "User not found"}, status=404)
+
+        # ✅ Fetch current data or initialize the field
+        user_data = user_doc.to_dict()
+        questions = user_data.get('bookmarked_questions', [])
+
+        # ✅ Add new question while avoiding duplicates
+        if new_question not in questions:
+            questions.append(new_question)
+
+        # ✅ Update Firestore document
+        user_ref.update({'bookmarked_questions': questions})
+
+        return JsonResponse({
+            "message": "Bookmarked questions updated successfully",
+            "questions": questions
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
