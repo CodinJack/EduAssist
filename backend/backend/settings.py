@@ -58,10 +58,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'quiz',
-    'authjwt',
+    'userAuth',
 ]
-
-AUTH_USER_MODEL = 'authjwt.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -71,7 +69,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'authjwt.middleware.FirebaseAuthMiddleware',
+    'userAuth.middleware.FirebaseAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -94,7 +92,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-
+FIREBASE_ADMIN_CREDENTIAL = 'backend/userAuth/firebase-adminsdk.json'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 

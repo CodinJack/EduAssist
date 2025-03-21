@@ -7,4 +7,4 @@ backend/quiz/__pycache__
 .env
 .env.local
 firebaseConfig.ts
-**/__pycache__
+**/__pycache__/
