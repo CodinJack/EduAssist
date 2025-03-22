@@ -12,34 +12,55 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formVisible, setFormVisible] = useState(true); // Prevents undefined error
+  const [message, setMessage] = useState(""); // For showing registration success message
   const router = useRouter();
 
   const handleInputChange = (e) => {
     setFormState({ ...formState, [e.target.name]: e.target.value });
   };
 
+  // Function to validate email format
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Function to check if password length is at least 8 characters
+  const isValidPassword = (password) => {
+    return password.length >= 8;
+  };
+
   const handleAuth = async (e) => {
-    e.preventDefault(); // Prevents default form submission
+    e.preventDefault();
     setLoading(true);
+    setMessage(""); // Clear previous messages
+
     try {
       if (isRegistering) {
         await register(formState.email, formState.password);
+        setMessage("Registration successful! Please log in with the same credentials.");
+        setIsRegistering(false); // Switch to login mode
       } else {
         await login(formState.email, formState.password);
+        router.push("/dashboard");
       }
-      router.push("/dashboard");
     } catch (error) {
       console.error("Auth Error:", error);
+      setMessage("Authentication failed. Please try again.");
     }
+    
     setLoading(false);
   };
 
   const toggleAuthMode = () => {
     setIsRegistering((prev) => !prev);
+    setMessage(""); // Clear message when switching modes
   };
 
-  const isFormComplete = formState.email && formState.password && (!isRegistering);
+  // Enable form submission only if email is valid and password is long enough
+  const isFormComplete =
+    isValidEmail(formState.email) &&
+    isValidPassword(formState.password);
 
   return (
     <div className="flex min-h-screen w-full overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -47,12 +68,9 @@ const AuthPage = () => {
       <div className="hidden lg:flex w-1/2 p-8 items-center justify-center relative">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-indigo-700/90 opacity-90" />
 
-        <div className={`relative w-full max-w-2xl text-white z-10 ${formVisible ? 'opacity-100 translate-x-0 transition-all duration-700 ease-out' : 'opacity-0 -translate-x-10'}`}>
+        <div className="relative w-full max-w-2xl text-white z-10">
           <div className="space-y-6">
             <div className="space-y-2">
-              <div className="inline-block px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-sm font-medium text-white mb-2">
-                Premium Experience
-              </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
                 Design that puts <br /> experience first
               </h1>
@@ -60,28 +78,15 @@ const AuthPage = () => {
                 Join our platform for a seamless experience that prioritizes simplicity, beauty, and functionality.
               </p>
             </div>
-
-            <div className="pt-8">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="p-5 rounded-xl bg-white/10 backdrop-blur-sm">
-                  <h3 className="font-semibold text-lg mb-2">Intuitive Design</h3>
-                  <p className="text-white/80">Every element carefully crafted with purpose and clarity.</p>
-                </div>
-                <div className="p-5 rounded-xl bg-white/10 backdrop-blur-sm">
-                  <h3 className="font-semibold text-lg mb-2">Thoughtful Details</h3>
-                  <p className="text-white/80">Premium experience in every interaction across the platform.</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Right Side (Form Section) */}
       <div className="flex w-full lg:w-1/2 px-6 sm:px-8 md:px-12 justify-center items-center">
-        <div className={`w-full max-w-md transition-all duration-500 ease-in-out ${formVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className="w-full max-w-md">
           <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-white/20">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 {isRegistering ? "Create your account" : "Welcome back"}
               </h2>
@@ -91,6 +96,8 @@ const AuthPage = () => {
                   : "Sign in to access your account"}
               </p>
             </div>
+
+            {message && <p className="text-center text-sm text-green-600">{message}</p>}
 
             <form onSubmit={handleAuth} className="space-y-5">
               <div className="space-y-1.5">
@@ -106,6 +113,9 @@ const AuthPage = () => {
                   value={formState.email}
                   onChange={handleInputChange}
                 />
+                {!isValidEmail(formState.email) && formState.email.length > 0 && (
+                  <p className="text-red-600 text-sm">Enter a valid email</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -121,12 +131,17 @@ const AuthPage = () => {
                   value={formState.password}
                   onChange={handleInputChange}
                 />
+                {formState.password.length > 0 && !isValidPassword(formState.password) && (
+                  <p className="text-red-600 text-sm">Password must be at least 8 characters</p>
+                )}
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
-                  className={`w-full py-3.5 font-medium rounded-lg bg-blue-600 text-white ${!isFormComplete && !loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  className={`w-full py-3.5 font-medium rounded-lg bg-blue-600 text-white ${
+                    !isFormComplete || loading ? 'opacity-70 cursor-not-allowed' : ''
+                  }`}
                   disabled={loading || !isFormComplete}
                 >
                   {loading ? "Processing..." : isRegistering ? "Create account" : "Sign in"}
@@ -134,7 +149,7 @@ const AuthPage = () => {
               </div>
             </form>
 
-            <div className="mt-8 pt-4 text-center border-t border-gray-200">
+            <div className="mt-6 text-center border-t border-gray-200 pt-4">
               <p className="text-gray-600">
                 {isRegistering ? "Already have an account?" : "Don't have an account?"}
                 <button className="ml-1.5 text-blue-600 font-medium hover:underline" onClick={toggleAuthMode} disabled={loading}>
