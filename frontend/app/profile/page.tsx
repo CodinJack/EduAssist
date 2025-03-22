@@ -1,36 +1,52 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BarChart, List, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Sidebar from "@/components/dashboard/Sidebar";
 import Image from "next/image";
-
-// Mock User Data
-const user = {
-  name: "Jai Khanna",
-  email: "jai.khanna@example.com",
-  profilePic: "/default.png", 
-};
-
-// Mock Quiz Data
-const quizHistory = [
-  { id: 1, topic: "Algorithms", score: 80 },
-  { id: 2, topic: "Databases", score: 65 },
-  { id: 3, topic: "Math", score: 50 },
-  { id: 4, topic: "Networking", score: 75 },
-  { id: 5, topic: "Data Structures", score: 40 },
-];
-
-// Calculate Stats
-const totalQuizzes = quizHistory.length;
-const averageScore = Math.round(
-  quizHistory.reduce((sum, quiz) => sum + quiz.score, 0) / totalQuizzes
-);
-const weakTopics = quizHistory.filter((quiz) => quiz.score < 60);
-const weakTopicsCount = weakTopics.length;
+import Cookies from "js-cookie";
 
 const ProfilePage = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = Cookies.get("token"); // Get token from cookies
+
+      if (!token) {
+        setError("User not authenticated");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:8000/auth/user", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        const data = await response.json();
+        setUser(data.details.firestore_user);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -42,7 +58,7 @@ const ProfilePage = () => {
         {/* Profile Header */}
         <div className="flex items-center gap-6 bg-white p-6 rounded-lg shadow-md">
           <Image
-            src={user.profilePic}
+            src="/default.png"
             alt="Profile Picture"
             width={80}
             height={80}
@@ -50,39 +66,38 @@ const ProfilePage = () => {
             priority
           />
           <div>
-            <h1 className="text-2xl font-bold text-blue-600">{user.name}</h1>
-            <p className="text-gray-600">{user.email}</p>
+            <h1 className="text-2xl font-bold text-blue-600">{user.email}</h1>
+            <p className="text-gray-600">User ID: {user.userID}</p>
           </div>
         </div>
 
         {/* Quiz Performance Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          
           {/* Total Quizzes */}
           <Card className="bg-white shadow-sm border border-lime-400">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-600">
-                <List size={20} /> Quizzes Taken
+                <List size={20} /> Quizzes Attempted
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{totalQuizzes}</p>
+              <p className="text-2xl font-semibold">{user.number_of_tests_attempted}</p>
             </CardContent>
           </Card>
 
-          {/* Average Score */}
+          {/* Total Marks */}
           <Card className="bg-white shadow-sm border border-blue-600">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lime-400">
-                <BarChart size={20} /> Average Score
+                <BarChart size={20} /> Total Marks
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{averageScore}%</p>
+              <p className="text-2xl font-semibold">{user.total_marks}</p>
             </CardContent>
           </Card>
 
-          {/* Number of Weak Topics */}
+          {/* Weak Topics Count */}
           <Card className="bg-white shadow-sm border border-lime-400">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-600">
@@ -90,50 +105,25 @@ const ProfilePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className={`text-2xl font-semibold text-black`}>
-                {weakTopicsCount}
-              </p>
+              <p className="text-2xl font-semibold text-black">{user.weak_topics.length}</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Quiz History Section */}
+        {/* Weak Topics */}
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Quiz History</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Weak Topics</h2>
           <div className="bg-white shadow-sm rounded-lg p-6">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b text-blue-600">
-                  <th className="pb-2">Topic</th>
-                  <th className="pb-2">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quizHistory.map((quiz) => (
-                  <tr key={quiz.id} className="border-b">
-                    <td className="py-2">{quiz.topic}</td>
-                    <td className={`py-2 font-semibold ${quiz.score < 60 ? "text-red-500" : "text-green-600"}`}>
-                      {quiz.score}%
-                    </td>
-                  </tr>
+            {user.weak_topics.length > 0 ? (
+              <ul className="list-disc ml-5">
+                {user.weak_topics.map((topic, index) => (
+                  <li key={index} className="text-red-500">{topic}</li>
                 ))}
-              </tbody>
-            </table>
+              </ul>
+            ) : (
+              <p className="text-gray-600">No weak topics found.</p>
+            )}
           </div>
-        </div>
-
-        {/* Performance Summary */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Performance Summary</h2>
-          <Card className="bg-white shadow-sm border border-blue-600 p-6">
-            <p className="text-gray-700">
-              {averageScore >= 75
-                ? "You're doing great! Keep up the consistency."
-                : averageScore >= 50
-                ? "Good job! But there's room for improvement."
-                : "Your scores are low. Focus on weak topics and practice more!"}
-            </p>
-          </Card>
         </div>
       </div>
     </div>

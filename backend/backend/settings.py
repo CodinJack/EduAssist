@@ -61,8 +61,7 @@ INSTALLED_APPS = [
     'quiz',
     'userAuth',
     'drf_yasg',
-    'practice'
-    'authjwt',
+    'practice',
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -76,7 +75,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'userAuth.middleware.FirebaseAuthMiddleware',
     "corsheaders.middleware.CorsMiddleware",
-    'authjwt.middleware.FirebaseAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'

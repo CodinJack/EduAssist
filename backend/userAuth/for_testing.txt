@@ -10,7 +10,6 @@ curl -X POST 'http://localhost:8080/auth/register/' \
     "password": "rakim123"
 }
 '
-
 then for login:
 curl -X POST 'http://localhost:8080/auth/login/' \
   --header 'Content-Type: application/json' \

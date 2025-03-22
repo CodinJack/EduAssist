@@ -18,9 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Sidebar from "@/components/dashboard/Sidebar";
+import Sidebar from "@/components/dashboard/SideBar";
 import {createQuiz, getAllQuizzes, getQuizById} from "@/services/quizService"; // Importing the service
-
+import Cookies from "js-cookie";
 const QuizList = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState("all");
@@ -44,6 +44,22 @@ const QuizList = () => {
 
     fetchQuizzes();
   }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = Cookies.get("token");
+      if (!token) {
+        setError("User not authenticated");
+        setLoading(false);
+        return;
+      }
+    };
+    checkAuth();
+  }, []);
+
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
+
 
   const getDifficultyColor = (difficulty: string) => {
     const colors: Record<string, string> = {
