@@ -100,7 +100,6 @@ def login_user(request):
             })
         else:
             return JsonResponse(response.json(), status=401)
-
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
@@ -109,10 +108,23 @@ def get_user(request):
     """
     Get the current authenticated Firebase user.
     """
-    uid = request.firebaseUser['user_id']
-    print(get_user_by_uid(uid))
+    print("🛠️ Checking Firebase authentication...")
+
+    if not hasattr(request, "firebaseUser") or request.firebaseUser is None:
+        print("❌ Unauthorized request: No Firebase user found")
+        return Response({"error": "Unauthorized - Firebase token is missing or invalid"}, status=401)
+
+    uid = request.firebaseUser.get('user_id')  # Use .get() to avoid crashes
+    email = request.firebaseUser.get('email')
+    
+    if not uid:
+        print("❌ Unauthorized: Missing user ID in token")
+        return Response({"error": "Unauthorized - Invalid Firebase token"}, status=401)
+
+    print("✅ Authenticated Firebase user:", uid, email)
+    
     return Response({
-        "details": get_user_by_uid(uid),
+        "details": get_user_by_uid(uid),  # Ensure this function handles missing users
     })
 
 
@@ -145,14 +157,11 @@ def get_user_by_uid(uid):
             },
             "firestore_user": user_data
         }
-
-        # Pretty-print the combined result
-        print(json.dumps(result, indent=4, default=str))
-
         return result
 
     except Exception as e:
         return {"error": str(e)}
+
 
 @api_view(['POST'])
 def update_weak_topics(request):

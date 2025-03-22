@@ -26,28 +26,31 @@ const menuItems = [
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const pathname = usePathname();
-  const { fetchUser, logout } = useAuth(); 
+  const { fetchUser, logout } = useAuth();
   const router = useRouter();
   const [user, setUser] = useState(null);
 
-  // Function to fetch user data
+  // Fetch user data when component mounts
   useEffect(() => {
     const handleUserDataFetch = async () => {
+      if (!fetchUser) return;
+
       try {
         const userData = await fetchUser();
-        setUser(userData);
+        if (userData) setUser(userData);
+        console.log(userData);
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       }
     };
 
     handleUserDataFetch();
-  }, []);
+  }, [fetchUser]);
 
   // Logout function
   const handleLogout = async () => {
     try {
-      await logout(); 
+      await logout();
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -123,7 +126,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-sm font-medium text-gray-900 truncate">
-                {user ? user.email || "User" : "Loading..."}
+                {user?.name || "User"}
               </h4>
               <p className="text-xs text-gray-500 truncate">
                 {user ? "Student" : "Loading..."}

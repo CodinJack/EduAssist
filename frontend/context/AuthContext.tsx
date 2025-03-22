@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const idToken = Cookies.get("idToken"); // Check if token exists in cookies
       if (idToken) {
         const userData = await getUserData();
-        console.log("Fetched User Data:", userData);
+        // console.log("Fetched User Data:", userData);
         if (userData) setUser(userData);
       }
       setLoading(false); // ✅ Set loading to false once done
