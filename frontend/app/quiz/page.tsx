@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Sidebar from "@/components/dashboard/SideBar";
+import Sidebar from "@/components/dashboard/Sidebar";
 import {createQuiz, getAllQuizzes, getQuizById} from "@/services/quizService"; // Importing the service
 import Cookies from "js-cookie";
 const QuizList = () => {

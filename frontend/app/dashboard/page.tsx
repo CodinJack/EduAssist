@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "@/components/dashboard/SideBar";
+import Sidebar from "@/components/dashboard/Sidebar";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { StudentProgress } from "@/components/dashboard/StudentProgress";
 import { Users, BookOpen, Clock, Award } from "lucide-react";
@@ -46,12 +46,13 @@ export default function Home() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = Cookies.get("token"); // Get token from cookies
+      const token = Cookies.get("idToken"); // Get token from cookies
       if (!token) {
         setError("User not authenticated");
         setLoading(false);
         return;
       }
+      setLoading(false);
     };
     checkAuth();
   }, []);

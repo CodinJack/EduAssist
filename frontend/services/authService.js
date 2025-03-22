@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 // ✅ LOGIN FUNCTION
 export const loginUser = async (email, password) => {
     try {
-        const response = await fetch("http://localhost:8000/auth/login/", {
+        const response = await fetch("http://127.0.0.1:8000/auth/login/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -11,6 +11,8 @@ export const loginUser = async (email, password) => {
         });
 
         const data = await response.json();
+        console.log("Login Response:", data);  // Debugging
+
         if (response.ok) {
             Cookies.set("idToken", data.idToken, { secure: true, sameSite: "Strict" }); // Store token in cookie
             console.log("Login successful:", data);
@@ -26,7 +28,7 @@ export const loginUser = async (email, password) => {
 // ✅ REGISTER FUNCTION
 export const registerUser = async (email, password) => {
     try {
-        const response = await fetch("http://localhost:8000/auth/register/", {
+        const response = await fetch("http://127.0.0.1:8000/auth/register/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -45,13 +47,27 @@ export const registerUser = async (email, password) => {
     }
 };
 
-// ✅ GET USER FUNCTION
+
+function getCookie(name) {
+    const cookies = document.cookie.split("; ");
+    for (let cookie of cookies) {
+        const [key, value] = cookie.split("=");
+        if (key === name) return value;
+    }
+    return null;
+}
+
 export const getUserData = async () => {
     try {
-        const response = await fetch("http://localhost:8000/auth/user/", {
+        const idToken = getCookie("idToken"); 
+
+        const response = await fetch("http://127.0.0.1:8000/auth/user/", {
             method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include", // Send cookies to backend
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": idToken ? `Bearer ${idToken}` : ""
+            },        
+            credentials: "include",
         });
 
         const data = await response.json();

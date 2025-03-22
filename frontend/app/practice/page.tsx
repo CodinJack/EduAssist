@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Search, Clock, BookOpen, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Sidebar from "@/components/dashboard/Sidebar";
+import Sidebar from "@/components/dashboard/SideBar";
 import {createPracticeQuestions} from "@/services/practiceService"; 
 
 const weakTags = ["Data Structures", "Algorithms", "Databases", "Math", "Networking"];

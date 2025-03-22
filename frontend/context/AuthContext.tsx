@@ -8,19 +8,19 @@ const AuthContext = createContext<any>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
+  const fetchUser = async () => {
       const idToken = Cookies.get("idToken"); // Check if token exists in cookies
       if (idToken) {
         const userData = await getUserData();
+        console.log("Fetched User Data:", userData);
         if (userData) setUser(userData);
       }
-      setLoading(false);
+      setLoading(false); // ✅ Set loading to false once done
     };
-
-    fetchUser();
-  }, []);
+  
+    useEffect(() => {
+      fetchUser(); // ✅ Fetch user on mount
+    }, []);
 
   const login = async (email: string, password: string) => {
     const response = await loginUser(email, password);
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, fetchUser, login, register, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );

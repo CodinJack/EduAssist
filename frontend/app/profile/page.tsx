@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { BarChart, List, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Sidebar from "@/components/dashboard/Sidebar";
+import Sidebar from "@/components/dashboard/SideBar";
 import Image from "next/image";
 import Cookies from "js-cookie";
 
@@ -14,7 +14,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = Cookies.get("token"); // Get token from cookies
+      const token = Cookies.get("authToken"); // Get token from cookies
 
       if (!token) {
         setError("User not authenticated");

@@ -89,7 +89,8 @@ def login_user(request):
         }
 
         response = requests.post(firebase_url, data=json.dumps(payload))
-        
+        print(response.status_code, response.text)  # Debugging
+
         if response.status_code == 200:
             result = response.json()
             return JsonResponse({

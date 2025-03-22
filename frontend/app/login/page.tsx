@@ -28,7 +28,7 @@ const AuthPage = () => {
       } else {
         await login(formState.email, formState.password);
       }
-      router.push("/profile");
+      router.push("/dashboard");
     } catch (error) {
       console.error("Auth Error:", error);
     }

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import Sidebar from "@/components/dashboard/Sidebar";
+import Sidebar from "@/components/dashboard/SideBar";
 import { motion } from "framer-motion";
 import { Trophy, Award, Star, ArrowUp, ArrowDown } from "lucide-react";
 

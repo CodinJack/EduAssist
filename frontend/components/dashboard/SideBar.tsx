@@ -13,10 +13,10 @@ import {
   Bell,
   LogOut,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: FileText, label: "Practice", path: "/practice" },
   { icon: FileText, label: "Quizzes", path: "/quiz" },
   { icon: FileText, label: "Tutorial", path: "/tutorial" },
@@ -28,7 +28,23 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const pathname = usePathname();
   const { fetchUser, logout } = useAuth(); 
   const router = useRouter();
-  const {user, setUser} = useState([]);
+  const [user, setUser] = useState(null);
+
+  // Function to fetch user data
+  useEffect(() => {
+    const handleUserDataFetch = async () => {
+      try {
+        const userData = await fetchUser();
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
+    handleUserDataFetch();
+  }, []);
+
+  // Logout function
   const handleLogout = async () => {
     try {
       await logout(); 
@@ -107,9 +123,11 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-sm font-medium text-gray-900 truncate">
-                {user ? user.username || "User" : "Guest"}
+                {user ? user.email || "User" : "Loading..."}
               </h4>
-              <p className="text-xs text-gray-500 truncate">Administrator</p>
+              <p className="text-xs text-gray-500 truncate">
+                {user ? "Student" : "Loading..."}
+              </p>
             </div>
             <Button
               variant="ghost"

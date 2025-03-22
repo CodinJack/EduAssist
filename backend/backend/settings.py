@@ -79,9 +79,18 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-CORS_ALLOW_ALL_ORIGINS = True  # For development, allows all origins (change for production)
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]  # Allow necessary methods
-CORS_ALLOW_HEADERS = ["*"]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True  # Set to True for testing, but restrict in production
+
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+]
 
 TEMPLATES = [
     {

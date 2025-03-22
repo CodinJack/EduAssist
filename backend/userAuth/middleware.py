@@ -14,7 +14,7 @@ class FirebaseAuthMiddleware(MiddlewareMixin):
         # Get the token from Authorization header
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            request.user = {'userID': '-1','email': 'invalid@mail.com'}
+            request.firebaseUser = {'user_id': '-1','email': 'invalid@mail.com'}
             return None
 
         id_token = auth_header.split(" ")[1]
