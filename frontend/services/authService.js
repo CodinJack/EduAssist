@@ -48,35 +48,25 @@ export const registerUser = async (email, password) => {
 };
 
 
-function getCookie(name) {
-    const cookies = document.cookie.split("; ");
-    for (let cookie of cookies) {
-        const [key, value] = cookie.split("=");
-        if (key === name) return value;
-    }
-    return null;
-}
+export const getUserData = async () => {
+    const token = Cookies.get("idToken");
+    if (!token) return null;
 
-export const getUserData = async (idToken) => {
     try {
         const response = await fetch("http://127.0.0.1:8000/auth/user/", {
             method: "GET",
-            headers: { 
+            headers: {
+                Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${idToken}`
-            },        
-            credentials: "include",
+            },
         });
 
-        const data = await response.json();
-        if (response.ok) {
-            console.log("User data:", data);
-            return data;
-        } else {
-            console.error("Failed to fetch user data:", data);
-        }
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        return await response.json();
     } catch (error) {
         console.error("Error fetching user data:", error);
+        return null;
     }
 };
 

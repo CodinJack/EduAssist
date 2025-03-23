@@ -163,6 +163,28 @@ def get_user_by_uid(uid):
         return {"error": str(e)}
 
 
+@api_view(['GET'])
+def get_all_users(request):
+    """
+    Retrieve all users from the Firestore 'users' collection.
+    """
+    try:
+        db = firestore.client()
+        users_ref = db.collection('users')
+        users = users_ref.stream()
+
+        users_list = []
+        for user in users:
+            user_data = user.to_dict()
+            user_data['userID'] = user.id 
+            users_list.append(user_data)
+
+        return Response({"users": users_list}, status=200)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
 @api_view(['POST'])
 def update_weak_topics(request):
     """
