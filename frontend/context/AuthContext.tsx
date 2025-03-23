@@ -30,13 +30,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
   }, [authKey]); 
 
-  
   const login = async (email: string, password: string) => {
     const response = await loginUser(email, password);
     if (response) {
       const userData = await getUserData();
       setUser(userData);
-      setAuthKey((prev) => prev ); // 🔥 Force re-render
+      setAuthKey((prev) => prev + 1); // 🔥 Force re-render
     }
   };
 

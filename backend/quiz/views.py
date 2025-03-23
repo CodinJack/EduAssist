@@ -63,7 +63,6 @@ def get_quiz(request, quiz_id):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-
 def submit_quiz(request, quiz_id):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request method"}, status=400)

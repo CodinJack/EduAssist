@@ -4,18 +4,16 @@ import { db, collection, addDoc, getDocs, doc, getDoc } from "../firebaseConfig"
 const QUIZZES_COLLECTION = "quizzes";
 
 // Create a new quiz
-export const createQuiz = async ({ title, subject, questionCount, timeLimit, difficulty, dueDate }) => {
+export const createQuiz = async ({ title, difficulty, questionCount, timeLimit }) => {
   try {
     const quizRef = await addDoc(collection(db, QUIZZES_COLLECTION), {
       title,
-      subject,
       questionCount,
       timeLimit,
       difficulty,
-      dueDate,
       createdAt: new Date().toISOString(),
     });
-    return { id: quizRef.id, title, subject, questionCount, timeLimit, difficulty, dueDate };
+    return { id: quizRef.id, title, questionCount, timeLimit, difficulty };
   } catch (error) {
     console.error("Error creating quiz:", error);
     throw error;
