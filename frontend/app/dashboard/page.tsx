@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "@/components/dashboard/Sidebar";
+import Sidebar from "@/components/dashboard/SideBar";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { StudentProgress } from "@/components/dashboard/StudentProgress";
 import { Users, BookOpen, Clock, Award } from "lucide-react";

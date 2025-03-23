@@ -6,47 +6,15 @@ import Sidebar from "@/components/dashboard/SideBar";
 import Image from "next/image";
 import Cookies from "js-cookie";
 
+import { useAuth } from "@/context/AuthContext";
 const ProfilePage = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const token = Cookies.get("authToken"); // Get token from cookies
-
-      if (!token) {
-        setError("User not authenticated");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch("http://localhost:8000/auth/user", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch user data");
-
-        const data = await response.json();
-        setUser(data.details.firestore_user);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  const { user } = useAuth();
   if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
+
+  const authUser = user.details.auth_user;
+  const firestoreUser = user.details.firestore_user;
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -66,8 +34,9 @@ const ProfilePage = () => {
             priority
           />
           <div>
-            <h1 className="text-2xl font-bold text-blue-600">{user.email}</h1>
-            <p className="text-gray-600">User ID: {user.userID}</p>
+            <h1 className="text-2xl font-bold text-blue-600">
+              {authUser.email}
+            </h1>
           </div>
         </div>
 
@@ -81,7 +50,9 @@ const ProfilePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{user.number_of_tests_attempted}</p>
+              <p className="text-2xl font-semibold">
+                {firestoreUser?.number_of_tests_attempted ?? 0}
+              </p>
             </CardContent>
           </Card>
 
@@ -93,7 +64,9 @@ const ProfilePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">{user.total_marks}</p>
+              <p className="text-2xl font-semibold">
+                {firestoreUser?.total_marks ?? 0}
+              </p>
             </CardContent>
           </Card>
 
@@ -105,7 +78,9 @@ const ProfilePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold text-black">{user.weak_topics.length}</p>
+              <p className="text-2xl font-semibold text-black">
+                {firestoreUser?.weak_topics?.length ?? 0}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -114,9 +89,9 @@ const ProfilePage = () => {
         <div className="mt-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Weak Topics</h2>
           <div className="bg-white shadow-sm rounded-lg p-6">
-            {user.weak_topics.length > 0 ? (
+            {firestoreUser?.weak_topics?.length > 0 ? (
               <ul className="list-disc ml-5">
-                {user.weak_topics.map((topic, index) => (
+                {firestoreUser.weak_topics.map((topic, index) => (
                   <li key={index} className="text-red-500">{topic}</li>
                 ))}
               </ul>

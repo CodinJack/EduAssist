@@ -1,19 +1,11 @@
 "use client";
-import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
+import Cookies from "js-cookie"; 
 import { Button } from "@/components/ui/button";
-import {
-  LayoutDashboard,
-  User,
-  Users,
-  FileText,
-  ChevronLeft,
-  GraduationCap,
-  Bell,
-  LogOut,
-} from "lucide-react";
+import { LayoutDashboard, User, Users, FileText, ChevronLeft, GraduationCap, Bell, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext"; // Use existing Auth Context
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -26,31 +18,13 @@ const menuItems = [
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const pathname = usePathname();
-  const { fetchUser, logout } = useAuth();
   const router = useRouter();
-  const [user, setUser] = useState(null);
-
-  // Fetch user data when component mounts
-  useEffect(() => {
-    const handleUserDataFetch = async () => {
-      if (!fetchUser) return;
-
-      try {
-        const userData = await fetchUser();
-        if (userData) setUser(userData);
-        console.log(userData);
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-      }
-    };
-
-    handleUserDataFetch();
-  }, [fetchUser]);
-
+  const { user, logout } = useAuth(); 
+  
   // Logout function
   const handleLogout = async () => {
     try {
-      await logout();
+      logout();
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -58,11 +32,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   };
 
   return (
-    <div
-      className={`h-screen bg-white transition-all duration-300 ease-in-out ${
-        collapsed ? "w-20" : "w-64"
-      } fixed top-0 left-0 flex flex-col border-r border-gray-200`}
-    >
+    <div className={`h-screen bg-white transition-all duration-300 ease-in-out ${collapsed ? "w-20" : "w-64"} fixed top-0 left-0 flex flex-col border-r border-gray-200`}>
+      
       {/* Sidebar Header */}
       <div className="h-16 p-7 mt-5 flex items-center gap-3">
         <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600 text-white">
@@ -88,27 +59,15 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               <Button
                 key={item.label}
                 variant={isActive ? "default" : "ghost"}
-                className={`w-full h-10 justify-start ${
-                  isActive
-                    ? "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                    : "hover:bg-gray-50 text-gray-600 hover:text-blue-600"
-                } transition-all duration-200 relative group`}
+                className={`w-full h-10 justify-start ${isActive ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "hover:bg-gray-50 text-gray-600 hover:text-blue-600"} transition-all duration-200 relative group`}
                 onClick={() => router.push(item.path)}
               >
                 <div className="flex items-center min-w-[2rem] justify-center">
-                  <item.icon
-                    className={`w-5 h-5 ${
-                      isActive
-                        ? "text-blue-600"
-                        : "text-gray-400 group-hover:text-blue-600"
-                    }`}
-                  />
+                  <item.icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-400 group-hover:text-blue-600"}`} />
                 </div>
                 {!collapsed && (
                   <div className="flex flex-1 items-center">
-                    <span className={isActive ? "font-medium" : "font-normal"}>
-                      {item.label}
-                    </span>
+                    <span className={isActive ? "font-medium" : "font-normal"}>{item.label}</span>
                   </div>
                 )}
               </Button>
@@ -125,18 +84,15 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               <User className="w-5 h-5 text-gray-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-medium text-gray-900 truncate">
-                {user?.name || "User"}
-              </h4>
-              <p className="text-xs text-gray-500 truncate">
-                {user ? "Student" : "Loading..."}
-              </p>
+            <h4 className="text-sm font-medium text-gray-900 truncate">
+              {user ? user.details.auth_user.email : "User"}
+            </h4>
+            <p className="text-xs text-gray-500 truncate">
+              {user ? user.details.firestore_user.number_of_tests_attempted > 0 ? "Active Student" : "New User" : "Not logged in"}
+            </p>
+
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-shrink-0 hover:bg-gray-100 text-gray-400"
-            >
+            <Button variant="ghost" size="sm" className="flex-shrink-0 hover:bg-gray-100 text-gray-400">
               <Bell className="w-4 h-4" />
             </Button>
           </div>
@@ -151,12 +107,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
       {/* Logout Button */}
       <div className="h-14 p-4 border-t border-gray-200">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full flex items-center justify-start text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-all duration-200"
-          onClick={handleLogout}
-        >
+        <Button variant="ghost" size="sm" className="w-full flex items-center justify-start text-gray-600 hover:bg-gray-50 hover:text-red-600 transition-all duration-200" onClick={handleLogout}>
           <LogOut className="w-5 h-5 mr-2 text-gray-400 group-hover:text-red-600" />
           {!collapsed && <span>Log Out</span>}
         </Button>
@@ -164,17 +115,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
       {/* Collapse Button */}
       <div className="h-14 p-4 border-t border-gray-200">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full hover:bg-gray-50 text-gray-400"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          <ChevronLeft
-            className={`w-5 h-5 transition-transform duration-300 ${
-              collapsed ? "rotate-180" : ""
-            }`}
-          />
+        <Button variant="ghost" size="sm" className="w-full hover:bg-gray-50 text-gray-400" onClick={() => setCollapsed(!collapsed)}>
+          <ChevronLeft className={`w-5 h-5 transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`} />
         </Button>
       </div>
     </div>

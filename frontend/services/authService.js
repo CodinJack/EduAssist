@@ -57,15 +57,13 @@ function getCookie(name) {
     return null;
 }
 
-export const getUserData = async () => {
+export const getUserData = async (idToken) => {
     try {
-        const idToken = getCookie("idToken"); 
-
         const response = await fetch("http://127.0.0.1:8000/auth/user/", {
             method: "GET",
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": idToken ? `Bearer ${idToken}` : ""
+                "Authorization": `Bearer ${idToken}`
             },        
             credentials: "include",
         });
