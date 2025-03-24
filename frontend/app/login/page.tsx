@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { FiEye, FiEyeOff } from "react-icons/fi"; // Eye icons for show/hide password
 
 const AuthPage = () => {
-  const { login, register , handleGuestLogin } = useAuth();
+  const { login, register, handleGuestLogin } = useAuth();
   const router = useRouter();
 
   const [formState, setFormState] = useState({ email: "", password: "" });
@@ -50,9 +51,9 @@ const AuthPage = () => {
     setMessage("");
   };
 
-  const continueAsGuest = async() => {
+  const continueAsGuest = async () => {
     try {
-      await handleGuestLogin(); // 🔥 this will sign in anonymously + set context
+      await handleGuestLogin();
       localStorage.setItem("guest", "true");
       router.push("/dashboard");
     } catch (err) {
@@ -105,23 +106,32 @@ const AuthPage = () => {
                   value={formState.email}
                   onChange={handleInputChange}
                 />
-                {!isValidEmail(formState.email) && formState.email && (
+                {isRegistering && !isValidEmail(formState.email) && formState.email && (
                   <p className="text-red-600 text-sm">Enter a valid email</p>
                 )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 relative">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  className="w-full px-4 py-3 bg-gray-100/90 border-0 rounded-lg focus:ring-2 focus:ring-blue-500/50"
-                  placeholder="••••••••"
-                  value={formState.password}
-                  onChange={handleInputChange}
-                />
-                {formState.password && !isValidPassword(formState.password) && (
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    className="w-full px-4 py-3 bg-gray-100/90 border-0 rounded-lg focus:ring-2 focus:ring-blue-500/50 pr-10"
+                    placeholder="••••••••"
+                    value={formState.password}
+                    onChange={handleInputChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                  </button>
+                </div>
+                {isRegistering && formState.password && !isValidPassword(formState.password) && (
                   <p className="text-red-600 text-sm">Password must be at least 8 characters</p>
                 )}
               </div>

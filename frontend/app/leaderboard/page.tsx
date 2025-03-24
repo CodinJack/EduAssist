@@ -29,7 +29,7 @@ export default function Leaderboard() {
                     const users = data.users.map((user, index) => ({
                         rank: index + 1,
                         name: user.email.split("@")[0],
-                        score: user.average_marks.toFixed(2),
+                        score: user.total_marks.toFixed(2),
                         avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${user.userID}`, // Avatar fix
                         badge:
                             index === 0

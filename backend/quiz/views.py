@@ -203,8 +203,8 @@ def submit_quiz(request):
         # Calculate new average marks
         new_tests_count = current_tests + 1
         new_total_marks = ((current_total_marks * current_tests) + score_percentage) / new_tests_count
-        new_wrong_tags = [tag for tag, count in wrong_tags.items() if count >= 3]
-        
+        new_wrong_tags = [tag for tag, count in wrong_tags.items() if count >= 2]
+
         # Update user document with new stats
         user_ref.update({
             "number_of_tests_attempted": new_tests_count,

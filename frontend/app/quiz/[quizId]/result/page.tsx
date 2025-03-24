@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Confetti from "react-confetti";
 import { ArrowLeft, Award, BarChart, Brain, Trophy } from "lucide-react";
@@ -22,9 +22,9 @@ const getPerformanceBadge = (percentage) => {
   return "💪";
 };
 
-export default function QuizResult() {
+export default function QuizResult({ params }: { params: Promise<{ quizId: string }> }) {
   const router = useRouter();
-  const { quizId } = router.query;
+  const { quizId } = use(params);
 
   const [quizResult, setQuizResult] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -69,6 +69,8 @@ export default function QuizResult() {
   }, []);
   useEffect(() => {
     const submitQuiz = async () => {
+      if (!userId) return; 
+
       try {
         const response = await fetch(`http://127.0.0.1:8000/api/quizzes/submit_quiz`, {
           method: "POST",
@@ -78,7 +80,6 @@ export default function QuizResult() {
             userId
           }),
         });
-
         if (!response.ok) {
           console.error("Error submitting quiz");
           return;
@@ -86,20 +87,20 @@ export default function QuizResult() {
 
         const resultData = await response.json();
         setQuizResult(resultData);
-
-        // Show confetti if score percentage is 80% or more
+        
         if (resultData.score.percentage >= 80) {
           setShowConfetti(true);
         }
+
       } catch (error) {
         console.error("Error submitting quiz:", error);
       }
     };
 
-    if (quizId) {
+    if (quizId && userId) {
       submitQuiz();
     }
-  }, [quizId]);
+  }, [quizId, userId]);
 
   if (!quizResult) {
     return <p className="text-center text-gray-600 mt-10">Loading results...</p>;

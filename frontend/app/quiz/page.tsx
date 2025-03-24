@@ -205,8 +205,7 @@ const QuizList = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {quizzes
                 .filter((quiz) =>
-                  quiz.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  quiz.title.toLowerCase().includes(searchQuery.toLowerCase())
+                  quiz.topic.toLowerCase().includes(searchQuery.toLowerCase()) 
                 )
                 .map((quiz) => (
                   <Card key={quiz.id} className="shadow-md rounded-lg border hover:shadow-lg transition-all bg-white">

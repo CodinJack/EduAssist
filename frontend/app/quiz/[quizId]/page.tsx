@@ -75,7 +75,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
         
         // Set timer based on quiz timeLimit
         if (data.timeLimit) {
-          setTimeLeft(data.timeLimit);
+          setTimeLeft(data.timeLimit * 60);
         } else {
           setTimeLeft(300); // Default to 5 minutes if no timeLimit specified
         }
@@ -106,20 +106,26 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  const updateAsIAnswer = async (questionIndex, optionId) => {
+  const handleAnswer = async (questionIndex, optionId) => {
     if (!userId) return;
-
+  
+    // Update the local state immediately
+    setAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [questionIndex]: optionId,  // Use questionIndex instead of ID
+    }));
+  
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/quizzes/update_answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          quizId, 
-          questionIndex, 
-          attemptedOption: optionId
+        body: JSON.stringify({
+          quizId,
+          questionIndex,
+          attemptedOption: optionId,
         }),
       });
-      
+  
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Error updating answer:", errorData);
@@ -128,46 +134,26 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
       console.error("Error updating answer:", error);
     }
   };
-
-  const handleAnswer = (questionId, optionId) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
-    updateAsIAnswer(questionId, optionId);
+  
+  const handleExit = async () => {
+    router.push(`/quiz`);
   };
 
-  const submitQuiz = async () => {
-    if (!userId) return;
-
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/quizzes/submit_quiz`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          quizId,
-          userId
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Error submitting quiz:", errorData);
-        return;
-      }
-      
-      router.push(`/quiz/${quizId}/result`);
-    } catch (error) {
-      console.error("Error submitting quiz:", error);
-    }
+  const submitQuiz = async () => {  
+    router.push(`/quiz/${quizId}/result`);
   };
 
   if (!questions.length) return <p>Loading...</p>;
 
   const progress = ((currentIndex + 1) / questions.length) * 100;
   const currentQuestion = questions[currentIndex];
-  const selectedAnswer = answers[currentQuestion.id];
+  const selectedAnswer = answers[currentIndex]; 
 
   // Get option entries from the options object
-  const optionEntries = currentQuestion.options ? 
-    Object.entries(currentQuestion.options) : [];
+  const optionEntries = currentQuestion.options 
+  ? Object.entries(currentQuestion.options).sort((a, b) => a[0].localeCompare(b[0])) 
+  : [];
+
 
   return (
     <div className="bg-slate-50 py-4 px-4 sm:px-4 lg:px-6">
@@ -230,7 +216,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
                       ? "border-blue-600 bg-blue-50"
                       : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
                   }`}
-                  onClick={() => handleAnswer(currentQuestion.id, key)}>
+                  onClick={() => handleAnswer(currentIndex, key)}>
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
@@ -239,7 +225,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
                       {selectedAnswer === key && <CheckCircle2 className="w-4 h-4" />}
                     </div>
                     <span className={`${selectedAnswer === key ? "text-blue-700" : "text-gray-700"}`}>
-                      {key.toUpperCase()}: {value}
+                      {key.toLowerCase()}: {value}
                     </span>
                   </div>
                 </button>
@@ -255,7 +241,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
           </Button>
 
           <div className="flex gap-2">
-            <Button variant="outline" className="text-red-600" onClick={() => setShowExitDialog(true)}>
+            <Button variant="outline" className="text-red-600" onClick={() => handleExit()}>
               Exit Quiz
             </Button>
             <Button onClick={() => (currentIndex < questions.length - 1 ? setCurrentIndex((prev) => prev + 1) : submitQuiz())}>

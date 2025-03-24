@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Sidebar from "@/components/dashboard/SideBar";
 import {createPracticeQuestions} from "@/services/practiceService"; 
-
-const weakTags = ["Data Structures", "Algorithms", "Databases", "Math", "Networking"];
+import { useAuth } from "@/context/AuthContext";
 
 const PracticePage = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState("");
   const [questions, setQuestions] = useState<any[]>([]);
   const router = useRouter();
+  const { user } = useAuth();
+  const weakTags = user.details.firestore_user.weak_topics;
 
   const handleStartPractice = async (topic: string) => {
     if (!topic) return alert("Please enter a topic!");

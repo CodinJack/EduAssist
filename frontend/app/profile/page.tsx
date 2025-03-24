@@ -63,7 +63,7 @@ const ProfilePage = () => {
                     <Card className="bg-white shadow-sm border border-blue-600">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lime-400">
-                                <BarChart size={20} /> Total Marks
+                                <BarChart size={20} /> Average Marks
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
