@@ -134,6 +134,10 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   const currentQuestion = questions[currentIndex];
   const selectedAnswer = answers[currentQuestion.id];
 
+  // Get option entries from the options object
+  const optionEntries = currentQuestion.options ? 
+    Object.entries(currentQuestion.options) : [];
+
   return (
     <div className="bg-slate-50 py-4 px-4 sm:px-4 lg:px-6">
       {/* Header */}
@@ -187,24 +191,24 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
             </div>
 
             <div className="space-y-3">
-              {currentQuestion.options.map((option) => (
+              {optionEntries.map(([key, value]) => (
                 <button
-                  key={option.id}
+                  key={key}
                   className={`w-full p-3 text-left rounded-lg border-2 transition-all duration-200 ${
-                    selectedAnswer === option.id
+                    selectedAnswer === key
                       ? "border-blue-600 bg-blue-50"
                       : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
                   }`}
-                  onClick={() => handleAnswer(currentQuestion.id, option.id)}>
+                  onClick={() => handleAnswer(currentQuestion.id, key)}>
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        selectedAnswer === option.id ? "border-blue-600 bg-blue-600 text-white" : "border-gray-300"
+                        selectedAnswer === key ? "border-blue-600 bg-blue-600 text-white" : "border-gray-300"
                       }`}>
-                      {selectedAnswer === option.id && <CheckCircle2 className="w-4 h-4" />}
+                      {selectedAnswer === key && <CheckCircle2 className="w-4 h-4" />}
                     </div>
-                    <span className={`${selectedAnswer === option.id ? "text-blue-700" : "text-gray-700"}`}>
-                      {option.text}
+                    <span className={`${selectedAnswer === key ? "text-blue-700" : "text-gray-700"}`}>
+                      {key.toUpperCase()}: {value}
                     </span>
                   </div>
                 </button>
