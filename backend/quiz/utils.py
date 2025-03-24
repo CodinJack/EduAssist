@@ -29,15 +29,3 @@ def generate_questions(topic, num_questions, difficulty):
 
     response = model.generate_content(prompt)
     return response.text
-
-def store_test_results(user_id, test_id, weak_tags, score):
-    """
-    Stores test results in Firebase Firestore.
-    """
-    doc_ref = db.collection("users").document(user_id).collection("tests").document(test_id)
-    doc_ref.set({
-        "weak_tags": weak_tags,
-        "score": score,
-        "timestamp": datetime.utcnow()
-    }, merge=True)
-    return f"Test {test_id} stored for user {user_id}"

@@ -1,104 +1,134 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+import firebase_admin
+from firebase_admin import auth, credentials, firestore
 from firebase_config import db
-from .utils import generate_questions, store_test_results
-from django.shortcuts import render
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-@csrf_exempt
+from .utils import generate_questions
+import re
+def extract_json_from_markdown(markdown_text):
+    # Extract JSON block inside triple backticks
+    match = re.search(r'```json([\s\S]*?)```', markdown_text)
 
+    if not match:
+        raise ValueError("No JSON block found in Markdown.")
+
+    try:
+        json_data = json.loads(match.group(1).strip())  # Convert JSON string to Python dict
+        return json_data
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON format.")
+    
+@csrf_exempt
 def create_quiz(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             topic = data.get("topic")
-            num_questions = data.get("num_questions")
+            numQuestions = data.get("numQuestions")
             difficulty = data.get("difficulty")
+            timeLimit = data.get("timeLimit")
+            userId = data.get("userId")
 
-            if not topic or not num_questions or not difficulty:
-                return JsonResponse({"error": "Topic, number of questions, and difficulty are required"}, status=400)
+            if not topic or not numQuestions or not difficulty or not timeLimit or not userId:
+                return JsonResponse({"error": "Missing required fields"}, status=400)
 
-            # Generate questions using Gemini API
-            questions_json = generate_questions(topic, num_questions, difficulty)
-            print(f"Generated Questions: {questions_json}")  # Debugging
-            cleaned_json = questions_json.strip("json").strip("")
+            questions_json = generate_questions(topic, numQuestions, difficulty)
+            questions_json = extract_json_from_markdown(questions_json) 
 
-            try:
-                questions_data = json.loads(cleaned_json)  # Convert string to JSON
-            except json.JSONDecodeError:
-                print("ERROR: Invalid JSON format received from Gemini API")  # Debugging
-                return JsonResponse({"error": "Invalid JSON format received from Gemini API"}, status=500)
 
-            # Store quiz in Firestore
+            # Store quiz in Firestore with userId from frontend
             quiz_data = {
+                "userId": userId,
                 "topic": topic,
-                "num_questions": num_questions,
+                "numQuestions": numQuestions,
                 "difficulty": difficulty,
-                "questions": questions_data
+                "timeLimit": timeLimit,
+                "questions": questions_json,
+                "createdAt": firestore.SERVER_TIMESTAMP
             }
             doc_ref = db.collection("quizzes").add(quiz_data)
 
             return JsonResponse({"id": doc_ref[1].id, "message": "Quiz created successfully"}, status=201)
-        
+
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
+@csrf_exempt
 def get_all_quizzes(request):
     try:
-        quizzes_ref = db.collection("quizzes").get()
+        data = json.loads(request.body)
+        userId = data.get("userId")
+
+        quizzes_ref = db.collection("quizzes").where("userId", "==", userId).get()
         quizzes = [{"id": doc.id, **doc.to_dict()} for doc in quizzes_ref]
         return JsonResponse(quizzes, safe=False, status=200)
-    
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-def get_quiz(request, quiz_id):
+@csrf_exempt
+def get_quiz(request, user_id, quiz_id):
     try:
         doc = db.collection("quizzes").document(quiz_id).get()
-        if not doc.exists:
-            return JsonResponse({"error": "Quiz not found"}, status=404)
+        if not doc.exists or doc.to_dict().get("userId") != user_id:
+            return JsonResponse({"error": "Quiz not found or unauthorized"}, status=404)
         return JsonResponse({"id": doc.id, **doc.to_dict()}, status=200)
-    
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-def submit_quiz(request, quiz_id):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request method"}, status=400)
+@csrf_exempt
+def delete_quiz(request):
+    try:
+        data = json.loads(request.body)
+        id = data.get("id")
+        doc_ref = db.collection("quizzes").document(id)
+        doc = doc_ref.get()
 
-    data = json.loads(request.body)  # Get attempted answers from request
-    user_id = data.get("user_id")  # Assuming user_id is sent in the request
+        if not doc.exists:
+            return JsonResponse({"error": "Quiz not found or unauthorized"}, status=404)
 
-    # Fetch quiz details from Firestore
-    quiz_ref = db.collection("quizzes").document(quiz_id)
-    quiz_doc = quiz_ref.get()
+        doc_ref.delete()
+        return JsonResponse({"message": "Quiz deleted successfully"}, status=200)
 
-    if not quiz_doc.exists:
-        return JsonResponse({"error": "Quiz not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
-    quiz_data = quiz_doc.to_dict()
-    questions = quiz_data.get("questions", [])
+@csrf_exempt
+def update_answer(request, user_id):
+    try:
+        data = json.loads(request.body)
+        quiz_id = data.get("quizId")
+        question_id = data.get("questionId")
+        attempted_option = data.get("attemptedOption")
 
-    # Track wrong answers per tag
-    tag_wrong_count = {}
+        if not quiz_id or not question_id or not attempted_option:
+            return JsonResponse({"error": "Invalid data"}, status=400)
 
-    for question in questions:
-        question_id = str(question["id"])
-        selected_option = data.get(question_id)  # User's selected option
+        # Get the quiz document
+        quiz_ref = db.collection("quizzes").document(quiz_id)
+        quiz_doc = quiz_ref.get()
 
-        # Check if the selected option is correct
-        if selected_option and selected_option != question["correct_option"]:
-            for tag in question["tags"]:  # Tags are stored as a list
-                tag_wrong_count[tag] = tag_wrong_count.get(tag, 0) + 1
+        if not quiz_doc.exists:
+            return JsonResponse({"error": "Quiz not found"}, status=404)
 
-    # Threshold for weak topics
-    threshold = 3
-    weak_tags = [tag for tag, count in tag_wrong_count.items() if count >= threshold]
+        quiz_data = quiz_doc.to_dict()
+        if quiz_data.get("userId") != user_id:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
 
-    # Store weak topics in Firestore if any exist
-    if weak_tags:
-        weaklist_ref = db.collection("weaklist").document(user_id)
-        weaklist_ref.set({"weak_tags": weak_tags}, merge=True)
+        questions = quiz_data.get("questions", [])
 
-    return JsonResponse({"message": "Quiz submitted successfully", "weak_tags": weak_tags})
+        # Update the specific question
+        for q in questions:
+            if q["id"] == question_id:
+                q["attempted_option"] = attempted_option
+                break  # Stop searching once found
+
+        # Save the updated questions array back to Firestore
+        quiz_ref.update({"questions": questions})
+
+        return JsonResponse({"message": "Answer updated successfully"})
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
