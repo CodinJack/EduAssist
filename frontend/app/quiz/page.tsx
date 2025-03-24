@@ -9,6 +9,7 @@ import {
   Star,
   Timer,
   PlusCircle,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,18 +22,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Sidebar from "@/components/dashboard/SideBar";
-import { createQuiz, getAllQuizzes, deleteQuiz } from "@/services/quizService";
 import Cookies from 'js-cookie'
+
 const QuizList = () => {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState("all");
-  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState(""); 
+
   const [newQuiz, setNewQuiz] = useState({
     topic: "",
     difficulty: "Beginner",
@@ -57,54 +58,63 @@ const QuizList = () => {
     return colors[difficulty] || "text-gray-600 bg-gray-50";
   };
 
-  useEffect(() => {
-    const fetchUserAndQuizzes = async () => {
-      try {
-        const token = Cookies.get("idToken");
-        if (!token) {
-          console.error("No token found in cookies");
-          return;
-        }
-  
-        const response = await fetch("http://127.0.0.1:8000/auth/get_user_from_cookie", {
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-  
-        const user = await response.json();
-        if (!user.userID) {
-          console.error("User ID not found in response");
-          return;
-        }
-  
-        setUserId(user.userID);
-  
-        // Fetch quizzes directly
-        const quizzesResponse = await fetch(`${BASE_URL}/api/quizzes/get_all_quizzes/`, {
-          method: "POST",  // Changed from GET to POST
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId: user.userID }), // Sending userId in the request body
-        });
-        
-        const quizzesData = await quizzesResponse.json();
-        setQuizzes(quizzesData);
-  
-      } catch (err) {
-        setError("Failed to load quizzes");
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const fetchUserAndQuizzes = async () => {
+    try {
+      const token = Cookies.get("idToken");
+      if (!token) {
+        console.error("No token found in cookies");
+        return;
       }
-    };
-
-    fetchUserAndQuizzes();
-  }, []);
-
+  
+      // Fetch user
+      const userResponse = await fetch("http://127.0.0.1:8000/auth/get_user_from_cookie/", {
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+  
+      if (!userResponse.ok) {
+        throw new Error("Failed to fetch user data");
+      }
+  
+      const user = await userResponse.json();
+      if (!user.userID) {
+        console.error("User ID not found in response");
+        return;
+      }
+  
+      setUserId(user.userID);  // Set userId first
+      await new Promise(resolve => setTimeout(resolve, 0)); // Ensure state update
+  
+      // Fetch quizzes after ensuring `userId` is set
+      const quizzesResponse = await fetch(`${BASE_URL}/api/quizzes/get_all_quizzes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.userID }), // Use fetched user ID
+      });
+  
+      if (!quizzesResponse.ok) {
+        throw new Error("Failed to fetch quizzes");
+      }
+  
+      const quizzesData = await quizzesResponse.json();
+      console.log(quizzesData);
+      setQuizzes(quizzesData);
+    } catch (err) {
+      setError("Failed to load quizzes");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+    useEffect(() => {
+      fetchUserAndQuizzes();
+    }, []);
+    
+  
   const handleStartQuiz = (quizId: string) => {
     router.push(`/quiz/${quizId}`);
   };
@@ -114,30 +124,41 @@ const QuizList = () => {
       alert("User ID not found. Please log in again.");
       return;
     }
-
+  
     if (newQuiz.questionCount < 1 || newQuiz.questionCount > 50) {
       alert("Number of questions must be between 1 and 50.");
       return;
     }
-
+  
     try {
       const timeLimit = newQuiz.questionCount * getDifficultyNumber(newQuiz.difficulty);
-      const createdQuiz = await createQuiz({
-        topic: newQuiz.topic,
-        difficulty: newQuiz.difficulty,
-        numQuestions: newQuiz.questionCount,
-        timeLimit,
-        userId,
+  
+      const response = await fetch(`${BASE_URL}/api/quizzes/create_quiz`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topic: newQuiz.topic,
+          difficulty: newQuiz.difficulty,
+          numQuestions: newQuiz.questionCount,
+          timeLimit,
+          userId,
+        }),
       });
-
-      setQuizzes([...quizzes, createdQuiz]);
+  
+      if (!response.ok) {
+        throw new Error("Failed to create quiz");
+      }  
       setIsModalOpen(false);
       setNewQuiz({ topic: "", difficulty: "Beginner", questionCount: 10 });
+      await fetchUserAndQuizzes();
     } catch (error) {
       console.error("Error creating quiz:", error);
     }
   };
-
+  
+  
   const handleDeleteQuiz = async (quizId: string) => {
     if (!userId) {
       alert("User ID not found. Please log in again.");
@@ -145,12 +166,21 @@ const QuizList = () => {
     }
 
     try {
-      await deleteQuiz(quizId, userId);
-      setQuizzes(quizzes.filter((quiz) => quiz.id !== quizId));
+      const response = await fetch(`${BASE_URL}/api/quizzes/delete_quiz`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: quizId }),
+      });
+
+      if (!response.ok) throw new Error("Failed to delete quiz");
+      await fetchUserAndQuizzes();
     } catch (error) {
       console.error("Error deleting quiz:", error);
     }
   };
+
 
 
   return (
@@ -164,6 +194,17 @@ const QuizList = () => {
             <PlusCircle className="w-4 h-4" /> Create New Quiz
           </Button>
         </div>
+        <div className="p-8 flex items-center gap-2">
+          <Input
+            placeholder="Search quizzes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+          <Button onClick={() => setSearchQuery("")}>
+            <Search className="w-5 h-5" />
+          </Button>
+        </div>
 
         <div className="p-8">
           {loading ? (
@@ -172,38 +213,50 @@ const QuizList = () => {
             <p className="text-red-500">{error}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {quizzes.map((quiz) => (
-                <Card key={quiz.id} className="shadow-md rounded-lg border hover:shadow-lg transition-all bg-white">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold text-lg text-gray-900">{quiz.topic || quiz.title}</h3>
-                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getDifficultyColor(quiz.difficulty)}`}>
-                        {quiz.difficulty}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-sm text-gray-700 mb-4">
-                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-md">
-                        <BookOpen className="w-4 h-4 text-blue-500" />
-                        <span>{quiz.questionCount} Questions</span>
+              {quizzes
+                .filter((quiz) =>
+                  quiz.topic.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map((quiz) => (
+                  <Card key={quiz.id} className="shadow-md rounded-lg border hover:shadow-lg transition-all bg-white">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-lg text-gray-900">{quiz.topic || quiz.title}</h3>
+                        <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getDifficultyColor(quiz.difficulty)}`}>
+                          {quiz.difficulty}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-md">
-                        <Clock className="w-4 h-4 text-purple-500" />
-                        <span>{quiz.timeLimit} mins</span>
-                      </div>
-                    </div>
 
-                    <Button variant="outline" className="w-full" onClick={() => handleStartQuiz(quiz.id)}>
-                      Start Quiz
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="flex items-center gap-3 text-sm text-gray-700 mb-4">
+                        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-md">
+                          <BookOpen className="w-4 h-4 text-blue-500" />
+                          <span>{quiz.numQuestions} Questions</span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-md">
+                          <Clock className="w-4 h-4 text-purple-500" />
+                          <span>{quiz.timeLimit} mins</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button variant="outline" className="w-full" onClick={() => handleStartQuiz(quiz.id)}>
+                          Start Quiz
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          className="w-full flex items-center justify-center"
+                          onClick={() => handleDeleteQuiz(quiz.id)}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           )}
-        </div>
       </div>
-
+    </div>
       {/* Create Quiz Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
@@ -212,6 +265,7 @@ const QuizList = () => {
             <Input
               placeholder="Quiz Topic"
               value={newQuiz.topic}
+              className="mt-3 mb-3"
               onChange={(e) => setNewQuiz({ ...newQuiz, topic: e.target.value })}
             />
             <Select value={newQuiz.difficulty} onValueChange={(val) => setNewQuiz({ ...newQuiz, difficulty: val })}>
@@ -228,11 +282,12 @@ const QuizList = () => {
               type="number"
               placeholder="Number of Questions"
               value={newQuiz.questionCount}
+              className="mt-3"
               onChange={(e) => setNewQuiz({ ...newQuiz, questionCount: Number(e.target.value) })}
             />
             <div className="flex justify-end mt-4">
               <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
-              <Button className="ml-2 bg-blue-600 hover:bg-blue-700" onClick={() => {}}>Create</Button>
+              <Button className="ml-2 bg-blue-600 hover:bg-blue-700" onClick={() => {handleCreateQuiz()}}>Create</Button>
             </div>
           </div>
         </div>

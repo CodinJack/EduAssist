@@ -79,12 +79,14 @@ def get_quiz(request, user_id, quiz_id):
         return JsonResponse({"error": str(e)}, status=500)
 
 @csrf_exempt
-def delete_quiz(request, user_id, quiz_id):
+def delete_quiz(request):
     try:
-        doc_ref = db.collection("quizzes").document(quiz_id)
+        data = json.loads(request.body)
+        id = data.get("id")
+        doc_ref = db.collection("quizzes").document(id)
         doc = doc_ref.get()
 
-        if not doc.exists or doc.to_dict().get("userId") != user_id:
+        if not doc.exists:
             return JsonResponse({"error": "Quiz not found or unauthorized"}, status=404)
 
         doc_ref.delete()

@@ -5,9 +5,6 @@ export const createQuiz = async ({ topic, difficulty, numQuestions, timeLimit, u
   try {
     const response = await fetch(`${BASE_URL}/api/quizzes/create_quiz`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ topic, difficulty, numQuestions, timeLimit, userId }),
     });
 
