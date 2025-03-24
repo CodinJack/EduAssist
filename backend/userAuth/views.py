@@ -185,6 +185,37 @@ def get_all_users(request):
         return Response({"error": str(e)}, status=500)
 
 
+@api_view(['GET'])
+def get_user_from_cookie(request):
+    """
+    Retrieve the authenticated user ID from the Firebase token stored in cookies.
+    """
+    try:
+        auth_header = request.headers.get("Authorization")
+        
+        if not auth_header or not auth_header.startswith("Bearer "):
+            print("❌ No auth header found!")
+            return Response({"error": "No authentication token provided"}, status=401)
+
+        id_token = auth_header.split(" ")[1]
+        decoded_token = auth.verify_id_token(id_token)
+        uid = decoded_token.get('user_id')
+
+        if not uid:
+            return Response({"error": "Invalid token: UID not found"}, status=401)
+
+        return Response({"userID": uid, "message": "User authenticated successfully"}, status=200)
+
+    except auth.ExpiredIdTokenError:
+        return Response({"error": "Token has expired"}, status=401)
+
+    except auth.InvalidIdTokenError:
+        return Response({"error": "Invalid authentication token"}, status=401)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=401)
+
+
 @api_view(['POST'])
 def update_weak_topics(request):
     """

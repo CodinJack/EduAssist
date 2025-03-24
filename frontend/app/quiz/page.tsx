@@ -21,9 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Sidebar from "@/components/dashboard/SideBar";
-import { createQuiz, getAllQuizzes } from "@/services/quizService";
-import Cookies from "js-cookie";
-
+import { createQuiz, getAllQuizzes, deleteQuiz } from "@/services/quizService";
+import Cookies from 'js-cookie'
 const QuizList = () => {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -33,26 +32,14 @@ const QuizList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [newQuiz, setNewQuiz] = useState({
     topic: "",
     difficulty: "Beginner",
     questionCount: 10,
   });
+  const BASE_URL = "http://127.0.0.1:8000"
 
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      try {
-        const data = await getAllQuizzes();
-        setQuizzes(data);
-      } catch (err) {
-        setError("Failed to load quizzes");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchQuizzes();
-  }, []);
   const getDifficultyNumber = (difficulty: string) => {
     const vals: Record<string, number> = {
       Beginner: 2,
@@ -61,7 +48,6 @@ const QuizList = () => {
     };
     return vals[difficulty];
   };
-
   const getDifficultyColor = (difficulty: string) => {
     const colors: Record<string, string> = {
       Beginner: "text-green-600 bg-green-50",
@@ -71,11 +57,64 @@ const QuizList = () => {
     return colors[difficulty] || "text-gray-600 bg-gray-50";
   };
 
+  useEffect(() => {
+    const fetchUserAndQuizzes = async () => {
+      try {
+        const token = Cookies.get("idToken");
+        if (!token) {
+          console.error("No token found in cookies");
+          return;
+        }
+  
+        const response = await fetch("http://127.0.0.1:8000/auth/get_user_from_cookie", {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+  
+        const user = await response.json();
+        if (!user.userID) {
+          console.error("User ID not found in response");
+          return;
+        }
+  
+        setUserId(user.userID);
+  
+        // Fetch quizzes directly
+        const quizzesResponse = await fetch(`${BASE_URL}/api/quizzes/get_all_quizzes/`, {
+          method: "POST",  // Changed from GET to POST
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId: user.userID }), // Sending userId in the request body
+        });
+        
+        const quizzesData = await quizzesResponse.json();
+        setQuizzes(quizzesData);
+  
+      } catch (err) {
+        setError("Failed to load quizzes");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserAndQuizzes();
+  }, []);
+
   const handleStartQuiz = (quizId: string) => {
     router.push(`/quiz/${quizId}`);
   };
 
   const handleCreateQuiz = async () => {
+    if (!userId) {
+      alert("User ID not found. Please log in again.");
+      return;
+    }
+
     if (newQuiz.questionCount < 1 || newQuiz.questionCount > 50) {
       alert("Number of questions must be between 1 and 50.");
       return;
@@ -83,7 +122,14 @@ const QuizList = () => {
 
     try {
       const timeLimit = newQuiz.questionCount * getDifficultyNumber(newQuiz.difficulty);
-      const createdQuiz = await createQuiz(newQuiz.topic, newQuiz.difficulty, newQuiz.questionCount, timeLimit);
+      const createdQuiz = await createQuiz({
+        topic: newQuiz.topic,
+        difficulty: newQuiz.difficulty,
+        numQuestions: newQuiz.questionCount,
+        timeLimit,
+        userId,
+      });
+
       setQuizzes([...quizzes, createdQuiz]);
       setIsModalOpen(false);
       setNewQuiz({ topic: "", difficulty: "Beginner", questionCount: 10 });
@@ -92,12 +138,26 @@ const QuizList = () => {
     }
   };
 
+  const handleDeleteQuiz = async (quizId: string) => {
+    if (!userId) {
+      alert("User ID not found. Please log in again.");
+      return;
+    }
+
+    try {
+      await deleteQuiz(quizId, userId);
+      setQuizzes(quizzes.filter((quiz) => quiz.id !== quizId));
+    } catch (error) {
+      console.error("Error deleting quiz:", error);
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
       <div className={`transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}>
-        {/* Header */}
         <div className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-800">Quizzes</h1>
           <Button className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2" onClick={() => setIsModalOpen(true)}>
@@ -105,87 +165,58 @@ const QuizList = () => {
           </Button>
         </div>
 
-        {/* Filters */}
         <div className="p-8">
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <div className="flex gap-4">
-              <div className="w-64">
-                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by Subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Subjects</SelectItem>
-                    <SelectItem value="Mathematics">Mathematics</SelectItem>
-                    <SelectItem value="Science">Science</SelectItem>
-                    <SelectItem value="History">History</SelectItem>
-                    <SelectItem value="Web Development">Web Development</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-64">
-                <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by Difficulty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Difficulties</SelectItem>
-                    <SelectItem value="Beginner">Beginner</SelectItem>
-                    <SelectItem value="Intermediate">Intermediate</SelectItem>
-                    <SelectItem value="Advanced">Advanced</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
-                  <Input placeholder="Search quizzes..." className="pl-9 bg-gray-50 border-gray-200 focus:bg-white transition-colors" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quiz Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {quizzes.map((quiz) => (
-              <Card key={quiz.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="font-semibold text-lg text-gray-900 mb-1">{quiz.topic}</h3>
-                      <p className="text-sm text-gray-500">{quiz.subject}</p>
+          {loading ? (
+            <p>Loading quizzes...</p>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {quizzes.map((quiz) => (
+                <Card key={quiz.id} className="shadow-md rounded-lg border hover:shadow-lg transition-all bg-white">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-lg text-gray-900">{quiz.topic || quiz.title}</h3>
+                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getDifficultyColor(quiz.difficulty)}`}>
+                        {quiz.difficulty}
+                      </span>
                     </div>
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${getDifficultyColor(quiz.difficulty)}`}>
-                      {quiz.difficulty}
-                    </span>
-                  </div>
 
-                  <div className="flex items-center justify-between">
-                    <Button variant="outline" className="hover:bg-blue-50 hover:text-blue-600" onClick={() => handleStartQuiz(quiz.id)}>
+                    <div className="flex items-center gap-3 text-sm text-gray-700 mb-4">
+                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-md">
+                        <BookOpen className="w-4 h-4 text-blue-500" />
+                        <span>{quiz.questionCount} Questions</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-md">
+                        <Clock className="w-4 h-4 text-purple-500" />
+                        <span>{quiz.timeLimit} mins</span>
+                      </div>
+                    </div>
+
+                    <Button variant="outline" className="w-full" onClick={() => handleStartQuiz(quiz.id)}>
                       Start Quiz
                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Create Quiz Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
-            <h2 className="text-lg font-semibold mb-4">Create New Quiz</h2>
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Create a New Quiz</h2>
             <Input
-              placeholder="Enter topic"
-              className="mb-3"
+              placeholder="Quiz Topic"
               value={newQuiz.topic}
               onChange={(e) => setNewQuiz({ ...newQuiz, topic: e.target.value })}
             />
             <Select value={newQuiz.difficulty} onValueChange={(val) => setNewQuiz({ ...newQuiz, difficulty: val })}>
               <SelectTrigger>
-                <SelectValue placeholder="Select difficulty" />
+                <SelectValue placeholder="Difficulty" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Beginner">Beginner</SelectItem>
@@ -195,16 +226,13 @@ const QuizList = () => {
             </Select>
             <Input
               type="number"
-              min="1"
-              max="50"
               placeholder="Number of Questions"
-              className="mt-3"
-              value={newQuiz.numQuestions}
-              onChange={(e) => setNewQuiz({ ...newQuiz, numQuestions: parseInt(e.target.value) })}
+              value={newQuiz.questionCount}
+              onChange={(e) => setNewQuiz({ ...newQuiz, questionCount: Number(e.target.value) })}
             />
-            <div className="flex justify-end mt-4 gap-2">
-              <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-              <Button onClick={handleCreateQuiz}>Create</Button>
+            <div className="flex justify-end mt-4">
+              <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
+              <Button className="ml-2 bg-blue-600 hover:bg-blue-700" onClick={() => {}}>Create</Button>
             </div>
           </div>
         </div>
