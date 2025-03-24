@@ -68,10 +68,10 @@ def get_all_quizzes(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 @csrf_exempt
-def get_quiz(request, user_id, quiz_id):
+def get_quiz(request, quiz_id):
     try:
         doc = db.collection("quizzes").document(quiz_id).get()
-        if not doc.exists or doc.to_dict().get("userId") != user_id:
+        if not doc.exists:
             return JsonResponse({"error": "Quiz not found or unauthorized"}, status=404)
         return JsonResponse({"id": doc.id, **doc.to_dict()}, status=200)
 

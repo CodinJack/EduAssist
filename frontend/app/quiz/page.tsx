@@ -158,7 +158,6 @@ const QuizList = () => {
     }
   };
   
-  
   const handleDeleteQuiz = async (quizId: string) => {
     if (!userId) {
       alert("User ID not found. Please log in again.");

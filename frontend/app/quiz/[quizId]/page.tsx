@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
@@ -13,9 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Cookies from "js-cookie";
 
-export default function QuizPage({ params }: { params: { quizId: string } }) {
+export default function QuizPage({ params }: { params: Promise<{ quizId: string }> }) {
   const router = useRouter();
-  const { quizId } = params;
+  const { quizId } = use(params);
 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -34,17 +34,28 @@ export default function QuizPage({ params }: { params: { quizId: string } }) {
           console.error("No token found in cookies");
           return;
         }
-  
-        const response = await fetch("http://127.0.0.1:8000/auth/get_user_from_cookie", {
+    
+        // Fetch user
+        const userResponse = await fetch("http://127.0.0.1:8000/auth/get_user_from_cookie/", {
           credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
-  
-        const data = await response.json();
-        setUserId(data.userID);
+    
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+    
+        const user = await userResponse.json();
+        if (!user.userID) {
+          console.error("User ID not found in response");
+          return;
+        }
+    
+        setUserId(user.userID);  // Set userId first
+        await new Promise(resolve => setTimeout(resolve, 0)); // Ensure state update  
       } catch (error) {
         console.error("Error fetching user ID:", error);
       }
@@ -57,9 +68,10 @@ export default function QuizPage({ params }: { params: { quizId: string } }) {
     // Fetch quiz questions from Firebase
     const fetchQuiz = async () => {
       try {
-        const response = await fetch(`/api/quizzes/get_quiz/${quizId}`);
+        const response = await fetch(`http://127.0.0.1:8000/api/quizzes/get_quiz/${quizId}`);
         const data = await response.json();
         setQuestions(data.questions);
+        console.log(data.questions);
       } catch (error) {
         console.error("Error fetching quiz:", error);
       }
