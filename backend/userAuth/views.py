@@ -176,9 +176,20 @@ def get_all_users(request):
         users_list = []
         for user in users:
             user_data = user.to_dict()
-            user_data['userID'] = user.id 
-            users_list.append(user_data)
-
+            important_user_data = {}
+            if ('total_marks' not in user_data.keys()):
+                continue
+            if ('number_of_tests_attempted' not in user_data.keys()):
+                continue
+            important_user_data['userID'] = user.id 
+            important_user_data['email'] = user_data['email']
+            important_user_data['total_marks'] = user_data['total_marks']
+            important_user_data['number_of_tests_attempted'] = user_data['number_of_tests_attempted']
+            important_user_data['average_marks'] = 0
+            if (user_data['number_of_tests_attempted'] != 0):
+                important_user_data['average_marks'] = user_data['total_marks']/user_data['number_of_tests_attempted']
+            users_list.append(important_user_data)
+        sorted_users_list = sorted(users_list, key=lambda x: x['average_marks'], reverse=True)
         return Response({"users": users_list}, status=200)
 
     except Exception as e:
