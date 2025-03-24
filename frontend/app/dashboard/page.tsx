@@ -6,7 +6,11 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { StudentProgress } from "@/components/dashboard/StudentProgress";
 import { Users, BookOpen, Clock, Award } from "lucide-react";
 import { motion } from "framer-motion";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
+
+// Motivational Quotes
 const MotivationalQuotes = () => {
   const quotes = [
     "Success is not the key to happiness. Happiness is the key to success.",
@@ -21,6 +25,7 @@ const MotivationalQuotes = () => {
   );
 };
 
+// Recent Achievements
 const RecentAchievements = () => {
   const achievements = [
     { title: "Completed 100 quizzes!", date: "March 2025" },
@@ -32,7 +37,10 @@ const RecentAchievements = () => {
       <h3 className="text-lg font-semibold text-lime-700 mb-2">Recent Achievements</h3>
       <ul className="text-sm text-gray-700">
         {achievements.map((achieve, index) => (
-          <li key={index} className="mb-1">✅ {achieve.title} <span className="text-gray-500 text-xs">({achieve.date})</span></li>
+          <li key={index} className="mb-1">
+            ✅ {achieve.title}{" "}
+            <span className="text-gray-500 text-xs">({achieve.date})</span>
+          </li>
         ))}
       </ul>
     </div>
@@ -43,17 +51,31 @@ export default function Home() {
   const [collapsed, setCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = Cookies.get("idToken"); // Get token from cookies
+      const token = Cookies.get("idToken");
+      const mode = Cookies.get("mode");
+
       if (!token) {
         setError("User not authenticated");
         setLoading(false);
         return;
       }
+
+      // 🛑 If guest mode - restrict access to quiz/profile/leaderboard
+      const path = window.location.pathname;
+      const restrictedPaths = ["/quiz", "/profile", "/leaderboard"];
+      if (mode === "guest" && restrictedPaths.includes(path)) {
+        toast.error("Login First to access this page");
+        router.push("/dashboard"); // Redirect to home
+        return;
+      }
+
       setLoading(false);
     };
+
     checkAuth();
   }, []);
 
@@ -62,27 +84,65 @@ export default function Home() {
 
   return (
     <div className="relative flex min-h-screen bg-slate-50 text-black overflow-hidden">
+      <Toaster position="top-center" reverseOrder={false} />
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      <main className={`relative flex-1 transition-all duration-500 ease-in-out ${collapsed ? "ml-20" : "ml-64"}`}>
+      <main
+        className={`relative flex-1 transition-all duration-500 ease-in-out ${
+          collapsed ? "ml-20" : "ml-64"
+        }`}
+      >
         <div className="p-8 max-w-7xl mx-auto">
-          <motion.div 
+          <motion.div
             className="flex justify-between items-center mb-8"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             <div className="space-y-1">
-              <h1 className="text-5xl font-extrabold text-blue-700 drop-shadow-sm">Dashboard</h1>
-              <p className="text-lg text-black opacity-80">Welcome back, Student!</p>
+              <h1 className="text-5xl font-extrabold text-blue-700 drop-shadow-sm">
+                Dashboard
+              </h1>
+              <p className="text-lg text-black opacity-80">
+                Welcome back, Student!
+              </p>
             </div>
           </motion.div>
 
           {/* Stats Cards */}
-          <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
-            <StatsCard title="Quizzes taken" value="256" icon={BookOpen} trend={{ value: "12% vs last month", positive: true }} className="bg-white border border-blue-600 shadow-blue-600/30 " />
-            <StatsCard title="Weak topics" value="8" icon={BookOpen} trend={{ value: "2 new this month", positive: true }} className="bg-white border border-lime-300 shadow-lime-300/30 " />
-            <StatsCard title="Hours Studied" value="34" icon={Clock} trend={{ value: "18 this week", positive: true }} className="bg-white border border-blue-600 shadow-blue-600/30 " />
-            <StatsCard title="Avg. Performance" value="85%" icon={Award} trend={{ value: "5% vs last month", positive: true }} className="bg-white border border-lime-300 shadow-lime-300/30 " />
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+          >
+            <StatsCard
+              title="Quizzes taken"
+              value="256"
+              icon={BookOpen}
+              trend={{ value: "12% vs last month", positive: true }}
+              className="bg-white border border-blue-600 shadow-blue-600/30 "
+            />
+            <StatsCard
+              title="Weak topics"
+              value="8"
+              icon={BookOpen}
+              trend={{ value: "2 new this month", positive: true }}
+              className="bg-white border border-lime-300 shadow-lime-300/30 "
+            />
+            <StatsCard
+              title="Hours Studied"
+              value="34"
+              icon={Clock}
+              trend={{ value: "18 this week", positive: true }}
+              className="bg-white border border-blue-600 shadow-blue-600/30 "
+            />
+            <StatsCard
+              title="Avg. Performance"
+              value="85%"
+              icon={Award}
+              trend={{ value: "5% vs last month", positive: true }}
+              className="bg-white border border-lime-300 shadow-lime-300/30 "
+            />
           </motion.div>
 
           {/* Content Sections */}
