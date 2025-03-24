@@ -19,12 +19,12 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(300);
+  const [timeLeft, setTimeLeft] = useState(0); // Start at 0, will be updated with quiz timeLimit
   const [answers, setAnswers] = useState({});
   const [flagged, setFlagged] = useState({});
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-
+  const [quizData, setQuizData] = useState(null);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -71,6 +71,15 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
         const response = await fetch(`http://127.0.0.1:8000/api/quizzes/get_quiz/${quizId}`);
         const data = await response.json();
         setQuestions(data.questions);
+        setQuizData(data);
+        
+        // Set timer based on quiz timeLimit
+        if (data.timeLimit) {
+          setTimeLeft(data.timeLimit);
+        } else {
+          setTimeLeft(300); // Default to 5 minutes if no timeLimit specified
+        }
+        
         console.log(data.questions);
       } catch (error) {
         console.error("Error fetching quiz:", error);
@@ -81,6 +90,9 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   }, [quizId]);
 
   useEffect(() => {
+    // Only start timer when timeLeft is set
+    if (timeLeft <= 0) return;
+    
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -92,23 +104,32 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [timeLeft]);
 
-  const updateAsIAnswer = async (questionId: string, optionId: string) => {
+  const updateAsIAnswer = async (questionIndex, optionId) => {
     if (!userId) return;
 
     try {
-      await fetch(`/api/quizzes/update-answer`, {
-        method: "PATCH",
+      const response = await fetch(`http://127.0.0.1:8000/api/quizzes/update_answer`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quizId, questionId, attemptedOption: optionId, userId }),
+        body: JSON.stringify({ 
+          quizId, 
+          questionIndex, 
+          attemptedOption: optionId
+        }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error updating answer:", errorData);
+      }
     } catch (error) {
       console.error("Error updating answer:", error);
     }
   };
 
-  const handleAnswer = (questionId: string, optionId: string) => {
+  const handleAnswer = (questionId, optionId) => {
     setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
     updateAsIAnswer(questionId, optionId);
   };
@@ -117,11 +138,21 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     if (!userId) return;
 
     try {
-      await fetch(`/api/quiz/submit`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/quizzes/submit_quiz`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quizId, answers, userId }),
+        body: JSON.stringify({ 
+          quizId,
+          userId
+        }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error submitting quiz:", errorData);
+        return;
+      }
+      
       router.push(`/quiz/${quizId}/result`);
     } catch (error) {
       console.error("Error submitting quiz:", error);
