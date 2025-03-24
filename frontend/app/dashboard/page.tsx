@@ -4,13 +4,15 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/components/dashboard/SideBar";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { StudentProgress } from "@/components/dashboard/StudentProgress";
-import { Users, BookOpen, Clock, Award } from "lucide-react";
+import { BookOpen, Clock, Award } from "lucide-react";
 import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
-// Motivational Quotes
+// ------------------------------
+// MOTIVATIONAL QUOTES SECTION
+// ------------------------------
 const MotivationalQuotes = () => {
   const quotes = [
     "Success is not the key to happiness. Happiness is the key to success.",
@@ -18,6 +20,7 @@ const MotivationalQuotes = () => {
     "Don't watch the clock; do what it does. Keep going.",
   ];
   const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+
   return (
     <div className="p-4 bg-blue-50 border-l-4 border-blue-600 rounded-lg shadow-sm">
       <p className="text-blue-700 font-semibold">"{randomQuote}"</p>
@@ -25,16 +28,21 @@ const MotivationalQuotes = () => {
   );
 };
 
-// Recent Achievements
+// ------------------------------
+// RECENT ACHIEVEMENTS SECTION
+// ------------------------------
 const RecentAchievements = () => {
   const achievements = [
     { title: "Completed 100 quizzes!", date: "March 2025" },
     { title: "Mastered 5 new topics!", date: "February 2025" },
     { title: "Studied 50+ hours this semester!", date: "January 2025" },
   ];
+
   return (
     <div className="p-4 bg-lime-50 border-l-4 border-lime-600 rounded-lg shadow-sm">
-      <h3 className="text-lg font-semibold text-lime-700 mb-2">Recent Achievements</h3>
+      <h3 className="text-lg font-semibold text-lime-700 mb-2">
+        Recent Achievements
+      </h3>
       <ul className="text-sm text-gray-700">
         {achievements.map((achieve, index) => (
           <li key={index} className="mb-1">
@@ -47,14 +55,17 @@ const RecentAchievements = () => {
   );
 };
 
-export default function Home() {
+// ------------------------------
+// DASHBOARD PAGE COMPONENT
+// ------------------------------
+export default function DashboardPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       const token = Cookies.get("idToken");
       const mode = Cookies.get("mode");
 
@@ -64,12 +75,12 @@ export default function Home() {
         return;
       }
 
-      // 🛑 If guest mode - restrict access to quiz/profile/leaderboard
+      // Restrict guest mode
       const path = window.location.pathname;
       const restrictedPaths = ["/quiz", "/profile", "/leaderboard"];
       if (mode === "guest" && restrictedPaths.includes(path)) {
         toast.error("Login First to access this page");
-        router.push("/dashboard"); // Redirect to home
+        router.push("/dashboard");
         return;
       }
 
@@ -77,7 +88,7 @@ export default function Home() {
     };
 
     checkAuth();
-  }, []);
+  }, [router]);
 
   if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
@@ -86,12 +97,14 @@ export default function Home() {
     <div className="relative flex min-h-screen bg-slate-50 text-black overflow-hidden">
       <Toaster position="top-center" reverseOrder={false} />
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+
       <main
         className={`relative flex-1 transition-all duration-500 ease-in-out ${
           collapsed ? "ml-20" : "ml-64"
         }`}
       >
         <div className="p-8 max-w-7xl mx-auto">
+          {/* Header */}
           <motion.div
             className="flex justify-between items-center mb-8"
             initial={{ opacity: 0, y: -20 }}
@@ -102,9 +115,7 @@ export default function Home() {
               <h1 className="text-5xl font-extrabold text-blue-700 drop-shadow-sm">
                 Dashboard
               </h1>
-              <p className="text-lg text-black opacity-80">
-                Welcome back, Student!
-              </p>
+              <p className="text-lg text-black opacity-80">Welcome back, Student!</p>
             </div>
           </motion.div>
 
@@ -120,36 +131,39 @@ export default function Home() {
               value="256"
               icon={BookOpen}
               trend={{ value: "12% vs last month", positive: true }}
-              className="bg-white border border-blue-600 shadow-blue-600/30 "
+              className="bg-white border border-blue-600 shadow-blue-600/30"
             />
             <StatsCard
               title="Weak topics"
               value="8"
               icon={BookOpen}
               trend={{ value: "2 new this month", positive: true }}
-              className="bg-white border border-lime-300 shadow-lime-300/30 "
+              className="bg-white border border-lime-300 shadow-lime-300/30"
             />
             <StatsCard
               title="Hours Studied"
               value="34"
               icon={Clock}
               trend={{ value: "18 this week", positive: true }}
-              className="bg-white border border-blue-600 shadow-blue-600/30 "
+              className="bg-white border border-blue-600 shadow-blue-600/30"
             />
             <StatsCard
               title="Avg. Performance"
               value="85%"
               icon={Award}
               trend={{ value: "5% vs last month", positive: true }}
-              className="bg-white border border-lime-300 shadow-lime-300/30 "
+              className="bg-white border border-lime-300 shadow-lime-300/30"
             />
           </motion.div>
 
           {/* Content Sections */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <motion.div className=" bg-white bg-opacity-90 backdrop-blur-lg rounded-xl shadow-sm border border-blue-600 p-6 hover:shadow-lg transition-shadow duration-300">
+            {/* Student Progress Section */}
+            <motion.div className="bg-white bg-opacity-90 backdrop-blur-lg rounded-xl shadow-sm border border-blue-600 p-6 hover:shadow-lg transition-shadow duration-300">
               <StudentProgress />
             </motion.div>
+
+            {/* Quotes & Achievements Section */}
             <motion.div className="bg-white bg-opacity-90 backdrop-blur-lg rounded-xl shadow-sm border border-lime-300 p-6 hover:shadow-lg transition-shadow duration-300">
               <MotivationalQuotes />
               <div className="mt-4">
