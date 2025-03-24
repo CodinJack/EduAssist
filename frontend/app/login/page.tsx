@@ -12,20 +12,18 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(""); // For showing registration success message
+  const [message, setMessage] = useState("");
   const router = useRouter();
 
   const handleInputChange = (e) => {
     setFormState({ ...formState, [e.target.name]: e.target.value });
   };
 
-  // Function to validate email format
   const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // Function to check if password length is at least 8 characters
   const isValidPassword = (password) => {
     return password.length >= 8;
   };
@@ -33,41 +31,45 @@ const AuthPage = () => {
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(""); // Clear previous messages
+    setMessage("");
 
     try {
       if (isRegistering) {
         await register(formState.email, formState.password);
         setMessage("Registration successful! Please log in with the same credentials.");
-        setIsRegistering(false); // Switch to login mode
+        setIsRegistering(false);
       } else {
         await login(formState.email, formState.password);
+        localStorage.setItem("guest", "false");
         router.push("/dashboard");
       }
     } catch (error) {
       console.error("Auth Error:", error);
       setMessage("Authentication failed. Please try again.");
     }
-    
+
     setLoading(false);
   };
 
   const toggleAuthMode = () => {
     setIsRegistering((prev) => !prev);
-    setMessage(""); // Clear message when switching modes
+    setMessage("");
   };
 
-  // Enable form submission only if email is valid and password is long enough
+  const continueAsGuest = () => {
+    localStorage.setItem("guest", "true");
+    router.push("/dashboard");
+  };
+
   const isFormComplete =
     isValidEmail(formState.email) &&
     isValidPassword(formState.password);
 
   return (
     <div className="flex min-h-screen w-full overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
-      {/* Left Side (Image Section) */}
+      {/* Left Side */}
       <div className="hidden lg:flex w-1/2 p-8 items-center justify-center relative">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-indigo-700/90 opacity-90" />
-
         <div className="relative w-full max-w-2xl text-white z-10">
           <div className="space-y-6">
             <div className="space-y-2">
@@ -82,7 +84,7 @@ const AuthPage = () => {
         </div>
       </div>
 
-      {/* Right Side (Form Section) */}
+      {/* Right Side */}
       <div className="flex w-full lg:w-1/2 px-6 sm:px-8 md:px-12 justify-center items-center">
         <div className="w-full max-w-md">
           <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-white/20">
@@ -148,6 +150,15 @@ const AuthPage = () => {
                 </button>
               </div>
             </form>
+
+            <div className="mt-4 text-center">
+              <button
+                className="w-full py-3.5 mt-2 font-medium rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition duration-200"
+                onClick={continueAsGuest}
+              >
+                Continue as Guest
+              </button>
+            </div>
 
             <div className="mt-6 text-center border-t border-gray-200 pt-4">
               <p className="text-gray-600">

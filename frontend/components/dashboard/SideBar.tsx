@@ -1,11 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import Cookies from "js-cookie"; 
+import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, User, Users, FileText, ChevronLeft, GraduationCap, Bell, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext"; // Use existing Auth Context
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "react-hot-toast"; // ✅ Add this line
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -19,9 +20,8 @@ const menuItems = [
 export default function Sidebar({ collapsed, setCollapsed }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth(); 
-  
-  // Logout function
+  const { user, logout } = useAuth();
+
   const handleLogout = async () => {
     try {
       logout();
@@ -31,9 +31,18 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     }
   };
 
+  // ✅ Restriction check handler
+  const handleRestrictedNavigation = (path, label) => {
+    const restrictedPaths = ["/profile", "/leaderboard", "/quiz"];
+    if (!user && restrictedPaths.includes(path)) {
+      toast.error("Login First");
+      return;
+    }
+    router.push(path);
+  };
+
   return (
     <div className={`h-screen bg-white transition-all duration-300 ease-in-out ${collapsed ? "w-20" : "w-64"} fixed top-0 left-0 flex flex-col border-r border-gray-200`}>
-      
       {/* Sidebar Header */}
       <div className="h-16 p-7 mt-5 flex items-center gap-3">
         <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600 text-white">
@@ -60,7 +69,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 key={item.label}
                 variant={isActive ? "default" : "ghost"}
                 className={`w-full h-10 justify-start ${isActive ? "bg-blue-50 text-blue-600 hover:bg-blue-100" : "hover:bg-gray-50 text-gray-600 hover:text-blue-600"} transition-all duration-200 relative group`}
-                onClick={() => router.push(item.path)}
+                onClick={() => handleRestrictedNavigation(item.path, item.label)}
               >
                 <div className="flex items-center min-w-[2rem] justify-center">
                   <item.icon className={`w-5 h-5 ${isActive ? "text-blue-600" : "text-gray-400 group-hover:text-blue-600"}`} />
@@ -84,13 +93,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               <User className="w-5 h-5 text-gray-500" />
             </div>
             <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-medium text-gray-900 truncate">
-              {user ? user.details.auth_user.email : "User"}
-            </h4>
-            <p className="text-xs text-gray-500 truncate">
-              {user ? user.details.firestore_user.number_of_tests_attempted > 0 ? "Active Student" : "New User" : "Not logged in"}
-            </p>
-
+              <h4 className="text-sm font-medium text-gray-900 truncate">
+                {user ? user.details.auth_user.email : "User"}
+              </h4>
+              <p className="text-xs text-gray-500 truncate">
+                {user ? user.details.firestore_user.number_of_tests_attempted > 0 ? "Active Student" : "New User" : "Not logged in"}
+              </p>
             </div>
             <Button variant="ghost" size="sm" className="flex-shrink-0 hover:bg-gray-100 text-gray-400">
               <Bell className="w-4 h-4" />
