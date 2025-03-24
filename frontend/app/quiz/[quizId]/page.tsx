@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
@@ -13,18 +13,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Cookies from "js-cookie";
 
-export default function QuizPage({ params }: { params: { quizId: string } }) {
+export default function QuizPage({ params }: { params: Promise<{ quizId: string }> }) {
   const router = useRouter();
-  const { quizId } = params;
+  const { quizId } = use(params);
 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(300);
+  const [timeLeft, setTimeLeft] = useState(0); // Start at 0, will be updated with quiz timeLimit
   const [answers, setAnswers] = useState({});
   const [flagged, setFlagged] = useState({});
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-
+  const [quizData, setQuizData] = useState(null);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -34,17 +34,28 @@ export default function QuizPage({ params }: { params: { quizId: string } }) {
           console.error("No token found in cookies");
           return;
         }
-  
-        const response = await fetch("http://127.0.0.1:8000/auth/get_user_from_cookie", {
+    
+        // Fetch user
+        const userResponse = await fetch("http://127.0.0.1:8000/auth/get_user_from_cookie/", {
           credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
-  
-        const data = await response.json();
-        setUserId(data.userID);
+    
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+    
+        const user = await userResponse.json();
+        if (!user.userID) {
+          console.error("User ID not found in response");
+          return;
+        }
+    
+        setUserId(user.userID);  // Set userId first
+        await new Promise(resolve => setTimeout(resolve, 0)); // Ensure state update  
       } catch (error) {
         console.error("Error fetching user ID:", error);
       }
@@ -57,9 +68,19 @@ export default function QuizPage({ params }: { params: { quizId: string } }) {
     // Fetch quiz questions from Firebase
     const fetchQuiz = async () => {
       try {
-        const response = await fetch(`/api/quizzes/get_quiz/${quizId}`);
+        const response = await fetch(`http://127.0.0.1:8000/api/quizzes/get_quiz/${quizId}`);
         const data = await response.json();
         setQuestions(data.questions);
+        setQuizData(data);
+        
+        // Set timer based on quiz timeLimit
+        if (data.timeLimit) {
+          setTimeLeft(data.timeLimit);
+        } else {
+          setTimeLeft(300); // Default to 5 minutes if no timeLimit specified
+        }
+        
+        console.log(data.questions);
       } catch (error) {
         console.error("Error fetching quiz:", error);
       }
@@ -69,6 +90,9 @@ export default function QuizPage({ params }: { params: { quizId: string } }) {
   }, [quizId]);
 
   useEffect(() => {
+    // Only start timer when timeLeft is set
+    if (timeLeft <= 0) return;
+    
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -80,23 +104,32 @@ export default function QuizPage({ params }: { params: { quizId: string } }) {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [timeLeft]);
 
-  const updateAsIAnswer = async (questionId: string, optionId: string) => {
+  const updateAsIAnswer = async (questionIndex, optionId) => {
     if (!userId) return;
 
     try {
-      await fetch(`/api/quizzes/update-answer`, {
-        method: "PATCH",
+      const response = await fetch(`http://127.0.0.1:8000/api/quizzes/update_answer`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quizId, questionId, attemptedOption: optionId, userId }),
+        body: JSON.stringify({ 
+          quizId, 
+          questionIndex, 
+          attemptedOption: optionId
+        }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error updating answer:", errorData);
+      }
     } catch (error) {
       console.error("Error updating answer:", error);
     }
   };
 
-  const handleAnswer = (questionId: string, optionId: string) => {
+  const handleAnswer = (questionId, optionId) => {
     setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
     updateAsIAnswer(questionId, optionId);
   };
@@ -105,11 +138,21 @@ export default function QuizPage({ params }: { params: { quizId: string } }) {
     if (!userId) return;
 
     try {
-      await fetch(`/api/quiz/submit`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/quizzes/submit_quiz`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quizId, answers, userId }),
+        body: JSON.stringify({ 
+          quizId,
+          userId
+        }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error submitting quiz:", errorData);
+        return;
+      }
+      
       router.push(`/quiz/${quizId}/result`);
     } catch (error) {
       console.error("Error submitting quiz:", error);
@@ -121,6 +164,10 @@ export default function QuizPage({ params }: { params: { quizId: string } }) {
   const progress = ((currentIndex + 1) / questions.length) * 100;
   const currentQuestion = questions[currentIndex];
   const selectedAnswer = answers[currentQuestion.id];
+
+  // Get option entries from the options object
+  const optionEntries = currentQuestion.options ? 
+    Object.entries(currentQuestion.options) : [];
 
   return (
     <div className="bg-slate-50 py-4 px-4 sm:px-4 lg:px-6">
@@ -175,24 +222,24 @@ export default function QuizPage({ params }: { params: { quizId: string } }) {
             </div>
 
             <div className="space-y-3">
-              {currentQuestion.options.map((option) => (
+              {optionEntries.map(([key, value]) => (
                 <button
-                  key={option.id}
+                  key={key}
                   className={`w-full p-3 text-left rounded-lg border-2 transition-all duration-200 ${
-                    selectedAnswer === option.id
+                    selectedAnswer === key
                       ? "border-blue-600 bg-blue-50"
                       : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
                   }`}
-                  onClick={() => handleAnswer(currentQuestion.id, option.id)}>
+                  onClick={() => handleAnswer(currentQuestion.id, key)}>
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        selectedAnswer === option.id ? "border-blue-600 bg-blue-600 text-white" : "border-gray-300"
+                        selectedAnswer === key ? "border-blue-600 bg-blue-600 text-white" : "border-gray-300"
                       }`}>
-                      {selectedAnswer === option.id && <CheckCircle2 className="w-4 h-4" />}
+                      {selectedAnswer === key && <CheckCircle2 className="w-4 h-4" />}
                     </div>
-                    <span className={`${selectedAnswer === option.id ? "text-blue-700" : "text-gray-700"}`}>
-                      {option.text}
+                    <span className={`${selectedAnswer === key ? "text-blue-700" : "text-gray-700"}`}>
+                      {key.toUpperCase()}: {value}
                     </span>
                   </div>
                 </button>

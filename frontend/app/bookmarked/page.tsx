@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { BookMarked } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Sidebar from "@/components/dashboard/SideBar";
 import QuestionCard from "../../components/practiceQuestion";
 import { useAuth } from "@/context/AuthContext";

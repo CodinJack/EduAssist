@@ -1,19 +1,11 @@
 "use client";
 
-import { useQuizStore } from "@/store/quizStore";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import Confetti from "react-confetti";
-import ResultCard from "@/components/ResultCard";
-import { ArrowLeft, Award, BarChart, Brain, Clock, Trophy } from "lucide-react";
+import { ArrowLeft, Award, BarChart, Brain, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
-
-const correctAnswers = {
-  "1": "4",
-  "2": "Paris",
-  "3": "Guido van Rossum",
-};
-
+import Cookies from 'js-cookie'
 const getPerformanceMessage = (percentage) => {
   if (percentage === 100) return "Perfect Score! Outstanding!";
   if (percentage >= 80) return "Excellent Work!";
@@ -32,39 +24,86 @@ const getPerformanceBadge = (percentage) => {
 
 export default function QuizResult() {
   const router = useRouter();
-  const { answers } = useQuizStore();
-  const [score, setScore] = useState(0);
+  const { quizId } = router.query;
+
+  const [quizResult, setQuizResult] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [analytics, setAnalytics] = useState({
-    correctCount: 0,
-    incorrectCount: 0,
-    percentage: 0,
-    timeSpent: "2:30", // This could be tracked in real-time
-    averageTimePerQuestion: "0:50"
-  });
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    let correctCount = 0;
-    Object.entries(correctAnswers).forEach(([questionId, correctAnswer]) => {
-      if (answers[questionId] === correctAnswer) {
-        correctCount++;
+    const fetchUserId = async () => {
+      try {
+        const token = Cookies.get("idToken");
+        if (!token) {
+          console.error("No token found in cookies");
+          return;
+        }
+    
+        // Fetch user
+        const userResponse = await fetch("http://127.0.0.1:8000/auth/get_user_from_cookie/", {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+    
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+    
+        const user = await userResponse.json();
+        if (!user.userID) {
+          console.error("User ID not found in response");
+          return;
+        }
+    
+        setUserId(user.userID);  // Set userId first
+        await new Promise(resolve => setTimeout(resolve, 0)); // Ensure state update  
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
       }
-    });
-    
-    const incorrectCount = Object.keys(correctAnswers).length - correctCount;
-    const percentage = (correctCount / Object.keys(correctAnswers).length) * 100;
-    
-    setScore(correctCount);
-    setAnalytics({
-      correctCount,
-      incorrectCount,
-      percentage,
-      timeSpent: "2:30",
-      averageTimePerQuestion: "0:50"
-    });
-    
-    if (percentage >= 66) setShowConfetti(true);
-  }, [answers]);
+    };
+  
+    fetchUserId();
+  }, []);
+  useEffect(() => {
+    const submitQuiz = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/quizzes/submit_quiz`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            quizId,
+            userId
+          }),
+        });
+
+        if (!response.ok) {
+          console.error("Error submitting quiz");
+          return;
+        }
+
+        const resultData = await response.json();
+        setQuizResult(resultData);
+
+        // Show confetti if score percentage is 80% or more
+        if (resultData.score.percentage >= 80) {
+          setShowConfetti(true);
+        }
+      } catch (error) {
+        console.error("Error submitting quiz:", error);
+      }
+    };
+
+    if (quizId) {
+      submitQuiz();
+    }
+  }, [quizId]);
+
+  if (!quizResult) {
+    return <p className="text-center text-gray-600 mt-10">Loading results...</p>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -96,16 +135,16 @@ export default function QuizResult() {
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 py-6">
             <h1 className="text-3xl font-bold mb-2">Quiz Completed!</h1>
             <p className="text-blue-100">
-              {getPerformanceMessage(analytics.percentage)} {getPerformanceBadge(analytics.percentage)}
+              {getPerformanceMessage(quizResult.score.percentage)} {getPerformanceBadge(quizResult.score.percentage)}
             </p>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-gray-50">
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <div className="flex items-center justify-between">
                 <Trophy className="w-6 h-6 text-blue-600" />
-                <span className="text-2xl font-bold text-blue-600">{analytics.percentage}%</span>
+                <span className="text-2xl font-bold text-blue-600">{quizResult.score.percentage}%</span>
               </div>
               <p className="text-sm text-gray-600 mt-1">Overall Score</p>
             </div>
@@ -113,42 +152,31 @@ export default function QuizResult() {
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <div className="flex items-center justify-between">
                 <Brain className="w-6 h-6 text-green-600" />
-                <span className="text-2xl font-bold text-green-600">{analytics.correctCount}</span>
+                <span className="text-2xl font-bold text-green-600">{quizResult.score.correct}</span>
               </div>
               <p className="text-sm text-gray-600 mt-1">Correct Answers</p>
             </div>
             
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <div className="flex items-center justify-between">
-                <Clock className="w-6 h-6 text-orange-600" />
-                <span className="text-2xl font-bold text-orange-600">{analytics.timeSpent}</span>
+                <BarChart className="w-6 h-6 text-red-600" />
+                <span className="text-2xl font-bold text-red-600">{quizResult.score.wrong}</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Time Spent</p>
-            </div>
-            
-            <div className="bg-white p-4 rounded-xl shadow-sm">
-              <div className="flex items-center justify-between">
-                <BarChart className="w-6 h-6 text-purple-600" />
-                <span className="text-2xl font-bold text-purple-600">{analytics.averageTimePerQuestion}</span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">Avg Time/Question</p>
+              <p className="text-sm text-gray-600 mt-1">Wrong Answers</p>
             </div>
           </div>
 
-          {/* Detailed Results */}
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Detailed Analysis</h2>
-            <div className="space-y-4">
-              {Object.entries(answers).map(([questionId, answer]) => (
-                <ResultCard
-                  key={questionId}
-                  questionId={questionId}
-                  userAnswer={answer}
-                  correctAnswer={correctAnswers[questionId]}
-                />
-              ))}
+          {/* Wrong Tags (For Debugging) */}
+          {quizResult.new_wrong_tags && quizResult.new_wrong_tags.length > 0 && (
+            <div className="p-6">
+              <h2 className="text-lg font-semibold mb-2">Areas to Improve</h2>
+              <ul className="list-disc list-inside text-red-500">
+                {quizResult.new_wrong_tags.map((tag, index) => (
+                  <li key={index}>{tag}</li>
+                ))}
+              </ul>
             </div>
-          </div>
+          )}
 
           {/* Action Buttons */}
           <div className="p-6 bg-gray-50 border-t border-gray-100">

@@ -68,10 +68,10 @@ def get_all_quizzes(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 @csrf_exempt
-def get_quiz(request, user_id, quiz_id):
+def get_quiz(request, quiz_id):
     try:
         doc = db.collection("quizzes").document(quiz_id).get()
-        if not doc.exists or doc.to_dict().get("userId") != user_id:
+        if not doc.exists:
             return JsonResponse({"error": "Quiz not found or unauthorized"}, status=404)
         return JsonResponse({"id": doc.id, **doc.to_dict()}, status=200)
 
@@ -96,15 +96,61 @@ def delete_quiz(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 @csrf_exempt
-def update_answer(request, user_id):
+def update_answer(request):
+    """
+    Updates only the attempted_option field of a specific question in a quiz.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
     try:
         data = json.loads(request.body)
         quiz_id = data.get("quizId")
-        question_id = data.get("questionId")
+        question_index = data.get("questionIndex")
         attempted_option = data.get("attemptedOption")
 
-        if not quiz_id or not question_id or not attempted_option:
-            return JsonResponse({"error": "Invalid data"}, status=400)
+        if quiz_id is None or question_index is None or attempted_option is None:
+            return JsonResponse({"error": "Missing required fields"}, status=400)
+
+        quiz_ref = db.collection("quizzes").document(quiz_id)
+        quiz_doc = quiz_ref.get()
+
+        if not quiz_doc.exists:
+            return JsonResponse({"error": "Quiz not found"}, status=404)
+
+        quiz_data = quiz_doc.to_dict()
+        questions = quiz_data.get("questions", [])
+
+        if question_index < 0 or question_index >= len(questions):
+            return JsonResponse({"error": "Invalid question index"}, status=400)
+
+        # Update only the attempted_option field
+        questions[question_index]["attempted_option"] = attempted_option
+        quiz_ref.update({"questions": questions})
+
+        return JsonResponse({"message": "Answer updated successfully"})
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def submit_quiz(request):
+    """
+    Submits a quiz, checks attempted_option against correct_answer,
+    calculates score, and updates user statistics including number_of_tests_attempted
+    and total_marks.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        quiz_id = data.get("quizId")
+        user_id = data.get("userId")
+
+        if not quiz_id:
+            return JsonResponse({"error": "Missing quizId"}, status=400)
 
         # Get the quiz document
         quiz_ref = db.collection("quizzes").document(quiz_id)
@@ -114,21 +160,67 @@ def update_answer(request, user_id):
             return JsonResponse({"error": "Quiz not found"}, status=404)
 
         quiz_data = quiz_doc.to_dict()
-        if quiz_data.get("userId") != user_id:
-            return JsonResponse({"error": "Unauthorized"}, status=403)
-
         questions = quiz_data.get("questions", [])
+        
+        total_questions = len(questions)
+        correct_count = 0
+        wrong_count = 0
+        wrong_tags = {}
 
-        # Update the specific question
-        for q in questions:
-            if q["id"] == question_id:
-                q["attempted_option"] = attempted_option
-                break  # Stop searching once found
+        # Check each question's attempted_option against correct_answer
+        for question in questions:
+            attempted_option = question.get("attempted_option")
+            correct_answer = question.get("correct_answer")
 
-        # Save the updated questions array back to Firestore
-        quiz_ref.update({"questions": questions})
+            if attempted_option == correct_answer:
+                correct_count += 1
+            else:
+                wrong_count += 1
+                tags = question.get("tags", [])
+                for tag in tags:
+                    if tag in wrong_tags:
+                        wrong_tags[tag] += 1
+                    else:
+                        wrong_tags[tag] = 1
 
-        return JsonResponse({"message": "Answer updated successfully"})
+
+        # Calculate score percentage
+        score_percentage = (correct_count / total_questions) * 100 if total_questions > 0 else 0
+
+        # Update the user's statistics
+        user_ref = db.collection("users").document(user_id)
+        user_doc = user_ref.get()
+
+        if not user_doc.exists:
+            return JsonResponse({"error": "User not found"}, status=404)
+            
+        user_data = user_doc.to_dict()
+        
+        # Get current stats or initialize if they don't exist
+        current_tests = user_data.get("number_of_tests_attempted", 0)
+        current_total_marks = user_data.get("total_marks", 0)
+        
+        # Calculate new average marks
+        new_tests_count = current_tests + 1
+        new_total_marks = ((current_total_marks * current_tests) + score_percentage) / new_tests_count
+        new_wrong_tags = [tag for tag, count in wrong_tags.items() if count >= 3]
+        
+        # Update user document with new stats
+        user_ref.update({
+            "number_of_tests_attempted": new_tests_count,
+            "total_marks": new_total_marks,
+            "wrong_tags" : new_wrong_tags
+        })
+
+        return JsonResponse({
+            "message": "Quiz submitted successfully",
+            "score": {
+                "correct": correct_count,
+                "wrong": wrong_count,
+                "total": total_questions,
+                "percentage": score_percentage
+            }
+        })
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
