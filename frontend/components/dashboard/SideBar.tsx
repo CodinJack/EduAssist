@@ -63,7 +63,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   return (
     <AnimatePresence>
       <motion.div
-        className="h-screen bg-white transition-all duration-200 fixed top-0 left-0 flex flex-col border-r border-border shadow-sm z-50"
+        className="h-screen bg-white transition-all duration-75 fixed top-0 left-0 flex flex-col border-r border-border shadow-sm z-50"
         initial={{ width: "5rem" }}
         animate={{ width: collapsed ? "5rem" : "16rem" }}
         onMouseEnter={handleMouseEnter}

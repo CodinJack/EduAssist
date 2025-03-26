@@ -7,14 +7,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GraduationCap, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuroraBackground from "@/components/ui/AuroraBackground";
 
 export default function Auth() {
   const [activeTab, setActiveTab] = useState("login");
-  const { toast } = useToast();
   const { login, register, handleGuestLogin } = useAuth();
   const router = useRouter();
 
@@ -35,40 +34,43 @@ export default function Auth() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+    
     if (!validateEmail(loginEmail)) {
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address",
-        variant: "destructive",
+      toast.error("Invalid Email", {
+        duration: 3000,
+        position : 'top-right',
+        style: {
+          background: "red",
+          color: "white",
+        },
       });
+      
       return;
     }
   
     setLoginLoading(true);
-  
+    
     try {
-      const response = await login(loginEmail, loginPassword);
-  
-      // Ensure login was successful before redirecting
-      if (response?.success) {
-        localStorage.setItem("guest", "false");
-        router.push(`/dashboard`);
-      } else {      
-        console.log("toastingggg");
-        toast({
-          title: "Authentication failed",
-          description: "No account found with these credentials.",
-          variant: "destructive",
+      let response = await login(loginEmail, loginPassword);
+      localStorage.setItem("guest", "false");
+        toast.success("Success!", {
+          duration: 4000,
+          position : 'top-right',
+          style: {
+            background: "green",
+            color: "white",
+          },
         });
-      }
-    } catch (error: any) {
-      let errorMessage = "Something went wrong. Please try again.";
-      console.log("toastingggg");
-      toast({
-        title: "Authentication failed",
-        description: errorMessage,
-        variant: "destructive",
+        router.push(`/dashboard`);
+      
+    } catch (error: any) { 
+      toast.error('Authentication failed', {
+        duration: 3000,
+        position: 'top-right',
+        style: {
+          background: "red",
+          color: "white",
+        },
       });
     } finally {
       setLoginLoading(false);
@@ -80,18 +82,27 @@ export default function Auth() {
     e.preventDefault();
     
     if (!validateEmail(registerEmail)) {
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address",
+      toast.error("Invalid Email", {
+        duration: 3000,
+        position : 'top-right',
+        style: {
+          background: "red",
+          color: "white",
+        },
       });
       return;
     }
 
     if (registerPassword.length < 8) {
-      toast({
-        title: "Invalid password",
-        description: "Password must be at least 8 characters",
+      toast.error("Invalid Password", {
+        duration: 3000,
+        position : 'top-right',
+        style: {
+          background: "red",
+          color: "white",
+        },
       });
+
       return;
     }
 
@@ -102,11 +113,15 @@ export default function Auth() {
       setMessage("Registration successful! Please log in.");
       setActiveTab("login");
     } catch (error) {
-      console.error("Registration Error:", error);
-      toast({
-        title: "Registration failed",
-        description: "Please try again with a different email",
+      toast.error("Try with a different email!", {
+        duration: 3000,
+        position : 'top-right',
+        style: {
+          background: "red",
+          color: "white",
+        },
       });
+
     } finally {
       setRegisterLoading(false);
     }
@@ -118,11 +133,15 @@ export default function Auth() {
       localStorage.setItem("guest", "true");
       router.push('/dashboard');
     } catch (err) {
-      console.error("Guest login failed:", err);
-      toast({
-        title: "Guest login failed",
-        description: "Please try again later",
+      toast.error("Guest login failed", {
+        duration: 3000,
+        position : 'top-right',
+        style: {
+          background: "red",
+          color: "white",
+        },
       });
+
     }
   };
 
@@ -171,10 +190,10 @@ export default function Auth() {
             </CardHeader>
             
             <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="px-6">
-                <TabsList className="grid w-full grid-cols-2 mb-6 rounded-lg p-1 bg-slate-100/80 dark:bg-slate-800/80">
-                  <TabsTrigger value="login" className="rounded-md text-sm py-2.5">Sign In</TabsTrigger>
-                  <TabsTrigger value="register" className="rounded-md text-sm py-2.5">Create Account</TabsTrigger>
+              <div className="p-3">
+                <TabsList className="grid w-full grid-cols-2 mb-4 rounded-lg h-12 bg-slate-100/80 dark:bg-slate-800/80">
+                  <TabsTrigger value="login" className="rounded-md text-sm p-2">Sign In</TabsTrigger>
+                  <TabsTrigger value="register" className="rounded-md text-sm p-2 ">Create Account</TabsTrigger>
                 </TabsList>
               </div>
               

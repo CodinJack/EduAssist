@@ -24,9 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <Toaster position="top-right" reverseOrder={false} />
             {loading && <Loading />}
             {children}
+            <Toaster />
         </AuthProvider>
       </body>
     </html>
