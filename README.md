@@ -22,17 +22,11 @@ Link to website: [placeholder](url)
 5. [Tech Stack](#tech-stack)
 
 ## Getting Started
-
-### Installation
-
-<todo>      
-  
-### Configuration 
-<todo>
-
-### Usage
-
-<todo>
+Backend: To build and run using docker, run the following commands
+```
+docker build -t eduassist_api:latest .
+docker run -p 8000:8080 eduassist_api
+```
 
 ## Key Highlights
 
