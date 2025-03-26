@@ -39,10 +39,10 @@ export const registerUser = async (email, password) => {
             console.log("Registration successful:", data);
             return data;
         } else {
-            console.error("Registration failed:", data);
+            throw new Error("Error registering.");
         }
     } catch (error) {
-        console.error("Error registering:", error);
+        throw new Error("Error registering.");
     }
 };
 
@@ -64,8 +64,7 @@ export const getUserData = async () => {
 
         return await response.json();
     } catch (error) {
-        console.error("Error fetching user data:", error);
-        return null;
+        throw new Error("Failed to fetch user data");
     }
 };
 
