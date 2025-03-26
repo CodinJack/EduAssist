@@ -14,7 +14,7 @@ import {
   BarChart 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-hot-toast";
@@ -33,6 +33,13 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleNavigation = (path: string) => {
+    startTransition(() => {
+      router.push(path);
+    });
+  };
   const handleMouseEnter = () => {
     setCollapsed(false);
     setIsHovered(true);
@@ -45,19 +52,19 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const handleLogout = async () => {
     try {
       logout();
-      router.push("/");
+      handleNavigation("/")
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
 
-  const handleRestrictedNavigation = (path) => {
+  const handleRestrictedNavigation = (path: string) => {
     const restrictedPaths = ["/profile", "/leaderboard", "/quiz"];
     if (!user && restrictedPaths.includes(path)) {
       toast.error("Login First");
       return;
     }
-    router.push(path);
+    handleNavigation(path)
   };
 
   return (
@@ -142,6 +149,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             })}
           </div>
         </nav>
+
+        {isPending && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+        </div>
+      )}
 
         {/* User Info */}
         <div className="px-4 py-3 border-t border-border">
