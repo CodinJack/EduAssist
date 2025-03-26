@@ -11,10 +11,20 @@ import {
   Brain,
   Sparkles,
   BarChart,
-  Clock 
+  Clock, 
 } from "lucide-react";
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Landing() {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+  
+    const handleNavigation = (path: string) => {
+      startTransition(() => {
+        router.push(path);
+      });
+    };
   const features = [
     {
       title: "Custom Quizzes",
@@ -91,8 +101,13 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
+
       <AuroraBackground className="min-h-screen flex flex-col items-center justify-center relative">
-        
+      {isPending && (
+        <div className="z-50 fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+        </div>
+      )}   
         <div className="absolute top-5 left-5 z-50 flex items-center">
           <div className="h-8 w-8 bg-primary rounded-lg flex-shrink-0 flex items-center justify-center mr-2">
             <GraduationCap className="h-5 w-5 text-white" />
@@ -101,9 +116,7 @@ export default function Landing() {
         </div>
         
         <div className="absolute top-5 right-20 z-50">
-          <Link href="/login">
-            <Button variant="ghost">Login</Button>
-          </Link>
+            <Button variant="ghost" onClick={()=>handleNavigation('/login')} >Login</Button>
         </div>
         
         <div className="container px-4 mx-auto max-w-7xl z-10">
@@ -144,18 +157,11 @@ export default function Landing() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
             >
-              <Link href="/login">
-                <Button size="lg" className="relative overflow-hidden group">
+                <Button size="lg" onClick={()=>handleNavigation('/login')} className="relative overflow-hidden group">
                   <span className="relative z-10">Get Started</span>
                   <ArrowRight className="ml-2 h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform" />
                   <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button size="lg" variant="outline">
-                  Explore Features
-                </Button>
-              </Link>
             </motion.div>
           </div>
         </div>
@@ -339,13 +345,11 @@ export default function Landing() {
               variants={fadeInUpVariants}
               custom={2}
             >
-              <Link href="/login">
-                <Button size="lg" className="relative overflow-hidden group">
+                <Button onClick={()=>handleNavigation('/login')} size="lg" className="relative overflow-hidden group">
                   <span className="relative z-10">Get Started Now</span>
                   <ArrowRight className="ml-2 h-4 w-4 relative z-10 group-hover:translate-x-1 transition-transform" />
                   <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Button>
-              </Link>
             </motion.div>
           </div>
         </div>

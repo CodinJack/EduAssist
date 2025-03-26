@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,13 @@ export default function Auth() {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
+  const [isPending, startTransition] = useTransition();
 
+  const handleNavigation = (path: string) => {
+    startTransition(() => {
+      router.push(path);
+    });
+  };
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -51,7 +57,7 @@ export default function Auth() {
     setLoginLoading(true);
     
     try {
-      let response = await login(loginEmail, loginPassword);
+      await login(loginEmail, loginPassword);
       localStorage.setItem("guest", "false");
         toast.success("Success!", {
           duration: 4000,
@@ -61,7 +67,7 @@ export default function Auth() {
             color: "white",
           },
         });
-        router.push(`/dashboard`);
+        handleNavigation(`/dashboard`);
       
     } catch (error: any) { 
       toast.error('Authentication failed', {
@@ -111,6 +117,14 @@ export default function Auth() {
     try {
       await register(registerEmail, registerPassword);
       setMessage("Registration successful! Please log in.");
+      toast.success("Registration successful! Please log in.", {
+        duration: 5000,
+        position : 'top-right',
+        style: {
+          background: "green",
+          color: "white",
+        },
+      });
       setActiveTab("login");
     } catch (error) {
       toast.error("Try with a different email!", {
@@ -131,7 +145,7 @@ export default function Auth() {
     try {
       await handleGuestLogin();
       localStorage.setItem("guest", "true");
-      router.push('/dashboard');
+      handleNavigation('/dashboard');
     } catch (err) {
       toast.error("Guest login failed", {
         duration: 3000,
@@ -147,6 +161,11 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen w-full overflow-hidden">
+      {isPending && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+        </div>
+      )}
       <AuroraBackground className="min-h-screen flex flex-col items-center justify-center">
         <div className="absolute top-5 left-5 z-10">
           <Link href="/">
@@ -257,7 +276,7 @@ export default function Auth() {
                           </div>
                         </div>
                       </CardContent>
-                      
+
                       <CardFooter className="flex flex-col px-6 pt-2 pb-6">
                         <motion.div
                           whileHover={{ scale: 1.02 }}

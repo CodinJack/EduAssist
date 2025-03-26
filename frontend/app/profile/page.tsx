@@ -9,7 +9,7 @@ import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 
 const ProfilePage = () => {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(true);
     const [error, setError] = useState(null);
     const { user } = useAuth();
     const router = useRouter(); // ✅ Initialize the router
