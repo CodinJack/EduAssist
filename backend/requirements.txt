@@ -8,6 +8,7 @@ charset-normalizer==3.4.1
 colorama==0.4.6
 cryptography==44.0.2
 django==5.1.7
+django-cors-headers==4.7.0
 djangorestframework==3.15.2
 firebase-admin==6.7.0
 future==1.0.0
