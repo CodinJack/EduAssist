@@ -25,7 +25,7 @@ const ProfilePage = () => {
             <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
             {/* Main Content */}
-            <div className={`p-8 flex-1 transition-all ${collapsed ? "ml-16" : "ml-64"}`}>
+            <div className={`p-8 flex-1 transition-all duration-700 ${collapsed ? "ml-16" : "ml-64"}`}>
                 {/* Profile Header */}
                 <div className="flex items-center gap-6 bg-white p-6 rounded-lg shadow-md">
                     <Image

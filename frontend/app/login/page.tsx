@@ -1,180 +1,406 @@
 "use client";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GraduationCap, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FiEye, FiEyeOff } from "react-icons/fi"; // Eye icons for show/hide password
+import AuroraBackground from "@/components/ui/AuroraBackground";
 
-const AuthPage = () => {
+export default function Auth() {
+  const [activeTab, setActiveTab] = useState("login");
+  const { toast } = useToast();
   const { login, register, handleGuestLogin } = useAuth();
   const router = useRouter();
 
-  const [formState, setFormState] = useState({ email: "", password: "" });
+  // Login state
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  // Register state
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [registerLoading, setRegisterLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormState({ ...formState, [e.target.name]: e.target.value });
-  };
-
-  const isValidEmail = (email: string) =>
+  const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  const isValidPassword = (password: string) => password.length >= 8;
-
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
+    
+    if (!validateEmail(loginEmail)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+  
+    setLoginLoading(true);
+    
     try {
-      if (isRegistering) {
-        await register(formState.email, formState.password);
-        setMessage("Registration successful! Please log in.");
-        setIsRegistering(false);
-      } else {
-        await login(formState.email, formState.password);
-        localStorage.setItem("guest", "false");
-        router.push("/dashboard");
+      await login(loginEmail, loginPassword);
+      localStorage.setItem("guest", "false");
+      router.push(`/dashboard`);
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      
+      let errorMessage = "Something went wrong. Please try again.";
+      if (error?.message?.includes("wrong password")) {
+        errorMessage = "Incorrect password. Try again.";
+      } else if (error?.message?.includes("user not found")) {
+        errorMessage = "No account found with this email.";
       }
-    } catch (error) {
-      console.error("Auth Error:", error);
-      setMessage("Authentication failed. Please try again.");
+  
+      toast({
+        title: "Authentication failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+  
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateEmail(registerEmail)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+      });
+      return;
     }
 
-    setLoading(false);
-  };
+    if (registerPassword.length < 8) {
+      toast({
+        title: "Invalid password",
+        description: "Password must be at least 8 characters",
+      });
+      return;
+    }
 
-  const toggleAuthMode = () => {
-    setIsRegistering((prev) => !prev);
-    setMessage("");
+    setRegisterLoading(true);
+    
+    try {
+      await register(registerEmail, registerPassword);
+      setMessage("Registration successful! Please log in.");
+      setActiveTab("login");
+    } catch (error) {
+      console.error("Registration Error:", error);
+      toast({
+        title: "Registration failed",
+        description: "Please try again with a different email",
+      });
+    } finally {
+      setRegisterLoading(false);
+    }
   };
 
   const continueAsGuest = async () => {
     try {
       await handleGuestLogin();
       localStorage.setItem("guest", "true");
-      router.push("/dashboard");
+      router.push('/dashboard');
     } catch (err) {
       console.error("Guest login failed:", err);
+      toast({
+        title: "Guest login failed",
+        description: "Please try again later",
+      });
     }
   };
 
-  const isFormComplete =
-    isValidEmail(formState.email) && isValidPassword(formState.password);
-
   return (
-    <div className="flex min-h-screen w-full overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
-      {/* Left */}
-      <div className="hidden lg:flex w-1/2 p-8 items-center justify-center relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-indigo-700/90 opacity-90" />
-        <div className="relative w-full max-w-2xl text-white z-10">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-            Design that puts <br /> experience first
-          </h1>
-          <p className="text-xl text-white/80 max-w-lg mt-4">
-            Join our platform for a seamless experience that prioritizes simplicity, beauty, and functionality.
-          </p>
+    <div className="min-h-screen w-full overflow-hidden">
+      <AuroraBackground className="min-h-screen flex flex-col items-center justify-center">
+        <div className="absolute top-5 left-5 z-10">
+          <Link href="/">
+            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full backdrop-blur-md bg-white/10 hover:bg-white/20 transition-all">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
         </div>
-      </div>
-
-      {/* Right */}
-      <div className="flex w-full lg:w-1/2 px-6 sm:px-8 md:px-12 justify-center items-center">
-        <div className="w-full max-w-md">
-          <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl border border-white/20">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                {isRegistering ? "Create your account" : "Welcome back"}
-              </h2>
-              <p className="text-gray-600 mt-2">
-                {isRegistering ? "Join our community" : "Sign in to access your account"}
-              </p>
-            </div>
-
-            {message && <p className="text-center text-sm text-green-600">{message}</p>}
-
-            <form onSubmit={handleAuth} className="space-y-5">
-              <div className="space-y-1.5">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  className="w-full px-4 py-3 bg-gray-100/90 border-0 rounded-lg focus:ring-2 focus:ring-blue-500/50"
-                  placeholder="you@example.com"
-                  value={formState.email}
-                  onChange={handleInputChange}
-                />
-                {isRegistering && !isValidEmail(formState.email) && formState.email && (
-                  <p className="text-red-600 text-sm">Enter a valid email</p>
-                )}
-              </div>
-
-              <div className="space-y-1.5 relative">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    className="w-full px-4 py-3 bg-gray-100/90 border-0 rounded-lg focus:ring-2 focus:ring-blue-500/50 pr-10"
-                    placeholder="••••••••"
-                    value={formState.password}
-                    onChange={handleInputChange}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-                  </button>
-                </div>
-                {isRegistering && formState.password && !isValidPassword(formState.password) && (
-                  <p className="text-red-600 text-sm">Password must be at least 8 characters</p>
-                )}
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className={`w-full py-3.5 font-medium rounded-lg bg-blue-600 text-white ${
-                    !isFormComplete || loading ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
-                  disabled={loading || !isFormComplete}
-                >
-                  {loading ? "Processing..." : isRegistering ? "Create account" : "Sign in"}
-                </button>
-              </div>
-            </form>
-
-            <div className="mt-4 text-center">
-              <button
-                className="w-full py-3.5 mt-2 font-medium rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition duration-200"
-                onClick={continueAsGuest}
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-md px-4 z-10"
+        >
+          {message && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-center"
+            >
+              <p className="text-sm text-green-600 dark:text-green-400 font-medium">{message}</p>
+            </motion.div>
+          )}
+          
+          <Card className="border border-white/20 shadow-xl dark:shadow-slate-950/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-xl overflow-hidden">
+            <CardHeader className="pb-6 pt-8 flex flex-col items-center space-y-2">
+              <motion.div 
+                className="h-16 w-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mb-2 shadow-md"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
-                Continue as Guest
-              </button>
-            </div>
+                <GraduationCap className="h-8 w-8 text-white" />
+              </motion.div>
+              <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">Welcome to EduAssist</CardTitle>
+              <CardDescription className="text-center max-w-xs">
+                {activeTab === "login" 
+                  ? "Sign in to continue your learning journey" 
+                  : "Join our community of learners today"}
+              </CardDescription>
+            </CardHeader>
+            
+            <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <div className="px-6">
+                <TabsList className="grid w-full grid-cols-2 mb-6 rounded-lg p-1 bg-slate-100/80 dark:bg-slate-800/80">
+                  <TabsTrigger value="login" className="rounded-md text-sm py-2.5">Sign In</TabsTrigger>
+                  <TabsTrigger value="register" className="rounded-md text-sm py-2.5">Create Account</TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <AnimatePresence mode="wait">
+                <TabsContent key="login" value="login" className="m-0">
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <form onSubmit={handleLogin}>
+                      <CardContent className="space-y-4 px-6">
+                        <div className="space-y-2">
+                          <label htmlFor="email" className="text-sm font-medium block mb-1">
+                            Email address
+                          </label>
+                          <Input 
+                            id="email" 
+                            type="email" 
+                            placeholder="your@email.com" 
+                            value={loginEmail}
+                            onChange={(e) => setLoginEmail(e.target.value)}
+                            className="rounded-md border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary/30"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center mb-1">
+                            <label htmlFor="password" className="text-sm font-medium">
+                              Password
+                            </label>
+                            <Link href="#" className="text-xs text-primary hover:underline">
+                              Forgot password?
+                            </Link>
+                          </div>
+                          <div className="relative">
+                            <Input 
+                              id="password" 
+                              type={showPassword ? "text" : "password"} 
+                              placeholder="••••••••" 
+                              value={loginPassword}
+                              onChange={(e) => setLoginPassword(e.target.value)}
+                              className="rounded-md border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary/30 pr-10"
+                              required
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-0 h-full"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                      
+                      <CardFooter className="flex flex-col px-6 pt-2 pb-6">
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full"
+                        >
+                          <Button 
+                            type="submit" 
+                            className="w-full rounded-md h-11 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700"
+                            disabled={loginLoading}
+                          >
+                            {loginLoading ? "Signing in..." : "Sign in"}
+                          </Button>
+                        </motion.div>
+                        
+                        <div className="mt-6 w-full">
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                              <span className="bg-white dark:bg-slate-900 px-2 text-muted-foreground">Or continue with</span>
+                            </div>
+                          </div>
+                          
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="mt-6"
+                          >
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              className="w-full border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
+                              onClick={continueAsGuest}
+                            >
+                              Continue as guest
+                            </Button>
+                          </motion.div>
+                        </div>
+                        
+                        <div className="mt-6 text-sm text-center text-muted-foreground">
+                          Don't have an account?{" "}
+                          <button
+                            type="button"
+                            className="text-primary hover:underline font-medium"
+                            onClick={() => setActiveTab("register")}
+                          >
+                            Create one now
+                          </button>
+                        </div>
+                      </CardFooter>
+                    </form>
+                  </motion.div>
+                </TabsContent>
+                
+                <TabsContent key="register" value="register" className="m-0">
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <form onSubmit={handleRegister}>
+                      <CardContent className="space-y-4 px-6">
+                        <div className="space-y-2">
+                          <label htmlFor="register-email" className="text-sm font-medium block mb-1">
+                            Email address
+                          </label>
+                          <Input 
+                            id="register-email" 
+                            type="email" 
+                            placeholder="your@email.com" 
+                            value={registerEmail}
+                            onChange={(e) => setRegisterEmail(e.target.value)}
+                            className="rounded-md border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary/30"
+                            required
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label htmlFor="register-password" className="text-sm font-medium block mb-1">
+                            Password
+                          </label>
+                          <div className="relative">
+                            <Input 
+                              id="register-password" 
+                              type={showPassword ? "text" : "password"} 
+                              placeholder="••••••••" 
+                              value={registerPassword}
+                              onChange={(e) => setRegisterPassword(e.target.value)}
+                              className="rounded-md border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 focus:ring-2 focus:ring-primary/30 pr-10"
+                              required
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-0 h-full"
+                              onClick={() => setShowPassword(!showPassword)}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Password must be at least 8 characters
+                          </p>
+                        </div>
 
-            <div className="mt-6 text-center border-t border-gray-200 pt-4">
-              <p className="text-gray-600">
-                {isRegistering ? "Already have an account?" : "Don't have an account?"}
-                <button
-                  className="ml-1.5 text-blue-600 font-medium hover:underline"
-                  onClick={toggleAuthMode}
-                  disabled={loading}
-                >
-                  {isRegistering ? "Sign in" : "Create account"}
-                </button>
-              </p>
-            </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <input 
+                              type="checkbox" 
+                              id="terms" 
+                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              required
+                            />
+                            <label htmlFor="terms" className="text-xs text-muted-foreground">
+                              I agree to the <Link href="#" className="text-primary hover:underline">Terms of Service</Link> and <Link href="#" className="text-primary hover:underline">Privacy Policy</Link>
+                            </label>
+                          </div>
+                        </div>
+                      </CardContent>
+                      
+                      <CardFooter className="flex flex-col px-6 pt-2 pb-6">
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="w-full"
+                        >
+                          <Button 
+                            type="submit" 
+                            className="w-full rounded-md h-11 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700"
+                            disabled={registerLoading}
+                          >
+                            {registerLoading ? "Creating account..." : "Create account"}
+                          </Button>
+                        </motion.div>
+                        
+                        <div className="mt-6 text-sm text-center text-muted-foreground">
+                          Already have an account?{" "}
+                          <button
+                            type="button"
+                            className="text-primary hover:underline font-medium"
+                            onClick={() => setActiveTab("login")}
+                          >
+                            Sign in
+                          </button>
+                        </div>
+                      </CardFooter>
+                    </form>
+                  </motion.div>
+                </TabsContent>
+              </AnimatePresence>
+            </Tabs>
+          </Card>
+
+          <div className="mt-8 text-center text-xs text-white/60">
+            <p>© {new Date().getFullYear()} EduAssist. All rights reserved.</p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </AuroraBackground>
     </div>
   );
-};
-
-export default AuthPage;
+}

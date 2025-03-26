@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
 
 // ------------------------------
 // MOTIVATIONAL QUOTES SECTION
@@ -59,10 +60,12 @@ const RecentAchievements = () => {
 // DASHBOARD PAGE COMPONENT
 // ------------------------------
 export default function DashboardPage() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { user } = useAuth();
+
 
   useEffect(() => {
     const checkAuth = () => {
@@ -80,7 +83,7 @@ export default function DashboardPage() {
       const restrictedPaths = ["/quiz", "/profile", "/leaderboard"];
       if (mode === "guest" && restrictedPaths.includes(path)) {
         toast.error("Login First to access this page");
-        router.push("/dashboard");
+        router.push("/login");
         return;
       }
 
@@ -101,7 +104,7 @@ export default function DashboardPage() {
       <main
         className={`relative flex-1 transition-all duration-500 ease-in-out ${
           collapsed ? "ml-20" : "ml-64"
-        }`}
+        } p-6` }
       >
         <div className="p-8 max-w-7xl mx-auto">
           {/* Header */}

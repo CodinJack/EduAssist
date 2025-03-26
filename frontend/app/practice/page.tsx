@@ -25,7 +25,7 @@ const PracticePage = () => {
     <div className="min-h-screen bg-slate-50">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-      <div className={`transition-all duration-300 ${collapsed ? "ml-20" : "ml-64"}`}>
+      <div className={`transition-all duration-700 ${collapsed ? "ml-20" : "ml-64"}`}>
         {/* Header */}
         <div className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-800">Practice Topics</h1>
