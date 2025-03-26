@@ -1,20 +1,17 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Clock, BookOpen, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Sidebar from "@/components/dashboard/SideBar";
-import {createPracticeQuestions} from "@/services/practiceService"; 
 import { useAuth } from "@/context/AuthContext";
 
 const PracticePage = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [selectedTopic, setSelectedTopic] = useState("");
-  const [questions, setQuestions] = useState<any[]>([]);
   const router = useRouter();
   const { user } = useAuth();
-  const weakTags = user.details.firestore_user.weak_topics;
+  const weakTags = user?user.details.firestore_user.weak_topics : [];
 
   const handleStartPractice = async (topic: string) => {
     if (!topic) return alert("Please enter a topic!");
@@ -44,7 +41,7 @@ const PracticePage = () => {
               />
             </div>
 
-            <Button className="mt-4 bg-green-600 hover:bg-green-700"                 
+            <Button className="mt-4 bg-blue-600 hover:bg-blue-700"                 
                 onClick={() => handleStartPractice(selectedTopic)}
             >
               Start Practice

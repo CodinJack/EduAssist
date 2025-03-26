@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Trophy, Award } from "lucide-react";
 
 export default function Leaderboard() {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(true);
     const [leaderboardData, setLeaderboardData] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -18,27 +18,26 @@ export default function Leaderboard() {
                         "Content-Type": "application/json",
                     },
                 });
-
+    
                 if (!response.ok) {
                     throw new Error("Failed to fetch users");
                 }
-
+    
                 const data = await response.json();
-
+    
                 if (data.users) {
-                    const users = data.users.map((user, index) => ({
+                    const sortedUsers = data.users
+                        .sort((a, b) => b.total_marks - a.total_marks) // Sort by highest marks
+                        .slice(0, 10); // Get top 10 users
+    
+                    const users = sortedUsers.map((user, index) => ({
                         rank: index + 1,
                         name: user.email.split("@")[0],
                         score: user.total_marks.toFixed(2),
-                        avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${user.userID}`, // Avatar fix
-                        badge:
-                            index === 0
-                                ? "Top Performer"
-                                : index < 3
-                                ? "Rising Star"
-                                : "Consistent Learner",
+                        avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${user.userID}`,
+                        badge: index === 0 ? "Top Performer" : index < 3 ? "Rising Star" : "Consistent Learner",
                     }));
-
+    
                     setLeaderboardData(users);
                 }
             } catch (error) {
@@ -47,9 +46,10 @@ export default function Leaderboard() {
                 setLoading(false);
             }
         };
-
+    
         fetchUsers();
     }, []);
+    
 
     return (
         <div className="relative flex min-h-screen bg-slate-50 text-black overflow-hidden">

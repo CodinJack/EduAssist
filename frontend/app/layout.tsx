@@ -1,40 +1,34 @@
 "use client"
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "react-hot-toast";
-import { Toaster as Sonner} from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-const queryClient = new QueryClient();
+import Loading from "@/components/Loading";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
-// export const metadata: Metadata = {
-//   title: "EduAssist",
-//   description: "A modern teaching assistant platform!",
-// };
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-      <html lang="en">
-        <body className={inter.className}>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <AuthProvider>
-              <Toaster position="top-right" reverseOrder={false} />
-              <Sonner />
-              {children}
-            </AuthProvider>
-          </TooltipProvider>
-        </QueryClientProvider>
 
-        </body>
-      </html>
-    
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const [loading, setLoading] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setLoading(true);
+    const timeout = setTimeout(() => setLoading(false), 500);
+
+    return () => clearTimeout(timeout);
+  }, [pathname]);
+
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <AuthProvider>
+          <Toaster position="top-right" reverseOrder={false} />
+            {loading && <Loading />}
+            {children}
+        </AuthProvider>
+      </body>
+    </html>
   );
 }

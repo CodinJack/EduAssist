@@ -45,7 +45,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const handleLogout = async () => {
     try {
       logout();
-      router.push("/login");
+      router.push("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -152,7 +152,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                   <User className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-foreground truncate">{user ? user.details.auth_user.email : "User"}</h4>
+                  <h4 className="text-sm font-medium text-foreground truncate">{user ? user.details.auth_user.email : "Guest"}</h4>
                   <p className="text-xs text-muted-foreground truncate">{user ? "Active Student" : "Not logged in"}</p>
                 </div>
               </motion.div>

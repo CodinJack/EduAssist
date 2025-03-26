@@ -35,7 +35,7 @@ export default function Auth() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+  
     if (!validateEmail(loginEmail)) {
       toast({
         title: "Invalid email",
@@ -46,21 +46,25 @@ export default function Auth() {
     }
   
     setLoginLoading(true);
-    
-    try {
-      await login(loginEmail, loginPassword);
-      localStorage.setItem("guest", "false");
-      router.push(`/dashboard`);
-    } catch (error: any) {
-      console.error("Login Error:", error);
-      
-      let errorMessage = "Something went wrong. Please try again.";
-      if (error?.message?.includes("wrong password")) {
-        errorMessage = "Incorrect password. Try again.";
-      } else if (error?.message?.includes("user not found")) {
-        errorMessage = "No account found with this email.";
-      }
   
+    try {
+      const response = await login(loginEmail, loginPassword);
+  
+      // Ensure login was successful before redirecting
+      if (response?.success) {
+        localStorage.setItem("guest", "false");
+        router.push(`/dashboard`);
+      } else {      
+        console.log("toastingggg");
+        toast({
+          title: "Authentication failed",
+          description: "No account found with these credentials.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      let errorMessage = "Something went wrong. Please try again.";
+      console.log("toastingggg");
       toast({
         title: "Authentication failed",
         description: errorMessage,

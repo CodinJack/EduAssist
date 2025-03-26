@@ -7,3 +7,4 @@ backend/firebase_config.json
 firebaseConfig.ts
 **/__pycache__/
 __pycache__
+pnpm-lock.yaml

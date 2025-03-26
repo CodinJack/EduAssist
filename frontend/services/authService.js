@@ -11,17 +11,15 @@ export const loginUser = async (email, password) => {
         });
 
         const data = await response.json();
-        console.log("Login Response:", data);  // Debugging
-
         if (response.ok) {
             Cookies.set("idToken", data.idToken, { secure: true, sameSite: "Strict" }); // Store token in cookie
             console.log("Login successful:", data);
-            return data;
         } else {
-            console.error("Login failed:", data);
+            console.log("Login failed:", data);
         }
+        return data;
     } catch (error) {
-        console.error("Error logging in:", error);
+        console.log("Error logging in:", error);
     }
 };
 
