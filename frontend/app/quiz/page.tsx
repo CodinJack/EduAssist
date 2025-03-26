@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Users,
@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import {toast}  from 'react-hot-toast';
 import {
   Select,
   SelectContent,
@@ -22,10 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Sidebar from "@/components/dashboard/SideBar";
-import Cookies from "js-cookie";
+import { useAuth } from "@/context/AuthContext";
 
 const QuizList = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(true);
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +35,13 @@ const QuizList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(""); // Search Query State
+  const [isPending, startTransition] = useTransition();
+
+  const handleNavigation = (path: string) => {
+    startTransition(() => {
+      router.push(path);
+    });
+  };
 
   const BASE_URL = "http://127.0.0.1:8000";
   const getDifficultyNumber = (difficulty: string) => {
@@ -57,42 +66,21 @@ const QuizList = () => {
     questionCount: 10,
   });
  
-  const fetchUserAndQuizzes = async () => {
+  const fetchQuizzes = async () => {
     try {
-      const token = Cookies.get("idToken");
-      if (!token) {
-        console.error("No token found in cookies");
-        return;
+      if(user){
+        const quizzesResponse = await fetch(`${BASE_URL}/api/quizzes/get_all_quizzes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: userId }),
+        });
+  
+        if (!quizzesResponse.ok) throw new Error("Failed to fetch quizzes");
+  
+        const quizzesData = await quizzesResponse.json();
+        setQuizzes(quizzesData);
       }
 
-      const userResponse = await fetch(`${BASE_URL}/auth/get_user_from_cookie/`, {
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!userResponse.ok) throw new Error("Failed to fetch user data");
-
-      const user = await userResponse.json();
-      if (!user.userID) {
-        console.error("User ID not found in response");
-        return;
-      }
-
-      setUserId(user.userID);
-
-      const quizzesResponse = await fetch(`${BASE_URL}/api/quizzes/get_all_quizzes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.userID }),
-      });
-
-      if (!quizzesResponse.ok) throw new Error("Failed to fetch quizzes");
-
-      const quizzesData = await quizzesResponse.json();
-      setQuizzes(quizzesData);
     } catch (err) {
       setError("Failed to load quizzes");
       console.error(err);
@@ -100,13 +88,21 @@ const QuizList = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
-    fetchUserAndQuizzes();
-  }, []);
+    if (user) {
+      setUserId(user.details.auth_user.uid);
+    }
+  }, [user]);
+  
+  useEffect(() => {
+    if (userId) {
+      fetchQuizzes();
+    }
+  }, [userId]); 
+  
 
   const handleStartQuiz = (quizId: string) => {
-    router.push(`/quiz/${quizId}`);
+    handleNavigation(`/quiz/${quizId}`);
   };
   const handleCreateQuiz = async () => {
     if (!userId) {
@@ -118,10 +114,17 @@ const QuizList = () => {
       alert("Number of questions must be between 1 and 50.");
       return;
     }
-  
+    toast.success("Cooking up a quiz...",{
+      duration : 6000,
+      position : 'top-center',
+      style :{
+        background: "gray",
+        color: "white",
+      }
+    })
     try {
       const timeLimit = newQuiz.questionCount * getDifficultyNumber(newQuiz.difficulty);
-  
+
       const response = await fetch(`${BASE_URL}/api/quizzes/create_quiz`, {
         method: "POST",
         headers: {
@@ -137,11 +140,24 @@ const QuizList = () => {
       });
   
       if (!response.ok) {
-        throw new Error("Failed to create quiz");
+        toast.error("Cannot make a quiz on this topic!!!", {
+          duration: 3000,
+          position : 'top-center',
+          style: {
+            background: "red",
+            color: "white",
+          },
+        });
       }  
+
       setIsModalOpen(false);
       setNewQuiz({ topic: "", difficulty: "Beginner", questionCount: 10 });
-      await fetchUserAndQuizzes();
+
+      startTransition(() => {
+        fetchQuizzes();        
+      });
+  
+     
     } catch (error) {
       console.error("Error creating quiz:", error);
     }
@@ -174,7 +190,11 @@ const QuizList = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-
+      {isPending && (
+        <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+        </div>
+      )}
       <div className={`transition-all duration-700 ${collapsed ? "ml-20" : "ml-64"}`}>
         <div className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-800">Quizzes</h1>

@@ -162,7 +162,7 @@ export default function Auth() {
   return (
     <div className="min-h-screen w-full overflow-hidden">
       {isPending && (
-        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+        <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
         </div>
       )}

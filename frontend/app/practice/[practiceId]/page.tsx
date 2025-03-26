@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Lightbulb, Eye, EyeOff } from "lucide-react";
 import { createPracticeQuestions } from "@/services/practiceService";
 import QuestionCard from "../../../components/practiceQuestion";
-
+import { toast } from "react-hot-toast";
 const PracticeSession = () => {
     const { practiceId } = useParams();
     const router = useRouter();
@@ -20,10 +20,16 @@ const PracticeSession = () => {
                 const generatedQuestions = await createPracticeQuestions(
                     decodeURIComponent(practiceId)
                 );
-                console.log("API Response:", generatedQuestions);
 
                 if (!generatedQuestions.length) {
-                    setError("No questions found for this topic.");
+                    toast.error("Cannot make a practice questions on this topic!!", {
+                        duration: 3000,
+                        position : 'top-right',
+                        style: {
+                          background: "red",
+                          color: "white",
+                        },
+                      });
                     return;
                 }
 

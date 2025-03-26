@@ -34,7 +34,10 @@ def create_quiz(request):
                 return JsonResponse({"error": "Missing required fields"}, status=400)
 
             questions_json = generate_questions(topic, numQuestions, difficulty)
-            questions_json = extract_json_from_markdown(questions_json) 
+            if len(questions_json) == 0:
+                return JsonResponse({"error": "Cannot create quiz"}, status=500)
+
+            questions_json = extract_json_from_markdown(questions_json)
 
 
             # Store quiz in Firestore with userId from frontend

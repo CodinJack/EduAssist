@@ -31,6 +31,9 @@ def create_practice_questions(request):
 
         # Your logic to generate questions
         questions = generate_questions(topic) 
+        if len(questions) == 0:
+            return JsonResponse({"error": "Cannot create quiz"}, status=500)
+
         questions = extract_json_from_markdown(questions) 
         print(questions)
         return JsonResponse({"questions": questions}, status=200)
