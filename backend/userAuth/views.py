@@ -94,8 +94,8 @@ def login_user(request):
         if response.status_code == 200:
             result = response.json()
             return JsonResponse({
-                "idToken": result['idToken'],          # Firebase ID token
-                "refreshToken": result['refreshToken'],  # Refresh token
+                "idToken": result['idToken'],
+                "refreshToken": result['refreshToken'],
                 "expiresIn": result['expiresIn']
             })
         else:

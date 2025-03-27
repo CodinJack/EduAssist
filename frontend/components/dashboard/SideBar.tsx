@@ -59,7 +59,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   };
 
   const handleRestrictedNavigation = (path: string) => {
-    const restrictedPaths = ["/profile", "/leaderboard", "/quiz"];
+    const restrictedPaths = ["/profile", "/quiz"];
     if (!user && restrictedPaths.includes(path)) {
       toast.error("Login First");
       return;

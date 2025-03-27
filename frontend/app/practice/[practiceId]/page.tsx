@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Lightbulb, Eye, EyeOff } from "lucide-react";
@@ -13,7 +13,13 @@ const PracticeSession = () => {
     const [questions, setQuestions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isPending, startTransition] = useTransition();
 
+    const handleNavigation = (path: string) => {
+        startTransition(() => {
+            router.push(path);
+        });
+    };
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
@@ -29,14 +35,13 @@ const PracticeSession = () => {
                           background: "red",
                           color: "white",
                         },
-                      });
-                    return;
+                    });
+                    handleNavigation('/practice');
                 }
 
                 setQuestions(generatedQuestions);
                 setError(null);
             } catch (err) {
-                console.error("Error fetching questions:", err);
                 setError("Failed to fetch questions. Please try again.");
             } finally {
                 setLoading(false);
@@ -115,7 +120,11 @@ const PracticeSession = () => {
                 Practicing:{" "}
                 <span className="text-blue-600">{decodeURIComponent(practiceId)}</span>
             </h1>
-
+            {isPending && (
+                <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+                </div>
+            )}
             {/* Questions List */}
             <div className="space-y-8 max-w-3xl mx-auto">
                 {questions.map((q, index) => (

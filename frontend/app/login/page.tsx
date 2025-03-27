@@ -169,7 +169,7 @@ export default function Auth() {
       <AuroraBackground className="min-h-screen flex flex-col items-center justify-center">
         <div className="absolute top-5 left-5 z-10">
           <Link href="/">
-            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full backdrop-blur-md bg-white/10 hover:bg-white/20 transition-all">
+            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full backdrop-blur-md bg-white/10 hover:bg-blue-600 transition-all">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
