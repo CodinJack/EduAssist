@@ -28,10 +28,12 @@ def register_user(request):
 
     db = firestore.client()
     transaction = db.transaction()
-
     try:
         user = auth.create_user(email=email, password=password)
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
 
+    try:
         @firestore.transactional
         def store_user(transaction, uid, email):
             user_ref = db.collection('users').document(uid)
