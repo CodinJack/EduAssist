@@ -11,6 +11,7 @@ import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuroraBackground from "@/components/ui/AuroraBackground";
+import { loginUser } from "@/services/authService";
 
 export default function Auth() {
   const [activeTab, setActiveTab] = useState("login");
@@ -57,7 +58,8 @@ export default function Auth() {
     setLoginLoading(true);
     
     try {
-      await login(loginEmail, loginPassword);
+      // console.log(loginEmail + " "  + loginPassword)
+      await loginUser(loginEmail, loginPassword);
       localStorage.setItem("guest", "false");
         toast.success("Success!", {
           duration: 4000,

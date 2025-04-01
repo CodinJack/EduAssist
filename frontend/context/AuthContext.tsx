@@ -5,13 +5,7 @@ import Cookies from "js-cookie";
 import { signInAnonymously } from "firebase/auth";
 import { auth } from "@/firebaseConfig"; // Adjust according to your firebaseConfig path
 
-const AuthContext = createContext({
-  user: null,
-  login: () => {},
-  register: () => {},
-  logout: () => {},
-  handleGuestLogin: () => {},
-});
+const AuthContext = createContext<any>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);

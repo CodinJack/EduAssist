@@ -1,27 +1,24 @@
 import Cookies from "js-cookie";
 import { auth } from "../firebaseConfig"; // ✅ Import Firebase Auth
-import { createUserWithEmailAndPassword } from "firebase/auth"; 
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth"; 
 // ✅ LOGIN FUNCTION
 export const loginUser = async (email, password) => {
     try {
-        const response = await fetch("http://127.0.0.1:8000/auth/login/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-            credentials: "include", // Allow backend to set cookies
-        });
+        // Authenticate with Firebase
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-        const data = await response.json();
-        if (response.ok) {
-            Cookies.set("idToken", data.idToken, { secure: true, sameSite: "Strict" }); // Store token in cookie
-            console.log("Login successful.");
-            return data;
-        } else {
-            throw new Error("Login failed.");
-        }
+        // Get the Firebase authentication token
+        const idToken = await user.getIdToken();
+
+        // Store token in cookies (if needed)
+        Cookies.set("idToken", idToken, { secure: true, sameSite: "Strict" });
+
+        console.log("Login successful.");
+        return user;
         
     } catch (error) {
-        throw new Error("Error logging in.");
+        throw new Error(error.message || "Error logging in.");
     }
 };
 
@@ -33,27 +30,26 @@ export const registerUser = async (email, password) => {
         // alert(userCredential);
         const idToken = await userCredential.user.getIdToken();  // ✅ Get full Firebase token
         // console.log("🔥 Firebase ID Token:", idToken);
-        alert("fucker");
         console.log("🔥 Firebase ID Token:", idToken);  // Debugging
 
-        const response = await fetch("http://127.0.0.1:8000/auth/register/", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${idToken}`  // ✅ Send full ID token
-            },
-            body: JSON.stringify({ email, password }),
-            credentials: "include",
-        });
+        // const response = await fetch("http://127.0.0.1:8000/auth/register/", {
+        //     method: "POST",
+        //     headers: { 
+        //         "Content-Type": "application/json",
+        //         "Authorization": `Bearer ${idToken}`  // ✅ Send full ID token
+        //     },
+        //     body: JSON.stringify({ email, password }),
+        //     credentials: "include",
+        // });
 
-        const data = await response.json();
-        console.log(data);
-        if (response.ok) {
-            console.log("✅ Registration successful:", data);
-            return data;
-        } else {
-            throw new Error("❌ Error registering.");
-        }
+        // const data = await response.json();
+        // console.log(data);
+        // if (response.ok) {
+        //     console.log("✅ Registration successful:", data);
+        //     return data;
+        // } else {
+        //     throw new Error("❌ Error registering.");
+        // }
     } catch (error) {
         console.error("❌ Error registering:", error);
         throw new Error("Error registering.");
