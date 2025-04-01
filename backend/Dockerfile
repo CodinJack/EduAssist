@@ -16,8 +16,6 @@ EXPOSE 8080
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=backend.settings
-
 # Run the server using the venv Python
 CMD ["python3", "manage.py", "runserver", "0.0.0.0:8080"]
 
