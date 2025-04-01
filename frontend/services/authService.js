@@ -1,5 +1,6 @@
 import Cookies from "js-cookie";
-
+import { auth } from "../firebaseConfig"; // ✅ Import Firebase Auth
+import { createUserWithEmailAndPassword } from "firebase/auth"; 
 // ✅ LOGIN FUNCTION
 export const loginUser = async (email, password) => {
     try {
@@ -27,21 +28,34 @@ export const loginUser = async (email, password) => {
 // ✅ REGISTER FUNCTION
 export const registerUser = async (email, password) => {
     try {
+        // ✅ Sign in user and get ID token
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // alert(userCredential);
+        const idToken = await userCredential.user.getIdToken();  // ✅ Get full Firebase token
+        // console.log("🔥 Firebase ID Token:", idToken);
+        alert("fucker");
+        console.log("🔥 Firebase ID Token:", idToken);  // Debugging
+
         const response = await fetch("http://127.0.0.1:8000/auth/register/", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${idToken}`  // ✅ Send full ID token
+            },
             body: JSON.stringify({ email, password }),
             credentials: "include",
         });
 
         const data = await response.json();
+        console.log(data);
         if (response.ok) {
-            console.log("Registration successful:", data);
+            console.log("✅ Registration successful:", data);
             return data;
         } else {
-            throw new Error("Error registering.");
+            throw new Error("❌ Error registering.");
         }
     } catch (error) {
+        console.error("❌ Error registering:", error);
         throw new Error("Error registering.");
     }
 };
