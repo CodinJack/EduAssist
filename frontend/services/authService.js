@@ -36,11 +36,39 @@ export const loginUser = async (email, password) => {
         const idToken = await user.getIdToken();
         Cookies.set("idToken", idToken, { secure: true, sameSite: "Strict" });
 
-        console.log("Login successful.");
+        console.log("Login successful, user ID:", user.uid);
         
         // Get user data from Firestore
         const userData = await getUserData(user.uid);
-        return userData || user;
+        
+        if (userData) {
+            // Merge auth user data with Firestore data
+            return {
+                ...userData,
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || userData.displayName,
+                photoURL: user.photoURL || userData.photoURL
+            };
+        } else {
+            // Create a user document if it doesn't exist
+            const newUserData = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || '',
+                photoURL: user.photoURL || '',
+                bookmarkedQuestions: [],
+                weakTopics: [],
+                averageMarks: 0,
+                currentStreak: 0,
+                maxStreak: 0,
+                lastQuizSubmissionDate: null
+            };
+            
+            await setDoc(doc(db, "users", user.uid), newUserData);
+            console.log("Created new user document for existing auth user");
+            return newUserData;
+        }
     } catch (error) {
         console.error("Login error:", error);
         throw error;
@@ -57,7 +85,7 @@ export const signInWithGoogle = async () => {
         const idToken = await user.getIdToken();
         Cookies.set("idToken", idToken, { secure: true, sameSite: "Strict" });
 
-        console.log("Google Sign-In successful.");
+        console.log("Google Sign-In successful, user ID:", user.uid);
         
         // Check if user exists in Firestore, if not create a basic record
         const userData = await getUserData(user.uid);
@@ -75,10 +103,18 @@ export const signInWithGoogle = async () => {
                 lastQuizSubmissionDate: null,
             };
             await setDoc(doc(db, "users", user.uid), newUser);
+            console.log("Created new user document for Google auth");
             return newUser;
         }
         
-        return userData;
+        // Merge auth user data with Firestore data
+        return {
+            ...userData,
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || userData.displayName,
+            photoURL: user.photoURL || userData.photoURL
+        };
     } catch (error) {
         console.error("Google Sign-In error:", error);
         throw error;
@@ -98,12 +134,22 @@ export const logoutUser = async () => {
 };
 
 export const getUserData = async (uid) => {
+    if (!uid) {
+        console.error("No user ID provided to getUserData");
+        return null;
+    }
+    
     try {
-        const userDoc = await getDoc(doc(db, "users", uid));
+        console.log("Fetching user data for ID:", uid);
+        const userDocRef = doc(db, "users", uid);
+        const userDoc = await getDoc(userDocRef);
+        
         if (userDoc.exists()) {
-            return userDoc.data();
+            const userData = userDoc.data();
+            console.log("User data retrieved:", userData);
+            return userData;
         } else {
-            console.log("User data not found in Firestore");
+            console.log("User document not found in Firestore for ID:", uid);
             return null;
         }
     } catch (error) {

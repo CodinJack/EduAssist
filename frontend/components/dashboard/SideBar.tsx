@@ -70,9 +70,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     }
     handleNavigation(path)
   };
-  if (!user) {
-    return <p>Loading user...</p>; // This prevents rendering before data loads
-  }
 
   return (
     <AnimatePresence>

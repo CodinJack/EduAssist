@@ -10,23 +10,86 @@ import {
 import { auth, db, doc, setDoc } from "../firebaseConfig"; 
 import { onAuthStateChanged } from "firebase/auth";
 
-const AuthContext = createContext<any>(null);
+// Define proper TypeScript types
+interface User {
+  uid: string;
+  email: string | null;
+  displayName?: string;
+  photoURL?: string;
+  isGuest?: boolean;
+  bookmarkedQuestions: string[];
+  weakTopics: string[];
+  averageMarks: number;
+  currentStreak: number;
+  maxStreak: number;
+  lastQuizSubmissionDate: Date | null;
+}
+
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<User | null>;
+  register: (email: string, password: string) => Promise<User | null>;
+  loginWithGoogle: () => Promise<User | null>;
+  logout: () => Promise<void>;
+  handleGuestLogin: () => Promise<User>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<any | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     // Listen to auth state changes
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                const userData = await getUserData(currentUser.uid); // Fetch full user data
-                setUser(userData ? { ...userData, uid: currentUser.uid } : null);
-                console.log("Current user is:", userData);
-            } else {
+            setLoading(true);
+            try {
+                if (currentUser) {
+                    // Fetch full user data
+                    const userData = await getUserData(currentUser.uid);
+                    
+                    if (userData) {
+                        // Important: Merge Firebase Auth user data with Firestore data
+                        setUser({
+                            ...userData,
+                            uid: currentUser.uid,
+                            email: currentUser.email,
+                            displayName: currentUser.displayName || userData.displayName,
+                            photoURL: currentUser.photoURL || userData.photoURL
+                        });
+                        console.log("Current user data loaded:", userData);
+                    } else {
+                        // User exists in Auth but not in Firestore
+                        const newUserData = {
+                            uid: currentUser.uid,
+                            email: currentUser.email,
+                            displayName: currentUser.displayName || '',
+                            photoURL: currentUser.photoURL || '',
+                            bookmarkedQuestions: [],
+                            weakTopics: [],
+                            averageMarks: 0,
+                            currentStreak: 0,
+                            maxStreak: 0,
+                            lastQuizSubmissionDate: null,
+                        };
+                        
+                        // Create user document in Firestore
+                        await setDoc(doc(db, "users", currentUser.uid), newUserData);
+                        setUser(newUserData);
+                        console.log("Created new user document:", newUserData);
+                    }
+                } else {
+                    setUser(null);
+                    console.log("No user logged in");
+                }
+            } catch (error) {
+                console.error("Error in auth state change:", error);
                 setUser(null);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         });
 
         return () => unsubscribe();
@@ -34,24 +97,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const login = async (email: string, password: string) => {
         try {
-            const userObj = await loginUserService(email, password);
-            return userObj;
+            setLoading(true);
+            const userData = await loginUserService(email, password);
+            setUser(userData);
+            return userData;
         } catch (error: any) {
             console.error("Login error:", error.message);
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
     const register = async (email: string, password: string) => {
         try {
+            setLoading(true);
             // Register user with Firebase Auth
             const userCredential = await registerUserService(email, password);
-            const user = userCredential.user;
+            const firebaseUser = userCredential.user;
     
             // Define additional fields for Firestore
             const userData = {
-                uid: user.uid,
-                email: user.email,
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName || '',
+                photoURL: firebaseUser.photoURL || '',
                 bookmarkedQuestions: [],
                 weakTopics: [],
                 averageMarks: 0,
@@ -61,7 +131,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             };
     
             // Store user data in Firestore
-            await setDoc(doc(db, "users", user.uid), userData);
+            await setDoc(doc(db, "users", firebaseUser.uid), userData);
     
             // Update state
             setUser(userData);
@@ -69,60 +139,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } catch (error: any) {
             console.error("Register error:", error.message);
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
     const loginWithGoogle = async () => {
         try {
+            setLoading(true);
             const userData = await signInWithGoogleService();
-            // Check if user already exists in Firestore, if not create a new record
-            const existingUser = await getUserData(userData.uid);
-            if (!existingUser) {
-                const newUserData = {
-                    uid: userData.uid,
-                    email: userData.email,
-                    bookmarkedQuestions: [],
-                    weakTopics: [],
-                    averageMarks: 0,
-                    currentStreak: 0,
-                    maxStreak: 0,
-                    lastQuizSubmissionDate: null,
-                };
-                await setDoc(doc(db, "users", userData.uid), newUserData);
-            }
+            setUser(userData);
             return userData;
         } catch (error: any) {
             console.error("Google Sign-In error:", error.message);
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
     const logout = async () => {
         try {
+            setLoading(true);
             await logoutUser();
             setUser(null);
         } catch (error: any) {
             console.error("Logout error:", error.message);
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
     // Add guest login functionality
     const handleGuestLogin = async () => {
-        // Set a temporary guest user
-        const guestUser = {
-            uid: "guest-" + Math.random().toString(36).substring(2, 9),
-            email: "guest@example.com",
-            isGuest: true,
-            bookmarkedQuestions: [],
-            weakTopics: [],
-            averageMarks: 0,
-            currentStreak: 0,
-            maxStreak: 0,
-            lastQuizSubmissionDate: null,
-        };
-        setUser(guestUser);
-        return guestUser;
+        setLoading(true);
+        try {
+            // Set a temporary guest user
+            const guestUser = {
+                uid: "guest-" + Math.random().toString(36).substring(2, 9),
+                email: "guest@example.com",
+                isGuest: true,
+                bookmarkedQuestions: [],
+                weakTopics: [],
+                averageMarks: 0,
+                currentStreak: 0,
+                maxStreak: 0,
+                lastQuizSubmissionDate: null,
+            };
+            setUser(guestUser);
+            return guestUser;
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -140,4 +209,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
+};
