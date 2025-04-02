@@ -71,6 +71,7 @@ INSTALLED_APPS = [
 CORS_ALLOW_ALL_ORIGINS = True
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -78,8 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'userAuth.middleware.FirebaseAuthMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
+    'userAuth.middleware.FirebaseAuthMiddleware',   
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -93,9 +93,12 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True  # Set to True for testing, but restrict in production
 
 CORS_ALLOW_HEADERS = [
-    'content-type',
-    'authorization',
+    "authorization",
+    "content-type",
+    "x-csrf-token",
+    "x-requested-with",
 ]
+
 
 TEMPLATES = [
     {
