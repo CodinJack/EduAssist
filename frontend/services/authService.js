@@ -1,85 +1,113 @@
 import Cookies from "js-cookie";
-import { auth } from "../firebaseConfig"; // ✅ Import Firebase Auth
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth"; 
-// ✅ LOGIN FUNCTION
+import { auth, googleProvider } from "../firebaseConfig";
+import { 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    signInWithPopup, 
+    signOut 
+} from "firebase/auth";
+import { db, doc, getDoc, setDoc } from "../firebaseConfig";
+
+// ✅ Register User
+export const registerUser = async (email, password) => {
+    try {
+        // Register the user
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Store ID token in cookies
+        const idToken = await userCredential.user.getIdToken();
+        Cookies.set("idToken", idToken, { secure: true, sameSite: "Strict" });
+
+        console.log("User registered successfully.");
+        return userCredential; // Return the full userCredential
+    } catch (error) {
+        console.error("Registration error:", error);
+        throw error;
+    }
+};
+
+// ✅ Login User
 export const loginUser = async (email, password) => {
     try {
-        // Authenticate with Firebase
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Get the Firebase authentication token
+        // Get ID token and store in cookies
         const idToken = await user.getIdToken();
-
-        // Store token in cookies (if needed)
         Cookies.set("idToken", idToken, { secure: true, sameSite: "Strict" });
 
         console.log("Login successful.");
-        return user;
         
+        // Get user data from Firestore
+        const userData = await getUserData(user.uid);
+        return userData || user;
     } catch (error) {
-        throw new Error(error.message || "Error logging in.");
+        console.error("Login error:", error);
+        throw error;
     }
 };
 
-// ✅ REGISTER FUNCTION
-export const registerUser = async (email, password) => {
+// ✅ Google Sign-In
+export const signInWithGoogle = async () => {
     try {
-        // ✅ Sign in user and get ID token
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        // alert(userCredential);
-        const idToken = await userCredential.user.getIdToken();  // ✅ Get full Firebase token
-        // console.log("🔥 Firebase ID Token:", idToken);
-        console.log("🔥 Firebase ID Token:", idToken);  // Debugging
+        const userCredential = await signInWithPopup(auth, googleProvider);
+        const user = userCredential.user;
 
-        // const response = await fetch("http://127.0.0.1:8000/auth/register/", {
-        //     method: "POST",
-        //     headers: { 
-        //         "Content-Type": "application/json",
-        //         "Authorization": `Bearer ${idToken}`  // ✅ Send full ID token
-        //     },
-        //     body: JSON.stringify({ email, password }),
-        //     credentials: "include",
-        // });
+        // Get ID token and store in cookies
+        const idToken = await user.getIdToken();
+        Cookies.set("idToken", idToken, { secure: true, sameSite: "Strict" });
 
-        // const data = await response.json();
-        // console.log(data);
-        // if (response.ok) {
-        //     console.log("✅ Registration successful:", data);
-        //     return data;
-        // } else {
-        //     throw new Error("❌ Error registering.");
-        // }
+        console.log("Google Sign-In successful.");
+        
+        // Check if user exists in Firestore, if not create a basic record
+        const userData = await getUserData(user.uid);
+        if (!userData) {
+            const newUser = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || '',
+                photoURL: user.photoURL || '',
+                bookmarkedQuestions: [],
+                weakTopics: [],
+                averageMarks: 0,
+                currentStreak: 0,
+                maxStreak: 0,
+                lastQuizSubmissionDate: null,
+            };
+            await setDoc(doc(db, "users", user.uid), newUser);
+            return newUser;
+        }
+        
+        return userData;
     } catch (error) {
-        console.error("❌ Error registering:", error);
-        throw new Error("Error registering.");
+        console.error("Google Sign-In error:", error);
+        throw error;
     }
 };
 
-
-export const getUserData = async () => {
-    const token = Cookies.get("idToken");
-    if (!token) return null;
-
+// ✅ Logout User
+export const logoutUser = async () => {
     try {
-        const response = await fetch("http://127.0.0.1:8000/auth/user/", {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch user data");
-
-        return await response.json();
+        await signOut(auth);
+        Cookies.remove("idToken"); // Remove token from cookies
+        console.log("User logged out.");
     } catch (error) {
-        throw new Error("Failed to fetch user data");
+        console.error("Logout error:", error);
+        throw error;
     }
 };
 
-// ✅ LOGOUT FUNCTION (Clears Cookies)
-export const logoutUser = () => {
-    Cookies.remove("idToken");
-    console.log("User logged out.");
+export const getUserData = async (uid) => {
+    try {
+        const userDoc = await getDoc(doc(db, "users", uid));
+        if (userDoc.exists()) {
+            return userDoc.data();
+        } else {
+            console.log("User data not found in Firestore");
+            return null;
+        }
+    } catch (error) {
+        console.error("Error getting user data:", error);
+        return null;
+    }
 };
