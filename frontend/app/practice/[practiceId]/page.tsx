@@ -63,7 +63,7 @@ const PracticeSession = () => {
         [key: number]: boolean;
     }>({});
     const handleBookmark = async (id: number, question: object) => {
-        const apiUrl = "http://localhost:8000/auth/update_bookmarked_questions/";
+        const apiUrl = "http://127.0.0.1:8000/auth/update_bookmarked_questions/";
         const token = getCookie("idToken"); // Read token from cookie
 
         if (!token) {

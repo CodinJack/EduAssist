@@ -73,6 +73,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             currentStreak: 0,
                             maxStreak: 0,
                             lastQuizSubmissionDate: null,
+                            numberOfTestsAttempted:0,
+                            quizzes:[]
                         };
                         
                         // Create user document in Firestore
@@ -128,6 +130,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 currentStreak: 0,
                 maxStreak: 0,
                 lastQuizSubmissionDate: null,
+                numberOfTestsAttempted:0,
+                quizzes:[]
             };
     
             // Store user data in Firestore
@@ -186,6 +190,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 currentStreak: 0,
                 maxStreak: 0,
                 lastQuizSubmissionDate: null,
+                numberOfTestsAttempted:0,
+                quizzes:[]
             };
             setUser(guestUser);
             return guestUser;

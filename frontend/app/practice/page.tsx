@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,17 +11,27 @@ const PracticePage = () => {
   const [selectedTopic, setSelectedTopic] = useState("");
   const router = useRouter();
   const { user } = useAuth();
-  const weakTags = user?user.details.firestore_user.weak_topics : [];
+  const weakTags = user?user.weakTopics : [];
+  const [isPending, startTransition] = useTransition();
 
+  const handleNavigation = (path: string) => {
+    startTransition(() => {
+      router.push(path);
+    });
+  };
   const handleStartPractice = async (topic: string) => {
     if (!topic) return alert("Please enter a topic!");
-    router.push(`/practice/${encodeURIComponent(topic)}`);
+    handleNavigation(`/practice/${encodeURIComponent(topic)}`);
   };
 
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-
+      {isPending && (
+        <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+        </div>
+      )}
       <div className={`transition-all duration-700 ${collapsed ? "ml-20" : "ml-64"}`}>
         {/* Header */}
         <div className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between">

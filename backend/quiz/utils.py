@@ -15,6 +15,7 @@ def generate_questions(topic, num_questions, difficulty):
     Generate {num_questions} multiple-choice quiz questions on {topic} with 2-3 tags each and difficulty {difficulty} (where Beginner is the easiest, Intermediate being medium-level and Advanced being hard questions) and the options should be like "a" : "x", "b" : "y", "c" : "z", "d" : "s".
     If the given topic '{topic}' is NSFW, or is some sensitive topic that kids shouldnt learn about or its something you dont understand, , just dont give anything - give an empty json list.
     But if '{topic}' is a normal topic then generate questions.
+    Don't keep the tags of different questions too different please, like some question tags can overlap of multiple questions.
     Each question should be in JSON format like this:
     
     {{

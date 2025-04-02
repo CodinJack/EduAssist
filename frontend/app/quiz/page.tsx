@@ -66,39 +66,19 @@ const QuizList = () => {
     questionCount: 10,
   });
  
-  const fetchQuizzes = async () => {
-    try {
-      if(user){
-        const quizzesResponse = await fetch(`${BASE_URL}/api/quizzes/get_all_quizzes`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: userId }),
-        });
-  
-        if (!quizzesResponse.ok) throw new Error("Failed to fetch quizzes");
-  
-        const quizzesData = await quizzesResponse.json();
-        setQuizzes(quizzesData);
-      }
-
-    } catch (err) {
-      setError("Failed to load quizzes");
-      console.error(err);
-    } finally {
-      setLoading(false);
+  const fetchQuizzes = () => {
+    if (user && user.quizzes) {
+      setQuizzes(user.quizzes);
     }
+    setLoading(false);
   };
+
   useEffect(() => {
     if (user) {
-      setUserId(user.details.auth_user.uid);
-    }
-  }, [user]);
-  
-  useEffect(() => {
-    if (userId) {
+      setUserId(user.uid);
       fetchQuizzes();
     }
-  }, [userId]); 
+  }, [user]);
   
 
   const handleStartQuiz = (quizId: string) => {
@@ -223,11 +203,9 @@ const QuizList = () => {
             <p className="text-red-500">{error}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {quizzes
-                .filter((quiz) =>
-                  quiz.topic.toLowerCase().includes(searchQuery.toLowerCase()) 
-                )
-                .map((quiz) => (
+              {(quizzes.length > 0 ? quizzes.filter((quiz) =>
+                quiz.topic.toLowerCase().includes(searchQuery.toLowerCase())
+              ) : []).map((quiz) => (
                   <Card key={quiz.id} className="shadow-md rounded-lg border hover:shadow-lg transition-all bg-white">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-3">

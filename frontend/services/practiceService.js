@@ -1,11 +1,19 @@
-const BASE_URL = process.env.PRODUCTION_BACKEND_URL || "http://127.0.0.1:8000/api/practice"; 
+import Cookies from "js-cookie";
+
+const BASE_URL = process.env.PRODUCTION_BACKEND_URL || "http://127.0.0.1:8000/api/practice";
 
 export const createPracticeQuestions = async (topic) => {
     try {
-        const response = await fetch(`${BASE_URL}/create_practice_questions/`, {
+        const idToken = Cookies.get("idToken"); // Get idToken using js-cookie
+        if (!idToken) {
+            throw new Error("No idToken found in cookies");
+        }
+
+        const response = await fetch(`http://127.0.0.1:8000/api/practice/create_practice_questions/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${idToken}`
             },
             body: JSON.stringify({ topic }),
         });
@@ -15,8 +23,6 @@ export const createPracticeQuestions = async (topic) => {
         }
 
         const data = await response.json();
-
-        console.log("Raw API Response:", data);  // Debugging log
 
         if (!data || !data.questions || !Array.isArray(data.questions)) {
             throw new Error("Invalid API response format");
@@ -31,6 +37,6 @@ export const createPracticeQuestions = async (topic) => {
         }));
     } catch (error) {
         console.error("Error creating practice questions:", error);
-        return [];  // Return an empty array instead of null
+        return []; // Return an empty array instead of null
     }
 };

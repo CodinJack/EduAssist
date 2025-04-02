@@ -12,12 +12,9 @@ const ProfilePage = () => {
     const [collapsed, setCollapsed] = useState(true);
     const [error, setError] = useState(null);
     const { user } = useAuth();
-    const router = useRouter(); // ✅ Initialize the router
+    const router = useRouter(); 
 
     if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
-
-    const authUser = user.details.auth_user;
-    const firestoreUser = user.details.firestore_user;
 
     return (
         <div className="flex min-h-screen bg-gray-50">
@@ -38,7 +35,7 @@ const ProfilePage = () => {
                     />
                     <div>
                         <h1 className="text-2xl font-bold text-blue-600">
-                            {authUser.email}
+                            {user.email}
                         </h1>
                     </div>
                 </div>
@@ -54,7 +51,7 @@ const ProfilePage = () => {
                         </CardHeader>
                         <CardContent>
                             <p className="text-2xl font-semibold">
-                                {firestoreUser?.number_of_tests_attempted ?? 0}
+                                {user?.numberOfTestsAttempted ?? 0}
                             </p>
                         </CardContent>
                     </Card>
@@ -68,7 +65,7 @@ const ProfilePage = () => {
                         </CardHeader>
                         <CardContent>
                             <p className="text-2xl font-semibold">
-                                {firestoreUser?.total_marks ?? 0}
+                                {user?.averageMarks ?? 0}
                             </p>
                         </CardContent>
                     </Card>
@@ -82,7 +79,7 @@ const ProfilePage = () => {
                         </CardHeader>
                         <CardContent>
                             <p className="text-2xl font-semibold text-black">
-                                {firestoreUser?.weak_topics?.length ?? 0}
+                                {user?.weakTopics?.length ?? 0}
                             </p>
                         </CardContent>
                     </Card>
@@ -94,9 +91,9 @@ const ProfilePage = () => {
                         Weak Topics
                     </h2>
                     <div className="bg-white shadow-sm rounded-lg p-6">
-                        {firestoreUser?.weak_topics?.length > 0 ? (
+                        {user?.weakTopics?.length > 0 ? (
                             <ul className="list-disc ml-5">
-                                {firestoreUser.weak_topics.map((topic, index) => (
+                                {user.weakTopics.map((topic : string, index) => (
                                     <li key={index} className="text-red-500">
                                         {topic}
                                     </li>
