@@ -14,7 +14,7 @@ import {
   BarChart 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-hot-toast";
@@ -35,6 +35,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+
+  useEffect(() => {
+    console.log("User Data in Sidebar:", user);
+  }, [user]);
   const handleNavigation = (path: string) => {
     startTransition(() => {
       router.push(path);
@@ -66,6 +70,9 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     }
     handleNavigation(path)
   };
+  if (!user) {
+    return <p>Loading user...</p>; // This prevents rendering before data loads
+  }
 
   return (
     <AnimatePresence>
@@ -165,7 +172,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                   <User className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-foreground truncate">{user ? user.details.auth_user.email : "Guest"}</h4>
+                  <h4 className="text-sm font-medium text-foreground truncate">{user ? user.email : "Guest"}</h4>
                   <p className="text-xs text-muted-foreground truncate">{user ? "Active Student" : "Not logged in"}</p>
                 </div>
               </motion.div>

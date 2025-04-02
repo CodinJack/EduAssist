@@ -11,11 +11,10 @@ import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuroraBackground from "@/components/ui/AuroraBackground";
-import { loginUser } from "@/services/authService";
 
 export default function Auth() {
   const [activeTab, setActiveTab] = useState("login");
-  const { login, register, handleGuestLogin } = useAuth();
+  const { login, register, loginWithGoogle, handleGuestLogin } = useAuth();
   const router = useRouter();
 
   // Login state
@@ -36,6 +35,7 @@ export default function Auth() {
       router.push(path);
     });
   };
+
   const validateEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -45,7 +45,7 @@ export default function Auth() {
     if (!validateEmail(loginEmail)) {
       toast.error("Invalid Email", {
         duration: 3000,
-        position : 'top-right',
+        position: 'top-right',
         style: {
           background: "red",
           color: "white",
@@ -58,20 +58,20 @@ export default function Auth() {
     setLoginLoading(true);
     
     try {
-      // console.log(loginEmail + " "  + loginPassword)
-      await loginUser(loginEmail, loginPassword);
+      await login(loginEmail, loginPassword);
       localStorage.setItem("guest", "false");
-        toast.success("Success!", {
-          duration: 4000,
-          position : 'top-right',
-          style: {
-            background: "green",
-            color: "white",
-          },
-        });
-        handleNavigation(`/dashboard`);
+      toast.success("Success!", {
+        duration: 4000,
+        position: 'top-right',
+        style: {
+          background: "green",
+          color: "white",
+        },
+      });
+      handleNavigation(`/dashboard`);
       
     } catch (error: any) { 
+      console.error("Login error:", error);
       toast.error('Authentication failed', {
         duration: 3000,
         position: 'top-right',
@@ -85,6 +85,31 @@ export default function Auth() {
     }
   };
   
+  const handleGoogleSignIn = async () => {
+    try {
+      await loginWithGoogle();
+      localStorage.setItem("guest", "false");
+      toast.success("Google Sign-in Successful!", {
+        duration: 4000,
+        position: 'top-right',
+        style: {
+          background: "green",
+          color: "white",
+        },
+      });
+      handleNavigation('/dashboard');
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      toast.error("Google sign-in failed", {
+        duration: 3000,
+        position: 'top-right',
+        style: {
+          background: "red",
+          color: "white",
+        },
+      });
+    }
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +117,7 @@ export default function Auth() {
     if (!validateEmail(registerEmail)) {
       toast.error("Invalid Email", {
         duration: 3000,
-        position : 'top-right',
+        position: 'top-right',
         style: {
           background: "red",
           color: "white",
@@ -102,15 +127,14 @@ export default function Auth() {
     }
 
     if (registerPassword.length < 8) {
-      toast.error("Invalid Password", {
+      toast.error("Password must be at least 8 characters", {
         duration: 3000,
-        position : 'top-right',
+        position: 'top-right',
         style: {
           background: "red",
           color: "white",
         },
       });
-
       return;
     }
 
@@ -121,23 +145,25 @@ export default function Auth() {
       setMessage("Registration successful! Please log in.");
       toast.success("Registration successful! Please log in.", {
         duration: 5000,
-        position : 'top-right',
+        position: 'top-right',
         style: {
           background: "green",
           color: "white",
         },
       });
       setActiveTab("login");
-    } catch (error) {
-      toast.error("Try with a different email!", {
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      toast.error(error.code === "auth/email-already-in-use" 
+        ? "Email already in use" 
+        : "Registration failed", {
         duration: 3000,
-        position : 'top-right',
+        position: 'top-right',
         style: {
           background: "red",
           color: "white",
         },
       });
-
     } finally {
       setRegisterLoading(false);
     }
@@ -147,17 +173,20 @@ export default function Auth() {
     try {
       await handleGuestLogin();
       localStorage.setItem("guest", "true");
+      toast.success("Continuing as guest", {
+        duration: 3000,
+        position: 'top-right',
+      });
       handleNavigation('/dashboard');
     } catch (err) {
       toast.error("Guest login failed", {
         duration: 3000,
-        position : 'top-right',
+        position: 'top-right',
         style: {
           background: "red",
           color: "white",
         },
       });
-
     }
   };
 
@@ -304,20 +333,43 @@ export default function Auth() {
                             </div>
                           </div>
                           
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="mt-6"
-                          >
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              className="w-full border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
-                              onClick={continueAsGuest}
+                          <div className="mt-6 space-y-3">
+                            <motion.div
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
                             >
-                              Continue as guest
-                            </Button>
-                          </motion.div>
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                className="w-full border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+                                onClick={handleGoogleSignIn}
+                              >
+                                <svg viewBox="0 0 24 24" className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg">
+                                  <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
+                                    <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
+                                    <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
+                                    <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
+                                    <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+                                  </g>
+                                </svg>
+                                Sign in with Google
+                              </Button>
+                            </motion.div>
+                            
+                            <motion.div
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                className="w-full border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                onClick={continueAsGuest}
+                              >
+                                Continue as guest
+                              </Button>
+                            </motion.div>
+                          </div>
                         </div>
                         
                         <div className="mt-6 text-sm text-center text-muted-foreground">
