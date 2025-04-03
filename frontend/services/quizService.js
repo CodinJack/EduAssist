@@ -1,15 +1,26 @@
 const BASE_URL = "http://127.0.0.1:8000"; // Update if your backend URL differs
-
+import 'js-cookie'
 // Create a new quiz
 export const createQuiz = async ({ topic, difficulty, numQuestions, timeLimit, userId }) => {
   try {
-    const response = await fetch(`${BASE_URL}/api/quizzes/create_quiz`, {
-      method: "POST",
-      body: JSON.stringify({ topic, difficulty, numQuestions, timeLimit, userId }),
+    const idToken = Cookies.get("idToken"); // Get token
+    if (!idToken) {
+        console.error("❌ No idToken found in cookies!");
+        throw new Error("Authentication token missing");
+    }
+
+    const response = await fetch(`${BASE_URL}/create_quiz`, {
+        method: "POST",
+        credentials: "include", // Ensures cookies are sent
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`, // Send token in header
+        },
+        body: JSON.stringify({ topic }),
     });
 
     if (!response.ok) {
-      throw new Error("Failed to create quiz");
+        throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     return await response.json();
