@@ -37,20 +37,6 @@ export const createQuiz = async ({ topic, difficulty, numQuestions, timeLimit, u
     // Add quiz to the "quizzes" collection
     const quizRef = await addDoc(collection(db, "quizzes"), quizData);
     const quizId = quizRef.id;
-    
-    // Add the quiz ID to the user's quizzes list
-    const userRef = doc(db, "users", userId);
-    const userDoc = await getDoc(userRef);
-
-    if (userDoc.exists()) {
-      await updateDoc(userRef, {
-        quizzes: arrayUnion(quizId)
-      });
-      console.log(`Quiz ID ${quizId} added to user ${userId}'s quizzes list.`);
-    } else {
-      console.error(`User ${userId} not found!`);
-      throw new Error("User not found");
-    }
 
     return {
       id: quizId,
@@ -99,7 +85,42 @@ export const getQuizById = async (quizId) => {
     throw error;
   }
 };
-
+// Update a specific answer in a quiz
+export const updateAnswer = async (quizId, questionIndex, attemptedOption) => {
+  try {
+    const quizRef = doc(db, "quizzes", quizId);
+    const quizDoc = await getDoc(quizRef);
+    
+    if (!quizDoc.exists()) {
+      throw new Error("Quiz not found");
+    }
+    
+    const quizData = quizDoc.data();
+    if (!quizData.questions || !quizData.questions[questionIndex]) {
+      throw new Error("Question not found");
+    }
+    
+    // Get the current question data
+    const updatedQuestion = {
+      ...quizData.questions[questionIndex],
+      attempted_option: attemptedOption,
+    };
+    
+    // Create a new questions array with the updated question
+    const updatedQuestions = [...quizData.questions];
+    updatedQuestions[questionIndex] = updatedQuestion;
+    
+    // Update the entire questions array
+    await updateDoc(quizRef, {
+      questions: updatedQuestions,
+    });
+    
+    return { message: "Answer updated successfully" };
+  } catch (error) {
+    console.error("Error updating answer:", error);
+    throw error;
+  }
+};
 // Delete a quiz by ID
 export const deleteQuiz = async (quizId) => {
   try {
@@ -113,33 +134,6 @@ export const deleteQuiz = async (quizId) => {
   }
 };
 
-// Update a specific answer in a quiz
-export const updateAnswer = async (quizId, questionIndex, attemptedOption) => {
-  try {
-    const quizRef = doc(db, "quizzes", quizId);
-    const quizDoc = await getDoc(quizRef);
-
-    if (!quizDoc.exists()) {
-      throw new Error("Quiz not found");
-    }
-
-    const quizData = quizDoc.data();
-    const questions = quizData.questions || [];
-
-    if (questionIndex < 0 || questionIndex >= questions.length) {
-      throw new Error("Invalid question index");
-    }
-
-    // Update only the attempted_option field
-    questions[questionIndex].attempted_option = attemptedOption;
-    await updateDoc(quizRef, { questions });
-
-    return { message: "Answer updated successfully" };
-  } catch (error) {
-    console.error("Error updating answer:", error);
-    throw error;
-  }
-};
 
 // Submit a quiz and calculate score
 export const submitQuiz = async (quizId, userId) => {
@@ -159,13 +153,24 @@ export const submitQuiz = async (quizId, userId) => {
     let correctCount = 0;
     let wrongCount = 0;
     const wrongTags = {};
+    const questionAnalysis = [];
 
     // Check each question's attempted_option against correct_answer
     for (const question of questions) {
       const attemptedOption = question.attempted_option;
       const correctAnswer = question.correct_answer;
+      const isCorrect = attemptedOption === correctAnswer;
 
-      if (attemptedOption === correctAnswer) {
+      // Add to question analysis
+      questionAnalysis.push({
+        question: question.question,
+        isCorrect,
+        attemptedOption,
+        correctAnswer,
+        tags: question.tags || []
+      });
+
+      if (isCorrect) {
         correctCount += 1;
       } else {
         wrongCount += 1;
@@ -192,19 +197,54 @@ export const submitQuiz = async (quizId, userId) => {
     // Get current stats or initialize if they don't exist
     const currentTests = userData.number_of_tests_attempted || 0;
     const currentTotalMarks = userData.total_marks || 0;
+    const previousWrongTags = userData.wrong_tags || [];
     
     // Calculate new average marks
     const newTestsCount = currentTests + 1;
     const newTotalMarks = ((currentTotalMarks * currentTests) + scorePercentage) / newTestsCount;
-    const newWrongTags = Object.entries(wrongTags)
+    
+    // Identify consistently wrong tags (appear in multiple questions)
+    const significantWrongTags = Object.entries(wrongTags)
       .filter(([_, count]) => count >= 2)
       .map(([tag, _]) => tag);
+    
+    // Combine with previous wrong tags to track persistence
+    const newWrongTags = Array.from(
+      new Set([...previousWrongTags, ...significantWrongTags])
+    );
+
+    // Calculate improvement areas
+    const timeSpent = quizData.timeStarted ? 
+      (new Date().getTime() - quizData.timeStarted) / (1000 * 60) : null;
 
     // Update user document with new stats
     await updateDoc(userRef, {
       number_of_tests_attempted: newTestsCount,
       total_marks: newTotalMarks,
-      wrong_tags: newWrongTags
+      wrong_tags: newWrongTags,
+      last_quiz_date: new Date(),
+      quiz_history: userData.quiz_history ? 
+        [...userData.quiz_history, { 
+          quizId, 
+          score: scorePercentage, 
+          date: new Date(),
+          wrongTags: Object.keys(wrongTags)
+        }].slice(-10) : 
+        [{ 
+          quizId, 
+          score: scorePercentage, 
+          date: new Date(),
+          wrongTags: Object.keys(wrongTags)
+        }]
+    });
+
+    // Save quiz results for future reference
+    await updateDoc(quizRef, {
+      completed: true,
+      completedBy: userData.uid,
+      completedAt: new Date(),
+      score: scorePercentage,
+      timeSpent: timeSpent || null
     });
 
     return {
@@ -214,10 +254,140 @@ export const submitQuiz = async (quizId, userId) => {
         wrong: wrongCount,
         total: totalQuestions,
         percentage: scorePercentage
-      }
+      },
+      questionAnalysis,
+      new_wrong_tags: significantWrongTags,
+      persistent_wrong_tags: newWrongTags,
+      timeSpent
     };
   } catch (error) {
     console.error("Error submitting quiz:", error);
+    throw error;
+  }
+};
+
+export const bookmarkQuestion = async (userId, question) => {
+  try {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    if (!question) {
+      throw new Error("Question data is required");
+    }
+
+    // Make sure the question has an ID
+    const questionId = question.id || `${question.quizId}_q${Date.now()}`;
+    const questionToSave = {
+      ...question,
+      id: questionId,
+      bookmarkedAt: new Date().toISOString()
+    };
+
+    // Reference to the user's document
+    const userRef = doc(db, "users", userId);
+    
+    // Check if user document exists
+    const userDoc = await getDoc(userRef);
+    
+    if (!userDoc.exists()) {
+      // Create a new user document if it doesn't exist
+      await setDoc(userRef, {
+        bookmarkedQuestions: [questionToSave]
+      });
+    } else {
+      // Update existing user document
+      // Use arrayUnion to add the question to the bookmarkedQuestions array
+      // This prevents duplicates if the exact same question is already bookmarked
+      await updateDoc(userRef, {
+        bookmarkedQuestions: arrayUnion(questionToSave)
+      });
+    }
+
+    return { 
+      success: true, 
+      message: "Question bookmarked successfully" 
+    };
+  } catch (error) {
+    console.error("Error bookmarking question:", error);
+    throw error;
+  }
+};
+
+/**
+ * Remove a bookmarked question for a user
+ * @param {string} userId - The ID of the user
+ * @param {string} questionId - The ID of the question to remove
+ * @returns {Promise<object>} - Success message
+ */
+export const removeBookmarkedQuestion = async (userId, questionId) => {
+  try {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    if (!questionId) {
+      throw new Error("Question ID is required");
+    }
+
+    // Reference to the user's document
+    const userRef = doc(db, "users", userId);
+    
+    // Get the current bookmarked questions
+    const userDoc = await getDoc(userRef);
+    
+    if (!userDoc.exists()) {
+      throw new Error("User document not found");
+    }
+    
+    const userData = userDoc.data();
+    const bookmarkedQuestions = userData.bookmarkedQuestions || [];
+    
+    // Filter out the question to remove
+    const updatedBookmarks = bookmarkedQuestions.filter(
+      question => question.id !== questionId
+    );
+    
+    // Update the user document
+    await updateDoc(userRef, {
+      bookmarkedQuestions: updatedBookmarks
+    });
+
+    return { 
+      success: true, 
+      message: "Question removed from bookmarks" 
+    };
+  } catch (error) {
+    console.error("Error removing bookmarked question:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get all bookmarked questions for a user
+ * @param {string} userId - The ID of the user
+ * @returns {Promise<Array>} - Array of bookmarked questions
+ */
+export const getBookmarkedQuestions = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    // Reference to the user's document
+    const userRef = doc(db, "users", userId);
+    
+    // Get the user document
+    const userDoc = await getDoc(userRef);
+    
+    if (!userDoc.exists()) {
+      return [];
+    }
+    
+    const userData = userDoc.data();
+    return userData.bookmarkedQuestions || [];
+  } catch (error) {
+    console.error("Error getting bookmarked questions:", error);
     throw error;
   }
 };

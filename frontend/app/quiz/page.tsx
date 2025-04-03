@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import Sidebar from "@/components/dashboard/SideBar";
 import { useAuth } from "@/context/AuthContext";
-import { createQuiz } from "../../services/quizService"; 
+import { createQuiz , getAllQuizzes, deleteQuiz} from "@/services/quizService"; 
 const QuizList = () => {
   const router = useRouter();
   const { user } = useAuth();
@@ -66,9 +66,11 @@ const QuizList = () => {
     questionCount: 10,
   });
  
-  const fetchQuizzes = () => {
-    if (user && user.quizzes) {
-      setQuizzes(user.quizzes);
+  const fetchQuizzes = async () => {
+    if (user) {
+      const quizlist = await getAllQuizzes(user.uid);
+      console.log(quizlist);
+      if(quizlist) setQuizzes(quizlist);
     }
     setLoading(false);
   };
@@ -146,23 +148,16 @@ const QuizList = () => {
       alert("User ID not found. Please log in again.");
       return;
     }
-
+  
     try {
-      const response = await fetch(`${BASE_URL}/api/quizzes/delete_quiz`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: quizId }),
-      });
-
-      if (!response.ok) throw new Error("Failed to delete quiz");
-
+      await deleteQuiz(quizId); // Call the deleteQuiz function
+  
       setQuizzes(quizzes.filter((quiz) => quiz.id !== quizId)); // Remove from UI
     } catch (error) {
       console.error("Error deleting quiz:", error);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-slate-50">

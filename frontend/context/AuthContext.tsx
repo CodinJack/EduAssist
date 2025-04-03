@@ -23,6 +23,7 @@ interface User {
   currentStreak: number;
   maxStreak: number;
   lastQuizSubmissionDate: Date | null;
+  numberOfTestsAttempted : number;
 }
 
 interface AuthContextType {
@@ -73,7 +74,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             maxStreak: 0,
                             lastQuizSubmissionDate: null,
                             numberOfTestsAttempted:0,
-                            quizzes:[]
                         };
                         
                         // Create user document in Firestore
@@ -130,7 +130,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 maxStreak: 0,
                 lastQuizSubmissionDate: null,
                 numberOfTestsAttempted:0,
-                quizzes:[]
             };
     
             // Store user data in Firestore
@@ -190,7 +189,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 maxStreak: 0,
                 lastQuizSubmissionDate: null,
                 numberOfTestsAttempted:0,
-                quizzes:[]
             };
             setUser(guestUser);
             return guestUser;
