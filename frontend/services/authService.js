@@ -140,16 +140,13 @@ export const getUserData = async (uid) => {
     }
     
     try {
-        console.log("Fetching user data for ID:", uid);
         const userDocRef = doc(db, "users", uid);
         const userDoc = await getDoc(userDocRef);
         
         if (userDoc.exists()) {
             const userData = userDoc.data();
-            console.log("User data retrieved:", userData);
             return userData;
         } else {
-            console.log("User document not found in Firestore for ID:", uid);
             return null;
         }
     } catch (error) {

@@ -35,10 +35,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-
-  useEffect(() => {
-    console.log("User Data in Sidebar:", user);
-  }, [user]);
   const handleNavigation = (path: string) => {
     startTransition(() => {
       router.push(path);

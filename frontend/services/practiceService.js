@@ -4,16 +4,18 @@ const BASE_URL = process.env.PRODUCTION_BACKEND_URL || "http://127.0.0.1:8000/ap
 
 export const createPracticeQuestions = async (topic) => {
     try {
-        const idToken = Cookies.get("idToken"); // Get idToken using js-cookie
+        const idToken = Cookies.get("idToken"); // Get token
         if (!idToken) {
-            throw new Error("No idToken found in cookies");
+            console.error("❌ No idToken found in cookies!");
+            throw new Error("Authentication token missing");
         }
 
-        const response = await fetch(`http://127.0.0.1:8000/api/practice/create_practice_questions/`, {
+        const response = await fetch(`${BASE_URL}/create_practice_questions/`, {
             method: "POST",
+            credentials: "include", // Ensures cookies are sent
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${idToken}`
+                "Authorization": `Bearer ${idToken}`, // Send token in header
             },
             body: JSON.stringify({ topic }),
         });
@@ -30,13 +32,13 @@ export const createPracticeQuestions = async (topic) => {
 
         return data.questions.map((q) => ({
             question: q.question,
-            options: Object.values(q.options), // Extract options as an array
+            options: Object.values(q.options),
             correct_answer: q.correct_answer,
             hint: q.hints,
             solution: q.solution,
         }));
     } catch (error) {
         console.error("Error creating practice questions:", error);
-        return []; // Return an empty array instead of null
+        return [];
     }
 };

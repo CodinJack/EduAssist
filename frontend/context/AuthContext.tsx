@@ -22,6 +22,7 @@ interface User {
   currentStreak: number;
   maxStreak: number;
   lastQuizSubmissionDate: Date | null;
+  numberOfTestsAttempted : number;
 }
 
 interface AuthContextType {
@@ -58,7 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             displayName: currentUser.displayName || userData.displayName,
                             photoURL: currentUser.photoURL || userData.photoURL
                         });
-                        console.log("Current user data loaded:", userData);
                     } else {
                         // User exists in Auth but not in Firestore
                         const newUserData = {
@@ -73,7 +73,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             maxStreak: 0,
                             lastQuizSubmissionDate: null,
                             numberOfTestsAttempted:0,
-                            quizzes:[]
                         };
                         
                         // Create user document in Firestore
@@ -130,7 +129,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 maxStreak: 0,
                 lastQuizSubmissionDate: null,
                 numberOfTestsAttempted:0,
-                quizzes:[]
             };
     
             // Store user data in Firestore
@@ -190,7 +188,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 maxStreak: 0,
                 lastQuizSubmissionDate: null,
                 numberOfTestsAttempted:0,
-                quizzes:[]
             };
             setUser(guestUser);
             return guestUser;

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import Sidebar from "@/components/dashboard/SideBar";
 import { useAuth } from "@/context/AuthContext";
-
+import { createQuiz , getAllQuizzes, deleteQuiz} from "@/services/quizService"; 
 const QuizList = () => {
   const router = useRouter();
   const { user } = useAuth();
@@ -66,9 +66,11 @@ const QuizList = () => {
     questionCount: 10,
   });
  
-  const fetchQuizzes = () => {
-    if (user && user.quizzes) {
-      setQuizzes(user.quizzes);
+  const fetchQuizzes = async () => {
+    if (user) {
+      const quizlist = await getAllQuizzes(user.uid);
+      console.log(quizlist);
+      if(quizlist) setQuizzes(quizlist);
     }
     setLoading(false);
   };
@@ -84,6 +86,7 @@ const QuizList = () => {
   const handleStartQuiz = (quizId: string) => {
     handleNavigation(`/quiz/${quizId}`);
   };
+
   const handleCreateQuiz = async () => {
     if (!userId) {
       alert("User ID not found. Please log in again.");
@@ -94,52 +97,48 @@ const QuizList = () => {
       alert("Number of questions must be between 1 and 50.");
       return;
     }
-    toast.success("Cooking up a quiz...",{
-      duration : 6000,
-      position : 'top-center',
-      style :{
+  
+    toast.success("Cooking up a quiz...", {
+      duration: 6000,
+      position: "top-center",
+      style: {
         background: "gray",
         color: "white",
-      }
-    })
+      },
+    });
+  
     try {
       const timeLimit = newQuiz.questionCount * getDifficultyNumber(newQuiz.difficulty);
-
-      const response = await fetch(`${BASE_URL}/api/quizzes/create_quiz`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          topic: newQuiz.topic,
-          difficulty: newQuiz.difficulty,
-          numQuestions: newQuiz.questionCount,
-          timeLimit,
-          userId,
-        }),
+  
+      // Use quizService's createQuiz function
+      const result = await createQuiz({
+        topic: newQuiz.topic,
+        difficulty: newQuiz.difficulty,
+        numQuestions: newQuiz.questionCount,
+        timeLimit,
+        userId,
       });
   
-      if (!response.ok) {
-        toast.error("Cannot make a quiz on this topic!!!", {
-          duration: 3000,
-          position : 'top-center',
-          style: {
-            background: "red",
-            color: "white",
-          },
-        });
-      }  
-
+      // Optionally, you can log or process the result:
+      console.log("Quiz created:", result);
+  
       setIsModalOpen(false);
       setNewQuiz({ topic: "", difficulty: "Beginner", questionCount: 10 });
-
-      startTransition(() => {
-        fetchQuizzes();        
-      });
   
-     
+      // Refresh the quizzes list
+      startTransition(() => {
+        fetchQuizzes();
+      });
     } catch (error) {
       console.error("Error creating quiz:", error);
+      toast.error("Cannot make a quiz on this topic!!!", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "red",
+          color: "white",
+        },
+      });
     }
   };
   
@@ -149,23 +148,16 @@ const QuizList = () => {
       alert("User ID not found. Please log in again.");
       return;
     }
-
+  
     try {
-      const response = await fetch(`${BASE_URL}/api/quizzes/delete_quiz`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: quizId }),
-      });
-
-      if (!response.ok) throw new Error("Failed to delete quiz");
-
+      await deleteQuiz(quizId); // Call the deleteQuiz function
+  
       setQuizzes(quizzes.filter((quiz) => quiz.id !== quizId)); // Remove from UI
     } catch (error) {
       console.error("Error deleting quiz:", error);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-slate-50">
