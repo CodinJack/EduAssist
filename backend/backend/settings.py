@@ -93,8 +93,10 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True  # Set to True for testing, but restrict in production
 
 CORS_ALLOW_HEADERS = [
-    'content-type',
-    'authorization',
+    "authorization",
+    "content-type",
+    "x-csrf-token",
+    "x-requested-with",
 ]
 
 TEMPLATES = [

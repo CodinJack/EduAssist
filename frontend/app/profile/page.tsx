@@ -1,9 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { BarChart, List, AlertCircle, Bookmark } from "lucide-react";
+import { BarChart, List, AlertCircle, Bookmark, Flame } from "lucide-react";
 import { useRouter } from "next/navigation"; // ✅ Import useRouter for navigation
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Sidebar from "@/components/dashboard/SideBar";
+import Cookies from "js-cookie";
+import { getAuth } from "firebase/auth";
 import Image from "next/image";
 
 import { useAuth } from "@/context/AuthContext";
@@ -13,6 +15,45 @@ const ProfilePage = () => {
     const [error, setError] = useState(null);
     const { user } = useAuth();
     const router = useRouter(); 
+    const [streak, setStreak] = useState(0);
+
+    // useEffect(() => {
+    //     const fetchStreak = async () => {
+    //         try {                
+    //             const token = Cookies.get("idToken"); // ✅ Get token from cookies
+    //             console.log("this is the fucking" + token);
+    //             if (!token) {
+    //                 throw new Error("No authentication token found");
+    //             }
+    
+    //             const response = await fetch("http://127.0.0.1:8000/api/update-streak-login", {
+    //                 method: "GET",
+    //                 credentials: "include",
+    //                 headers: {
+    //                     "Authorization": `Bearer ${token}`, // Pass auth token
+    //                     "Content-Type": "application/json",
+    //                 },
+    //             });
+
+    //             if (!response.ok) {
+    //                 throw new Error(`Error ${response.status}: ${response.statusText}`);
+    //             }
+    //             else{
+    //                 console.log("fuck ra");
+    //             }
+    
+    //             const data = await response.json();
+    //             setStreak(data.streak);
+    //         } catch (error) {
+    //             console.error("Failed to fetch streak:", error);
+    //             setError(error.message);
+    //         }
+    //     };
+    
+    //     fetchStreak();
+    // }, []);
+    
+    
 
     if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
 
@@ -83,6 +124,20 @@ const ProfilePage = () => {
                             </p>
                         </CardContent>
                     </Card>
+
+                    {/* ✅ Streak System */}
+                    <Card className="bg-white shadow-sm border border-red-500">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-red-500">
+                                <Flame size={20} /> Your Streak
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-semibold">
+                                {streak} <span className="text-red-500">🔥</span>
+                            </p>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Weak Topics */}
@@ -120,3 +175,24 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+
+
+/*
+
+
+5 -- da
+6-- bio
+8 -- minor
+10 -- german
+14 -- cec
+17 -- rsg
+
+
+
+
+
+
+
+
+
+*/
