@@ -59,7 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             displayName: currentUser.displayName || userData.displayName,
                             photoURL: currentUser.photoURL || userData.photoURL
                         });
-                        console.log("Current user data loaded:", userData);
                     } else {
                         // User exists in Auth but not in Firestore
                         const newUserData = {

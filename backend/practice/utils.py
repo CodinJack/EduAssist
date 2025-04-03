@@ -14,15 +14,9 @@ def is_proxy_needed():
     try:
         # Try to get hostname - this might help identify the network
         hostname = socket.gethostname()
-        # If you know your hostel network has a specific hostname pattern, check it
-        # e.g., return "hostel" in hostname.lower()
         
         # Or check IP address pattern
         ip = socket.gethostbyname(hostname)
-        # If you know your hostel assigns IPs in a specific range, check it
-        # e.g., return ip.startswith("172.31.")
-        
-        # For simplicity, you could also create a file flag
         if os.path.exists("use_proxy.flag"):
             return True
             
@@ -119,3 +113,5 @@ def generate_questions(topic):
             except Exception as retry_error:
                 print(f"Retry also failed: {retry_error}")
         return ""
+    
+

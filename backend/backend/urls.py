@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include, re_path
-from quiz.views import create_quiz, get_all_quizzes, get_quiz, delete_quiz, update_answer, submit_quiz
+from quiz.views import create_quiz
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -39,10 +39,5 @@ from practice.views import create_practice_questions
 urlpatterns = [
     path("auth/", include('userAuth.urls')),
     path("api/quizzes/create_quiz", create_quiz, name="create_quiz"),
-    path("api/quizzes/get_all_quizzes", get_all_quizzes, name="get_all_quizzes"),
-    path("api/quizzes/get_quiz/<str:quiz_id>", get_quiz, name="get_quiz"),
-    path("api/quizzes/delete_quiz", delete_quiz, name="delete_quiz"),
-    path("api/quizzes/update_answer", update_answer, name="update_answer"),
-    path("api/quizzes/submit_quiz", submit_quiz, name="submit_quiz"),
     path("api/practice/create_practice_questions/", create_practice_questions, name="create_practice_questions")
 ]

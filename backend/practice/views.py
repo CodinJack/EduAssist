@@ -35,7 +35,6 @@ def create_practice_questions(request):
             return JsonResponse({"error": "Cannot create practice questions!"}, status=500)
 
         questions = extract_json_from_markdown(questions) 
-        print(questions)
         return JsonResponse({"questions": questions}, status=200)
 
     except Exception as e:
