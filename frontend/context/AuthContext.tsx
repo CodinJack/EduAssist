@@ -10,7 +10,6 @@ import {
 import { auth, db, doc, setDoc } from "../firebaseConfig"; 
 import { onAuthStateChanged } from "firebase/auth";
 
-// Define proper TypeScript types
 interface User {
   uid: string;
   email: string | null;
