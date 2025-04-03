@@ -163,35 +163,6 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     
     // All questions are attempted, proceed to results
     router.push(`/quiz/${quizId}/result`);
-    try {                
-          const token = Cookies.get("idToken"); // ✅ Get token from cookies
-          console.log("this is the fucking" + token);
-          if (!token) {
-            throw new Error("No authentication token found");
-          }
-          const response = await fetch("http://127.0.0.1:8000/api/update_streak_on_quiz_submission", {
-              method: "GET",
-              credentials: "include",
-              headers: {
-                "Authorization": `Bearer ${token}`, // Pass auth token
-                "Content-Type": "application/json",
-              },
-          });
-    
-          if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
-          }
-          else{
-            console.log("fuck ra");
-          }
-        
-        const data = await response.json();
-          setStreak(data.streak);
-        } catch (error) {
-          console.error("Failed to fetch streak:", error);
-          setError(error.message);
-        }
-    };
         
   };
 
