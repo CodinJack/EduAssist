@@ -391,3 +391,34 @@ export const getBookmarkedQuestions = async (userId) => {
     throw error;
   }
 };
+
+
+export const clearAttemptedOptions = async (quizId) => {
+  try {
+    const quizRef = doc(db, "quizzes", quizId);
+    const quizSnap = await getDoc(quizRef);
+
+    if (!quizSnap.exists()) {
+      throw new Error("Quiz not found.");
+    }
+
+    const quizData = quizSnap.data();
+    if (!quizData.questions || !Array.isArray(quizData.questions)) {
+      throw new Error("Invalid quiz data.");
+    }
+
+    const updatedQuestions = quizData.questions.map((q) => ({
+      ...q,
+      attempted_option: "",
+    }));
+
+    await updateDoc(quizRef, {
+      questions: updatedQuestions,
+    });
+
+    console.log("Cleared attempted options successfully.");
+  } catch (error) {
+    console.error("Error clearing attempted options:", error);
+    throw error;
+  }
+};

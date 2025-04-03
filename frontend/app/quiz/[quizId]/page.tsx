@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
-import { getQuizById, updateAnswer, bookmarkQuestion } from "@/services/quizService";
+import { getQuizById, updateAnswer, bookmarkQuestion, clearAttemptedOptions } from "@/services/quizService";
 import {toast}  from 'react-hot-toast';
 
 export default function QuizPage({ params }: { params: Promise<{ quizId: string }> }) {
@@ -28,7 +28,27 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   const [quizTitle, setQuizTitle] = useState("Quiz");
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
-  
+  useEffect(() => {
+    const resetQuiz = async () => {
+      try {
+        await clearAttemptedOptions(quizId);
+      } catch (error) {
+        console.error("Failed to reset quiz:", error);
+      }
+    };
+
+    resetQuiz();
+  }, [quizId]);
+
+  const handleExit = async () => {
+    try {
+      await clearAttemptedOptions(quizId);
+      router.push("/quiz");
+    } catch (error) {
+      console.error("Error exiting quiz:", error);
+    }
+  };
+
   useEffect(() => {
     // Fetch quiz questions from Firebase
     const fetchQuiz = async () => {
@@ -101,9 +121,6 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     }
   };
   
-  const handleExit = () => {
-    router.push(`/quiz`);
-  };
 
   const handleBookmark = async (questionIndex: number) => {
     if (!user) return;
