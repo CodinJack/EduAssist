@@ -277,9 +277,6 @@ export default function Auth() {
                             <label htmlFor="password" className="text-sm font-medium">
                               Password
                             </label>
-                            <Link href="#" className="text-xs text-primary hover:underline">
-                              Forgot password?
-                            </Link>
                           </div>
                           <div className="relative">
                             <Input 
@@ -453,8 +450,26 @@ export default function Auth() {
                               required
                             />
                             <label htmlFor="terms" className="text-xs text-muted-foreground">
-                              I agree to the <Link href="#" className="text-primary hover:underline">Terms of Service</Link> and <Link href="#" className="text-primary hover:underline">Privacy Policy</Link>
-                            </label>
+                            I agree to the‎ ‎ 
+                            <Link 
+                              href="https://storage.googleapis.com/eduassist-legal-docs/TermsAndServices.pdf" 
+                              className="text-primary hover:underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                               Terms of Service
+                            </Link> 
+                            ‎ and ‎  
+                            <Link 
+                              href="https://storage.googleapis.com/eduassist-legal-docs/PrivacyPolicy.pdf" 
+                              className="text-primary hover:underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Privacy Policy
+                            </Link>
+                          </label>
+
                           </div>
                         </div>
                       </CardContent>

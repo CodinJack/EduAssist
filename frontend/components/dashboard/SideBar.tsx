@@ -93,7 +93,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <h2 className="font-bold text-lg">
+                <h2 className="font-bold text-lg" onClick={()=>{handleNavigation('/')}}>
                   <span className="text-accent">Edu</span>
                   <span className="text-primary">Assist</span>
                 </h2>
@@ -178,25 +178,24 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             )}
           </AnimatePresence>
         </div>
-
         {/* Logout Button */}
-        <div className="h-14 p-4 border-t border-border">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full flex items-center justify-start text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-all duration-200" 
-            onClick={handleLogout}
-          >
-            <LogOut className="w-5 h-5 mr-2 text-muted-foreground" />
-            <AnimatePresence>
-              {isHovered && (
-                <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.2 }}>
-                  Log Out
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </Button>
-        </div>
+                <div className="h-14 p-4 border-t border-border">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full flex items-center justify-start text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-all duration-200" 
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-5 h-5 mr-2 text-muted-foreground" />
+                  <AnimatePresence>
+                    {isHovered && (
+                      <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.2 }}>
+                        {user && user.email !== "guest@example.com" ? "Log Out" : "Go back"}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </Button>
+              </div>
       </motion.div>
     </AnimatePresence>
   );

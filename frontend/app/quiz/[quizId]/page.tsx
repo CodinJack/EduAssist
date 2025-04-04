@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
@@ -28,6 +28,14 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   const [quizTitle, setQuizTitle] = useState("Quiz");
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
+  const [isPending, startTransition] = useTransition();
+
+  const handleNavigation = (path: string) => {
+    startTransition(() => {
+      router.push(path);
+    });
+  };
+
   useEffect(() => {
     const resetQuiz = async () => {
       try {
@@ -43,7 +51,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   const handleExit = async () => {
     try {
       await clearAttemptedOptions(quizId);
-      router.push("/quiz");
+      handleNavigation("/quiz");
     } catch (error) {
       console.error("Error exiting quiz:", error);
     }
@@ -179,7 +187,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     }
     
     // All questions are attempted, proceed to results
-    router.push(`/quiz/${quizId}/result`);
+    handleNavigation(`/quiz/${quizId}/result`);
         
   };
 
@@ -197,6 +205,11 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   if (!questions.length) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      {isPending && (
+        <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+        </div>
+      )}
         <Card className="max-w-md w-full p-6">
           <h2 className="text-xl font-bold text-center mb-4">Quiz Not Found</h2>
           <p className="text-gray-600 mb-6 text-center">
@@ -204,7 +217,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
           </p>
           <Button 
             className="w-full" 
-            onClick={() => router.push('/quiz')}
+            onClick={() => handleNavigation('/quiz')}
           >
             Return to Quiz List
           </Button>
