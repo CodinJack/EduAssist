@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'userAuth',
     'drf_yasg',
     'practice',
+    'tutorial',
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 

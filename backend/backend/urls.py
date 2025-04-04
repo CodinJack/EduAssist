@@ -19,7 +19,7 @@ from quiz.views import create_quiz
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-
+from tutorials.views import create_notes, search_youtube_videos
 # Swagger schema configuration
 schema_view = get_schema_view(
     openapi.Info(
@@ -40,4 +40,7 @@ urlpatterns = [
     path("auth/", include('userAuth.urls')),
     path("api/quizzes/create_quiz", create_quiz, name="create_quiz"),
     path("api/practice/create_practice_questions/", create_practice_questions, name="create_practice_questions"),
+    path("api/tutorials/create_notes", create_notes, name="create_notes"),   
+    path("api/tutorials/search_youtube", search_youtube_videos, name="search_youtube"),
+
 ]

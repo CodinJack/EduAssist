@@ -14,7 +14,7 @@ const PracticePage = () => {
   const [selectedTopic, setSelectedTopic] = useState("");
   const router = useRouter();
   const { user } = useAuth();
-  const weakTopics = user?.weakTopics || [];
+  const weakTopics = user?.wrong_tags || [];
   const [isPending, startTransition] = useTransition();
   const [suggestedTopics] = useState([
     { name: "Computer Science", icon: <Sparkles className="h-5 w-5 text-purple-500" />, description: "Algorithms, data structures, and programming concepts" },

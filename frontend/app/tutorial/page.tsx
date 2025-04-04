@@ -11,7 +11,8 @@ import {
   ChevronRight, 
   FileText, 
   FilePlus, 
-  PenLine
+  PenLine,
+  Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,8 @@ import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/dashboard/SideBar";
 import toast from "react-hot-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-// import { Textarea } from "@/components/ui/TextArea";
+import { createTutorialNotes, getAllNotesForUserId, deleteNote } from "@/services/tutorialService";
+import NotesRenderer from "@/components/NotesRenderer";
 
 // Types
 interface Video {
@@ -43,57 +45,23 @@ interface Note {
   category: string;
 }
 
-// Sample pre-defined notes
-const sampleNotes: Note[] = [
-  {
-    id: "note-1",
-    title: "Quadratic Equations",
-    content: "A quadratic equation is a polynomial equation of the second degree, meaning it contains at least one term that is squared. The standard form is ax² + bx + c = 0 with a ≠ 0. The quadratic formula to find solutions is x = (-b ± √(b² - 4ac)) / 2a.",
-    createdAt: new Date("2025-02-15"),
-    category: "Mathematics"
-  },
-  {
-    id: "note-2",
-    title: "Newton's Laws of Motion",
-    content: "1. First Law (Law of Inertia): An object will remain at rest or in uniform motion in a straight line unless acted upon by an external force.\n\n2. Second Law: The acceleration of an object is directly proportional to the net force acting on it and inversely proportional to its mass (F = ma).\n\n3. Third Law: For every action, there is an equal and opposite reaction.",
-    createdAt: new Date("2025-02-20"),
-    category: "Physics"
-  },
-  {
-    id: "note-3",
-    title: "Basic HTML Structure",
-    content: "<!DOCTYPE html>\n<html>\n<head>\n  <title>Page Title</title>\n  <meta charset=\"UTF-8\">\n</head>\n<body>\n  <h1>Main Heading</h1>\n  <p>Paragraph text</p>\n</body>\n</html>",
-    createdAt: new Date("2025-03-01"),
-    category: "Computer Science"
-  },
-  {
-    id: "note-4",
-    title: "Periodic Table Elements",
-    content: "The periodic table is organized by atomic number, electron configuration, and recurring chemical properties. Elements are presented in order of increasing atomic number.\n\n- Group 1: Alkali metals (Li, Na, K, Rb, Cs, Fr)\n- Group 2: Alkaline earth metals (Be, Mg, Ca, Sr, Ba, Ra)\n- Groups 3-12: Transition metals\n- Group 17: Halogens (F, Cl, Br, I, At, Ts)\n- Group 18: Noble gases (He, Ne, Ar, Kr, Xe, Rn, Og)",
-    createdAt: new Date("2025-03-05"),
-    category: "Chemistry"
-  }
-];
-
-// YouTube safe search terms
-const safeSearchTerms = [
-  "educational", "tutorial", "lecture", "course", "lesson", "learn", "study", 
-  "academic", "school", "university", "college", "education", "teaching"
-];
-
 const TutorialPage = () => {
   // State
   const [collapsed, setCollapsed] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingNotes, setLoadingNotes] = useState(false);
   const [activeTab, setActiveTab] = useState("videos");
-  const [notes, setNotes] = useState<Note[]>(sampleNotes);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+  
   const router = useRouter();
   const { user } = useAuth();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -103,61 +71,44 @@ const TutorialPage = () => {
   const [newNoteTitle, setNewNoteTitle] = useState("");
   const [newNoteTopic, setNewNoteTopic] = useState("");
 
-  // Content filtering for educational purposes
-  const sanitizeSearchQuery = (query: string): string => {
-    // Always append a safe search term to ensure educational content
-    const randomSafeSearchIndex = Math.floor(Math.random() * safeSearchTerms.length);
-    return `${query} ${safeSearchTerms[randomSafeSearchIndex]}`;
-  };
-
-  // Fetch videos from YouTube API
+  // Fetch YouTube videos
   const fetchVideos = async () => {
-    // In a real app, we'd call a backend API that securely handles the YouTube API key
+    if (!searchQuery.trim()) {
+      toast.error("Please enter a search term");
+      return;
+    }
+    
     setLoading(true);
     
     try {
-      // This is a mock implementation - in production, this would be a backend call
-      const searchTerm = sanitizeSearchQuery(searchQuery);
+      // In a real app, this would call your backend API endpoint that safely handles YouTube API keys
+      const response = await fetch(`/api/youtube?q=${encodeURIComponent(searchQuery)}`);
       
-      // This is a simulation - in reality we would call our backend which would call YouTube API
-      setTimeout(() => {
-        // Generate mock videos based on search terms
-        const mockResults = generateMockVideos(searchTerm);
-        setVideos(mockResults);
-        setTotalPages(Math.ceil(mockResults.length / 6));
-        setLoading(false);
-      }, 1500);
+      if (!response.ok) {
+        throw new Error('Failed to fetch videos');
+      }
+      
+      const data = await response.json();
+      
+      // Transform YouTube API response to our Video type
+      const formattedVideos: Video[] = data.items.map((item: any) => ({
+        id: item.id.videoId,
+        title: item.snippet.title,
+        description: item.snippet.description,
+        thumbnailUrl: item.snippet.thumbnails.medium.url,
+        channelTitle: item.snippet.channelTitle,
+        publishedAt: item.snippet.publishedAt
+      }));
+      
+      setVideos(formattedVideos);
+      setTotalPages(Math.ceil(formattedVideos.length / 6));
+      setPage(1);
     } catch (error) {
       console.error("Error fetching videos:", error);
       toast.error("Failed to fetch videos. Please try again.");
+    } finally {
       setLoading(false);
     }
-  };
-
-  // Generate mock videos for demo purposes
-  const generateMockVideos = (searchTerm: string): Video[] => {
-    const mockVideos: Video[] = [];
-    const topics = searchTerm.split(" ");
-    
-    // Create 10-20 mock videos
-    const count = 10 + Math.floor(Math.random() * 10);
-    
-    for (let i = 0; i < count; i++) {
-      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-      const adjectives = ["Complete", "Comprehensive", "Ultimate", "Basic", "Advanced", "Essential"];
-      const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
-      
-      mockVideos.push({
-        id: `vid-${Date.now()}-${i}`,
-        title: `${randomAdj} ${randomTopic} Tutorial - Part ${i + 1}`,
-        description: `Learn everything about ${randomTopic} in this ${randomAdj.toLowerCase()} tutorial. Perfect for students and professionals.`,
-        thumbnailUrl: `https://picsum.photos/seed/${randomTopic}${i}/640/360`,
-        channelTitle: "Educational Channel",
-        publishedAt: new Date(Date.now() - i * 86400000).toISOString(),
-      });
-    }
-    
-    return mockVideos;
   };
 
   const getPaginatedVideos = () => {
@@ -174,44 +125,120 @@ const TutorialPage = () => {
   const handleViewNote = (note: Note) => {
     setSelectedNote(note);
   };
-  
-  // Handle note creation
-  const handleCreateNote = () => {
-    if (!newNoteTitle.trim()) {
-      toast.error("Please enter a note title");
-      return;
-    }
+
+  const handleDeleteNote = async (noteId: string) => {
+    setNoteToDelete(noteId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteNote = async () => {
+    if (!noteToDelete) return;
     
+    try {
+      await deleteNote(noteToDelete);
+      
+      // Update state
+      setNotes(notes.filter(note => note.id !== noteToDelete));
+      
+      // Clear selection if the deleted note was selected
+      if (selectedNote?.id === noteToDelete) {
+        setSelectedNote(null);
+      }
+      
+      toast.success("Note deleted successfully");
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast.error("Failed to delete note");
+    } finally {
+      setDeleteDialogOpen(false);
+      setNoteToDelete(null);
+    }
+  };
+  
+  const handleCreateNote = async () => {  
     if (!newNoteTopic.trim()) {
       toast.error("Please enter a topic for the note");
       return;
     }
-    
-    toast.success("Generating note content...");
-    
-    // This would be replaced with actual AI generation
-    // For now, we'll just create a placeholder note
-    const newNote: Note = {
-      id: `note-${Date.now()}`,
-      title: newNoteTitle,
-      content: `This is a placeholder for AI-generated content about ${newNoteTopic}. In the real application, this would be generated by an AI service like Gemini.`,
-      createdAt: new Date(),
-      category: newNoteTopic
-    };
-    
-    setNotes([newNote, ...notes]);
-    setNewNoteTitle("");
-    setNewNoteTopic("");
-    setIsCreateNoteOpen(false);
-    setSelectedNote(newNote);
+  
+    try {
+      toast.loading("Generating notes...");
+  
+      const userId = user?.uid;
+      if (!userId) {
+        toast.error("User not logged in");
+        return;
+      }
+  
+      // Call backend + Firestore save
+      const result = await createTutorialNotes({
+        topic: newNoteTopic,
+        userId: userId
+      });
+      console.log(result);
+      // Create local note object for UI using returned data
+      const newNote: Note = {
+        id: result.id,
+        title: newNoteTitle,
+        content: result?.notes || `Notes for ${newNoteTopic}`,
+        createdAt: new Date(),
+        category: newNoteTopic
+      };
+  
+      setNotes([newNote, ...notes]);
+      setNewNoteTitle("");
+      setNewNoteTopic("");
+      setIsCreateNoteOpen(false);
+      setSelectedNote(newNote);
+      toast.success("Notes created successfully!");
+    } catch (err) {
+      console.error("Note creation failed:", err);
+      toast.error("Failed to create notes");
+    } finally {
+      toast.dismiss(); // Remove loading toast
+    }
   };
 
+  // Load user's notes from Firestore
+  const loadUserNotes = async () => {
+    if (!user?.uid) return;
+    
+    setLoadingNotes(true);
+    try {
+      const userNotes = await getAllNotesForUserId(user.uid);
+      
+      // Transform to our Note format if needed
+      const formattedNotes: Note[] = userNotes.map(note => ({
+        id: note.id,
+        title: note.title || 'Untitled Note',
+        content: note.notes || 'No content',
+        createdAt: note.createdAt ? new Date(note.createdAt.toDate()) : new Date(),
+        category: note.topic || 'General'
+      }));
+      
+      setNotes(formattedNotes);
+      
+      // Select first note if available
+      if (formattedNotes.length > 0 && !selectedNote) {
+        setSelectedNote(formattedNotes[0]);
+      }
+    } catch (error) {
+      console.error("Error loading notes:", error);
+      toast.error("Failed to load your notes");
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
+  
   useEffect(() => {
     // Focus the search input when component mounts
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
-  }, []);
+    
+    // Load user's notes when component mounts or user changes
+    loadUserNotes();
+  }, [user?.uid]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -324,7 +351,7 @@ const TutorialPage = () => {
                                   {video.title}
                                 </h3>
                                 <div className="text-sm text-gray-500 mb-2">
-                                  {new Date(video.publishedAt).toLocaleDateString()}
+                                  <span>{video.channelTitle}</span> • <span>{new Date(video.publishedAt).toLocaleDateString()}</span>
                                 </div>
                                 <p className="text-gray-600 text-sm line-clamp-2">
                                   {video.description}
@@ -376,10 +403,10 @@ const TutorialPage = () => {
                           Use the search bar above to find educational videos on your favorite topics.
                         </p>
                         <Button onClick={() => {
-                          setSearchQuery("Introduction to learning");
+                          setSearchQuery("Khan Academy");
                           fetchVideos();
                         }}>
-                          <Search className="w-4 h-4 mr-2" /> Try a Sample Search
+                          <Search className="w-4 h-4 mr-2" /> Try an Educational Channel
                         </Button>
                       </div>
                     )}
@@ -420,29 +447,69 @@ const TutorialPage = () => {
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="h-[600px] overflow-auto pb-0">
-                          <div className="space-y-3">
-                            {notes.map((note) => (
-                              <div 
-                                key={note.id} 
-                                className={`p-3 border rounded-md cursor-pointer transition-all ${
-                                  selectedNote?.id === note.id 
-                                    ? 'border-quiz-purple bg-quiz-purple/5' 
-                                    : 'border-gray-200 hover:border-quiz-purple/50'
-                                }`}
-                                onClick={() => handleViewNote(note)}
-                              >
-                                <h4 className="font-medium mb-1 line-clamp-1">{note.title}</h4>
-                                <div className="flex justify-between items-center">
-                                  <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">
-                                    {note.category}
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    {note.createdAt.toLocaleDateString()}
-                                  </span>
+                          {loadingNotes ? (
+                            <div className="space-y-3">
+                              {[...Array(4)].map((_, i) => (
+                                <div key={i} className="p-3 border rounded-md">
+                                  <Skeleton className="h-5 w-3/4 mb-2" />
+                                  <div className="flex justify-between">
+                                    <Skeleton className="h-4 w-1/4" />
+                                    <Skeleton className="h-4 w-1/4" />
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
+                              ))}
+                            </div>
+                          ) : notes.length > 0 ? (
+                            <div className="space-y-3">
+                              {notes.map((note) => (
+                                <div 
+                                  key={note.id} 
+                                  className={`p-3 border rounded-md cursor-pointer transition-all ${
+                                    selectedNote?.id === note.id 
+                                      ? 'border-quiz-purple bg-quiz-purple/5' 
+                                      : 'border-gray-200 hover:border-quiz-purple/50'
+                                  }`}
+                                  onClick={() => handleViewNote(note)}
+                                >
+                                  <div className="flex justify-between items-start">
+                                    <h4 className="font-medium mb-1 line-clamp-1">{note.category}</h4>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-7 w-7 p-0" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteNote(note.id);
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs bg-gray-100">
+                                      {}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {note.createdAt.toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-center">
+                              <FileText className="w-12 h-12 text-gray-300 mb-3" />
+                              <p className="text-sm text-gray-500">No notes found</p>
+                              <Button 
+                                variant="link" 
+                                size="sm"
+                                onClick={() => setIsCreateNoteOpen(true)}
+                                className="mt-2"
+                              >
+                                Create your first AI note
+                              </Button>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     </div>
@@ -454,19 +521,15 @@ const TutorialPage = () => {
                           <>
                             <CardHeader>
                               <div className="flex items-center justify-between">
-                                <CardTitle className="text-xl">{selectedNote.title}</CardTitle>
-                                <span className="text-sm bg-quiz-purple/10 text-quiz-purple px-3 py-1 rounded-full">
+                                {/* <CardTitle className="text-xl">{selectedNote.category}</CardTitle> */}
+                                <CardTitle className="text-xl text-quiz-purple">
                                   {selectedNote.category}
-                                </span>
+                                </CardTitle>
                               </div>
                             </CardHeader>
                             <CardContent>
                               <div className="prose max-w-none">
-                                {selectedNote.content.split('\n\n').map((paragraph, idx) => (
-                                  <p key={idx} className="mb-4">
-                                    {paragraph}
-                                  </p>
-                                ))}
+                              <NotesRenderer content={selectedNote.content} />
                               </div>
                             </CardContent>
                           </>
@@ -500,16 +563,12 @@ const TutorialPage = () => {
               </Button>
             </div>
             <div className="aspect-video w-full">
-              <div className="w-full h-full bg-black flex items-center justify-center text-white">
-                {/* In a real app, this would be an iframe with the YouTube embed */}
-                <div className="text-center">
-                  <PlayCircle className="w-20 h-20 mx-auto mb-4 opacity-70" />
-                  <p>This is a mock player for demonstration.</p>
-                  <p className="text-sm mt-2 text-gray-400">
-                    In a production app, this would show the actual YouTube video.
-                  </p>
-                </div>
-              </div>
+              <iframe
+                src={`https://www.youtube.com/embed/${currentVideo.id}`}
+                className="w-full h-full"
+                allowFullScreen
+                title={currentVideo.title}
+              />
             </div>
             <div className="p-4">
               <h4 className="font-medium text-lg mb-2">{currentVideo.title}</h4>
@@ -535,15 +594,6 @@ const TutorialPage = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label htmlFor="noteTitle" className="text-sm font-medium">Note Title</label>
-              <Input
-                id="noteTitle"
-                value={newNoteTitle}
-                onChange={(e) => setNewNoteTitle(e.target.value)}
-                placeholder="Enter a title for your note"
-              />
-            </div>
-            <div className="space-y-2">
               <label htmlFor="noteTopic" className="text-sm font-medium">Topic</label>
               <Input
                 id="noteTopic"
@@ -562,6 +612,34 @@ const TutorialPage = () => {
               className="bg-gradient-to-r from-quiz-purple to-quiz-blue hover:opacity-90"
             >
               Generate Note
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Trash2 className="w-5 h-5 mr-2 text-red-500" />
+              Delete Note
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete this note? This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={confirmDeleteNote}
+            >
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -50,8 +50,17 @@ const ProfilePage = () => {
     };
 
     if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
-
-    return (
+    if (!user) {
+        return (
+          <div className="flex items-center justify-center min-h-screen bg-white">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-12 h-12 border-4 border-purple-400 border-dashed rounded-full animate-spin"></div>
+              <p className="text-lg text-gray-600 font-medium">Fetching your profile...</p>
+            </div>
+          </div>
+        );
+      }
+          return (
         <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             {/* Sidebar */}
             <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -68,6 +77,7 @@ const ProfilePage = () => {
                         variants={itemVariants}
                         className="flex flex-col md:flex-row items-center gap-6 bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500"
                     >
+                        {user ? (
                         <div className="relative">
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-purple-400 ring-offset-2">
                                 <Image
@@ -82,11 +92,13 @@ const ProfilePage = () => {
                             <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full p-2">
                                 <Flame size={20} className="text-white" />
                             </div>
-                        </div>
-                        
+                        </div>  
+                        ) : (
+                        <div>Loading user data...</div>
+                        )}  
                         <div className="flex-1 text-center md:text-left">
                             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                                {user.displayName || "User"}
+                                {user ? user.displayName?? user.displayName :"User"}
                             </h1>
                             <p className="text-gray-500">{user.email}</p>
                             
@@ -234,42 +246,6 @@ const ProfilePage = () => {
                         </div>
                     </motion.div>
 
-                    {/* Quiz History Timeline - Simple version */}
-                    {user?.quiz_history && user.quiz_history.length > 0 && (
-                        <motion.div
-                            variants={itemVariants}
-                            className="mt-8"
-                        >
-                            <div className="flex items-center gap-2 mb-4">
-                                <h2 className="text-xl font-bold text-gray-800">Recent Activity</h2>
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200">History</Badge>
-                            </div>
-                            
-                            <div className="bg-white shadow-md rounded-xl p-6 border border-gray-100">
-                                <div className="space-y-4">
-                                    {user.quiz_history.slice(0, 3).map((item, index) => (
-                                        <div 
-                                            key={index}
-                                            className="flex items-center gap-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className={`min-w-10 h-10 rounded-full flex items-center justify-center ${
-                                                item.score > 7 ? 'bg-green-100 text-green-600' : 
-                                                item.score > 4 ? 'bg-yellow-100 text-yellow-600' : 
-                                                'bg-rose-100 text-rose-600'
-                                            }`}>
-                                                <span className="font-bold">{item.score}</span>
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="font-medium">Quiz #{item.quizId.slice(-5)}</p>
-                                                <p className="text-sm text-gray-500">{formatDate(item.date)}</p>
-                                            </div>
-                                            <ChevronRight size={18} className="text-gray-400" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
                 </motion.div>
             </div>
         </div>

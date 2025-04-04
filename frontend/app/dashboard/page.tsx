@@ -223,7 +223,7 @@ export default function DashboardPage() {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <h1 className="text-5xl font-extrabold text-blue-700 drop-shadow-sm">
+            <h1 className="text-5xl font-extrabold bg-gradient-to-r from-quiz-purple to-quiz-blue text-transparent bg-clip-text drop-shadow-sm">
               EduAssist
             </h1>
             <p className="text-lg text-gray-600 mt-2">

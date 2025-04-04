@@ -158,9 +158,12 @@ const PracticeSession = () => {
 
     if (loading)
         return (
-            <p className="text-center text-gray-600 text-lg mt-8 animate-pulse">
-                Loading questions...
-            </p>
+            <div className="flex items-center justify-center min-h-screen bg-white">
+                <div className="flex flex-col items-center space-y-4">
+                    <div className="w-12 h-12 border-4 border-purple-400 border-dashed rounded-full animate-spin"></div>
+                    <p className="text-lg text-gray-600 font-medium">Cooking up questions for you...</p>
+                </div>
+            </div>              
         );
     if (error) return <p className="text-center text-red-500 text-lg mt-8">{error}</p>;
 

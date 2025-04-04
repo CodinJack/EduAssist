@@ -338,7 +338,7 @@ export default function Auth() {
                               <Button 
                                 type="button" 
                                 variant="outline" 
-                                className="w-full border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+                                className="w-full border-slate-200 dark:border-slate-800 hover:bg-blue-600 dark:hover:bg-slate-800 flex items-center justify-center"
                                 onClick={handleGoogleSignIn}
                               >
                                 <svg viewBox="0 0 24 24" className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg">
@@ -360,7 +360,7 @@ export default function Auth() {
                               <Button 
                                 type="button" 
                                 variant="outline" 
-                                className="w-full border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                className="w-full border-slate-200 dark:border-slate-800 hover:bg-blue-600 dark:hover:bg-slate-800"
                                 onClick={continueAsGuest}
                               >
                                 Continue as guest
