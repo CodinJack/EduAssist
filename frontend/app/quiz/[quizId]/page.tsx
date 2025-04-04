@@ -1,20 +1,20 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
-import {
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle2,
-  BookOpen,
-  Timer,
-  AlertCircle,
-  Bookmark,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
-import { getQuizById, updateAnswer, bookmarkQuestion, clearAttemptedOptions } from "@/services/quizService";
-import {toast}  from 'react-hot-toast';
+import { clearAttemptedOptions, getQuizById, updateAnswer } from "@/services/quizService";
+import {
+  AlertCircle,
+  Bookmark,
+  BookOpen,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Timer,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react";
+import toast from 'react-hot-toast'; // Fixed import
 
 export default function QuizPage({ params }: { params: Promise<{ quizId: string }> }) {
   const router = useRouter();
@@ -28,6 +28,35 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   const [quizTitle, setQuizTitle] = useState("Quiz");
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
+
+  // Add this new function to fetch bookmarked questions
+  const fetchBookmarkedQuestions = async () => {
+    if (!user) return;
+    
+    try {
+      // Import these functions at the top of your file from Firebase
+      const { doc, getDoc } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase"); // Adjust path as needed
+      
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists() && userDoc.data().bookmarkedQuestions) {
+        const bookmarkedQuestions = userDoc.data().bookmarkedQuestions;
+        const bookmarkState: Record<string, boolean> = {};
+        
+        // Create a map of bookmarked question IDs
+        bookmarkedQuestions.forEach((q: any) => {
+          bookmarkState[q.id] = true;
+        });
+        
+        setBookmarked(bookmarkState);
+      }
+    } catch (error) {
+      console.error("Error fetching bookmarked questions:", error);
+    }
+  };
+
   useEffect(() => {
     const resetQuiz = async () => {
       try {
@@ -38,7 +67,12 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     };
 
     resetQuiz();
-  }, [quizId]);
+    
+    // Fetch bookmarked questions when component mounts
+    if (user) {
+      fetchBookmarkedQuestions();
+    }
+  }, [quizId, user]);
 
   const handleExit = async () => {
     try {
@@ -121,7 +155,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     }
   };
   
-
+  // Updated bookmark handler
   const handleBookmark = async (questionIndex: number) => {
     if (!user) return;
     
@@ -129,39 +163,66 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     const questionToBookmark = {
       ...questions[questionIndex],
       quizId,
-      quizTitle
+      quizTitle,
+      id: questionId  // Ensure the question has an ID
     };
     
     try {
+      // Toggle bookmark status immediately for responsive UI
+      const newBookmarkedState = !bookmarked[questionId];
+      
       // Update UI immediately
       setBookmarked(prev => ({
         ...prev,
-        [questionId]: !prev[questionId]
+        [questionId]: newBookmarkedState
       }));
       
-      await bookmarkQuestion(user.uid, questionToBookmark);
+      // Import these functions at the top of your file from Firebase
+      const { doc, getDoc, updateDoc, arrayRemove, arrayUnion } = await import("firebase/firestore");
+      const { db } = await import("@/firebaseConfig"); // Adjust path as needed
       
-      toast({
-        title: bookmarked[questionId] ? "Bookmark removed" : "Question bookmarked",
-        description: bookmarked[questionId] 
-          ? "Question removed from your bookmarks" 
-          : "You can review this question later in your bookmarks",
-        duration: 2000,
-      });
+      // Reference to the user's document
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (newBookmarkedState) {
+        // Add bookmark
+        if (!userDoc.exists()) {
+          // Create new user document with bookmarked question
+          const { setDoc } = await import("firebase/firestore");
+          await setDoc(userRef, {
+            bookmarkedQuestions: [questionToBookmark]
+          });
+        } else {
+          // Add to existing bookmarks
+          await updateDoc(userRef, {
+            bookmarkedQuestions: arrayUnion(questionToBookmark)
+          });
+        }
+      } else {
+        // Remove bookmark if document exists and has bookmarks
+        if (userDoc.exists() && userDoc.data().bookmarkedQuestions) {
+          await updateDoc(userRef, {
+            bookmarkedQuestions: arrayRemove(questionToBookmark)
+          });
+        }
+      }
+      
+      toast.success(
+        newBookmarkedState 
+          ? "Question bookmarked successfully" 
+          : "Bookmark removed successfully"
+      );
     } catch (error) {
-      console.error("Error bookmarking question:", error);
-      toast({
-        title: "Error",
-        description: "Failed to bookmark question. Please try again.",
-        variant: "destructive",
-        duration: 2000,
-      });
+      console.error("Error toggling bookmark:", error);
       
       // Revert UI state on error
       setBookmarked(prev => ({
         ...prev,
         [questionId]: !prev[questionId]
       }));
+      
+      toast.error("Failed to update bookmark. Please try again.");
     }
   };
 
@@ -180,7 +241,6 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     
     // All questions are attempted, proceed to results
     router.push(`/quiz/${quizId}/result`);
-        
   };
 
   if (loading) {

@@ -2,14 +2,9 @@ import json
 from firebase_admin import auth, credentials, firestore
 from .utils import generate_questions
 import re
-<<<<<<< HEAD
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
-from .models import UserStreak
-from datetime import timedelta
-from .models import UserStreak
 from django.contrib.auth.models import User
-=======
 import traceback
 from django.views.decorators.csrf import csrf_exempt
 from backend.settings import db

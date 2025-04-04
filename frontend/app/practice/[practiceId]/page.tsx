@@ -1,45 +1,116 @@
 "use client";
-import React, { useEffect, useState, useTransition } from "react";
-import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Lightbulb, Eye, EyeOff } from "lucide-react";
 import { createPracticeQuestions } from "@/services/practiceService";
-import QuestionCard from "../../../components/practiceQuestion";
+import { bookmarkQuestion } from "@/services/quizService"; // Import the bookmarkQuestion function
+import { getAuth } from "firebase/auth"; // Import Firebase auth to get current user
+import { ArrowLeft } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "react-hot-toast";
+import QuestionCard from "../../../components/practiceQuestion";
+
 const PracticeSession = () => {
     const { practiceId } = useParams();
     const router = useRouter();
+    const auth = getAuth(); // Initialize Firebase auth
 
     const [questions, setQuestions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
+    const [bookmarkedQuestions, setBookmarkedQuestions] = useState<{
+        [key: string]: boolean;
+    }>({});
 
     const handleNavigation = (path: string) => {
         startTransition(() => {
             router.push(path);
         });
     };
+
+    // Function to handle bookmarking using the Firebase function
+    const handleBookmark = async (question: any) => {
+        const user = auth.currentUser;
+        
+        if (!user) {
+            toast.error("You must be logged in to bookmark questions", {
+                duration: 3000,
+                position: 'top-right',
+                style: {
+                    background: "#FF4B4B",
+                    color: "white",
+                },
+            });
+            return;
+        }
+
+        try {
+            // Make sure question has an ID (use existing or create one)
+            const questionWithId = {
+                ...question,
+                id: question.id || `${practiceId}_q${Date.now()}`,
+                quizId: practiceId
+            };
+            
+            // Call the Firebase bookmarking function
+            const result = await bookmarkQuestion(user.uid, questionWithId);
+            
+            // Update local state based on the result
+            setBookmarkedQuestions(prev => ({
+                ...prev,
+                [questionWithId.id]: result.action === "added"
+            }));
+            
+            // Show success toast
+            toast.success(result.message, {
+                duration: 2000,
+                position: 'top-right',
+                style: {
+                    background: result.action === "added" ? "#10B981" : "#6B7280",
+                    color: "white",
+                },
+            });
+            
+        } catch (error: any) {
+            console.error("Error bookmarking question:", error);
+            toast.error(error.message || "Failed to bookmark question", {
+                duration: 3000,
+                position: 'top-right',
+                style: {
+                    background: "#FF4B4B",
+                    color: "white",
+                },
+            });
+        }
+    };
+
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
                 const generatedQuestions = await createPracticeQuestions(
-                    decodeURIComponent(practiceId)
+                    decodeURIComponent(practiceId as string)
                 );
 
-                if (!generatedQuestions.length) {
-                    toast.error("Cannot make a practice questions on this topic!!", {
+                if (!generatedQuestions || !generatedQuestions.length) {
+                    toast.error("Cannot make practice questions on this topic!", {
                         duration: 3000,
-                        position : 'top-right',
+                        position: 'top-right',
                         style: {
-                          background: "red",
-                          color: "white",
+                            background: "#FF4B4B",
+                            color: "white",
                         },
                     });
                     handleNavigation('/practice');
+                    return;
                 }
 
-                setQuestions(generatedQuestions);
+                // Add IDs to questions if they don't have them
+                const questionsWithIds = generatedQuestions.map((q, index) => ({
+                    ...q,
+                    id: q.id || `${practiceId}_q${index}`
+                }));
+
+                setQuestions(questionsWithIds);
                 setError(null);
             } catch (err) {
                 setError("Failed to fetch questions. Please try again.");
@@ -51,51 +122,39 @@ const PracticeSession = () => {
         fetchQuestions();
     }, [practiceId]);
 
-    const getCookie = (name: string): string | null => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
-        return null;
-    };
-
-    // const [bookmarked, setBookmarked] = useState<boolean>(false);
-    const [bookmarkedQuestions, setBookmarkedQuestions] = useState<{
-        [key: number]: boolean;
-    }>({});
-    const handleBookmark = async (id: number, question: object) => {
-        const apiUrl = "http://127.0.0.1:8000/auth/update_bookmarked_questions/";
-        const token = getCookie("idToken"); // Read token from cookie
-
-        if (!token) {
-            console.error("No token found in cookie.");
-            return;
-        }
-
-        console.log("Payload:", question);
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(question),
-            });
-
-            if (response.ok) {
-                setBookmarkedQuestions((prev) => ({
-                    ...prev,
-                    [id]: !prev[id], // Toggle the bookmark state for the specific ID
-                }));
-                console.log(`Bookmark for question ${id} updated successfully`);
-            } else {
-                console.error("Failed to update bookmark:", await response.text());
+    // Check if questions are already bookmarked on component mount
+    useEffect(() => {
+        const checkBookmarkedStatus = async () => {
+            const user = auth.currentUser;
+            if (!user || !questions.length) return;
+            
+            try {
+                // Import Firebase functions
+                const { doc, getDoc } = await import("firebase/firestore");
+                const { db } = await import("@/firebaseConfig");
+                
+                // Get user document
+                const userRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+                
+                if (userDoc.exists() && userDoc.data().bookmarkedQuestions) {
+                    const bookmarkedIds = userDoc.data().bookmarkedQuestions.map(q => q.id);
+                    
+                    // Create a map of question IDs to bookmark status
+                    const bookmarkStatus = {};
+                    questions.forEach(q => {
+                        bookmarkStatus[q.id] = bookmarkedIds.includes(q.id);
+                    });
+                    
+                    setBookmarkedQuestions(bookmarkStatus);
+                }
+            } catch (error) {
+                console.error("Error checking bookmarked status:", error);
             }
-        } catch (error) {
-            console.error("Error making bookmark request:", error);
-        }
-    };
+        };
+        
+        checkBookmarkedStatus();
+    }, [questions]);
 
     if (loading)
         return (
@@ -118,7 +177,7 @@ const PracticeSession = () => {
 
             <h1 className="text-3xl font-bold text-center mb-6">
                 Practicing:{" "}
-                <span className="text-blue-600">{decodeURIComponent(practiceId)}</span>
+                <span className="text-blue-600">{decodeURIComponent(practiceId as string)}</span>
             </h1>
             {isPending && (
                 <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
@@ -128,7 +187,13 @@ const PracticeSession = () => {
             {/* Questions List */}
             <div className="space-y-8 max-w-3xl mx-auto">
                 {questions.map((q, index) => (
-                    <QuestionCard key={index} q={q} index={index} />
+                    <QuestionCard 
+                        key={q.id || index} 
+                        q={q} 
+                        index={index}
+                        isBookmarked={bookmarkedQuestions[q.id] || false}
+                        onBookmark={() => handleBookmark(q)}
+                    />
                 ))}
             </div>
         </div>
