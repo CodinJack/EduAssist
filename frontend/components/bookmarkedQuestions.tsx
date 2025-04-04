@@ -1,7 +1,6 @@
-import { useAuth } from "@/context/AuthContext";
-import { bookmarkQuestion, removeBookmarkedQuestion } from "@/services/quizService";
-import { Eye, EyeOff, Lightbulb } from "lucide-react"; // Icons
-import React, { useEffect, useState } from "react";
+import { bookmarkQuestion } from "@/services/quizService"; // Import the new function
+import { Eye, EyeOff, Lightbulb } from "lucide-react";
+import React, { useState } from "react";
 
 // Define the types
 interface Question {
@@ -12,26 +11,29 @@ interface Question {
     correct_answer: string;
     solution: string;
     remarks: string;
+    quizId?: string; // Optional field that might be needed for the bookmark function
 }
 
 interface QuestionCardProps {
     q: Question;
     index: number;
+    showBookmark?: boolean; // Optional prop to control bookmark button visibility
+    userId?: string; // User ID for bookmarking
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ q, index }) => {
-    const {user} = useAuth();
-    // Get userId from cookie or another source
-    const [userId, setUserId] = useState();
-    useEffect(() => {
-        setUserId(user.uid);
-    }, [user]);
-    // Initialize state variables
-    const [isLoading, setIsLoading] = useState(false);
-    const [bookmarked, setBookmarked] = useState(false);
+// Main QuestionCard component that supports bookmarking
+const QuestionCard: React.FC<QuestionCardProps> = ({ 
+    q, 
+    index, 
+    showBookmark = true, // Default to showing bookmark button
+    userId 
+}) => {
+    const [bookmarked, setBookmarked] = useState<boolean>(false);
     const [expandedHint, setExpandedHint] = useState<number | null>(null);
     const [expandedSolution, setExpandedSolution] = useState<number | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    // Handle bookmarking with the new function
     const handleBookmark = async () => {
         if (!userId) {
             console.error("User ID is required for bookmarking");
@@ -67,39 +69,23 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ q, index }) => {
                 <div>
                     <span className="text-blue-600">{index + 1}.</span> {q.question}
                 </div>
-                <button
-                    className={`transition ${
-                        bookmarked ? "text-yellow-500" : "text-gray-500"
-                    }`}
-                    onClick={handleBookmark}
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill={bookmarked ? "currentColor" : "none"}
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M5 5v14l7-4 7 4V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"
-                        />
-                    </svg>
-                </button>
             </h2>
 
-            {/* Options */}
+            {/* Options - With error handling for when options is not an array */}
             <ul className="space-y-2">
-                {q.options.map((opt: string, i: number) => (
-                    <li key={i} className="p-3 bg-gray-200 rounded-md text-gray-800">
-                        <strong className="text-blue-500">
-                            {String.fromCharCode(65 + i)}.
-                        </strong>{" "}
-                        {opt}
+            {q.options && typeof q.options === "object" ? (
+                Object.entries(q.options).map(([key, value]) => (
+                    <li key={key} className="p-3 bg-gray-200 rounded-md text-gray-800">
+                        <strong className="text-blue-500">{key.toUpperCase()}.</strong>{" "}
+                        {value}
                     </li>
-                ))}
+                ))
+            ) : (
+                <li className="p-3 bg-gray-100 rounded-md text-gray-600">
+                    No options available for this question.
+                </li>
+            )}
+
             </ul>
 
             {/* Hint Toggle Button */}
@@ -110,7 +96,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ q, index }) => {
                 <Lightbulb size={18} />
                 {expandedHint === index ? "Hide Hint" : "Show Hint"}
             </button>
-            {expandedHint === index && (
+            {expandedHint === index && q.hints && (
                 <p className="mt-2 bg-yellow-100 p-3 rounded-md text-yellow-700">
                     {q.hint}
                 </p>
@@ -128,11 +114,42 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ q, index }) => {
             </button>
             {expandedSolution === index && (
                 <div className="mt-2 bg-green-100 p-3 rounded-md text-green-700">
-                    <strong>Correct Answer:</strong> {q.correct_answer.toUpperCase()}
+                    <strong>Correct Answer:</strong> {q.correct_answer?.toUpperCase() || "Not provided"}
                     <br />
-                    <strong>Explanation:</strong> {q.solution}
+                    <strong>Explanation:</strong> {q.solution || "No explanation available"}
                 </div>
             )}
+        </div>
+    );
+};
+
+// Bookmarked Question Card - Reuses the main component with bookmark disabled
+export const BookmarkedQuestionCard: React.FC<QuestionCardProps> = (props) => {
+    return <QuestionCard {...props} showBookmark={false} />;
+};
+
+// Empty state component for when there are no bookmarked questions
+export const NoBookmarkedQuestions: React.FC = () => {
+    return (
+        <div className="flex flex-col items-center justify-center p-10 bg-white rounded-xl shadow-md text-center">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-16 w-16 text-gray-400 mb-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+            >
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 5v14l7-4 7 4V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"
+                />
+            </svg>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No Bookmarked Questions</h3>
+            <p className="text-gray-500 mb-4">
+                You haven't bookmarked any questions yet. Bookmark questions during practice to review them later.
+            </p>
         </div>
     );
 };

@@ -1,6 +1,6 @@
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import Cookies from 'js-cookie';
-import { doc, collection, addDoc, getDoc, getDocs, deleteDoc, updateDoc, arrayUnion, query, where, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebaseConfig'; 
+import { db } from '../firebaseConfig';
 
 const BASE_URL = "http://127.0.0.1:8000/api/quizzes"; // For the backend API calls
 
@@ -276,6 +276,10 @@ export const bookmarkQuestion = async (userId, question) => {
       throw new Error("Question data is required");
     }
 
+    // Import necessary Firebase functions
+    const { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } = await import("firebase/firestore");
+    const { db } = await import("@/firebaseConfig");
+
     // Make sure the question has an ID
     const questionId = question.id || `${question.quizId}_q${Date.now()}`;
     const questionToSave = {
@@ -290,30 +294,50 @@ export const bookmarkQuestion = async (userId, question) => {
     // Check if user document exists
     const userDoc = await getDoc(userRef);
     
-    if (!userDoc.exists()) {
-      // Create a new user document if it doesn't exist
-      await setDoc(userRef, {
-        bookmarkedQuestions: [questionToSave]
-      });
-    } else {
-      // Update existing user document
-      // Use arrayUnion to add the question to the bookmarkedQuestions array
-      // This prevents duplicates if the exact same question is already bookmarked
-      await updateDoc(userRef, {
-        bookmarkedQuestions: arrayUnion(questionToSave)
-      });
+    // Check if this question is already bookmarked
+    let isAlreadyBookmarked = false;
+    if (userDoc.exists() && userDoc.data().bookmarkedQuestions) {
+      isAlreadyBookmarked = userDoc.data().bookmarkedQuestions.some(
+        q => q.id === questionId
+      );
     }
-
-    return { 
-      success: true, 
-      message: "Question bookmarked successfully" 
-    };
+    
+    if (isAlreadyBookmarked) {
+      // Remove bookmark if it exists
+      await updateDoc(userRef, {
+        bookmarkedQuestions: arrayRemove(questionToSave)
+      });
+      
+      return { 
+        success: true, 
+        message: "Bookmark removed successfully",
+        action: "removed"
+      };
+    } else {
+      // Add bookmark
+      if (!userDoc.exists()) {
+        // Create a new user document if it doesn't exist
+        await setDoc(userRef, {
+          bookmarkedQuestions: [questionToSave]
+        });
+      } else {
+        // Update existing user document
+        await updateDoc(userRef, {
+          bookmarkedQuestions: arrayUnion(questionToSave)
+        });
+      }
+      
+      return { 
+        success: true, 
+        message: "Question bookmarked successfully",
+        action: "added"
+      };
+    }
   } catch (error) {
     console.error("Error bookmarking question:", error);
     throw error;
   }
 };
-
 /**
  * Remove a bookmarked question for a user
  * @param {string} userId - The ID of the user

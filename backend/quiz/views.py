@@ -1,6 +1,7 @@
 import json
 from .utils import generate_questions
 import re
+from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from django.contrib.auth.models import User
 import traceback
