@@ -81,6 +81,7 @@
     --border: 217 33% 18%;
     --input: 217 33% 18%;
     --ring: 224 76% 48%;
+    --radius: 0.5rem;
 
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 210 40% 98%;
@@ -132,5 +133,48 @@
   
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-blue-600 dark:from-blue-400 dark:to-primary bg-clip-text text-transparent;
+  }
+}
+@layer components {
+  .quiz-card {
+    @apply relative overflow-hidden transition-all duration-300 rounded-xl;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  }
+  
+  .quiz-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .quiz-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    @apply bg-gradient-to-r from-quiz-purple to-quiz-blue;
+  }
+
+  .quiz-card-beginner::before {
+    @apply bg-gradient-to-r from-quiz-beginner to-quiz-purple;
+  }
+
+  .quiz-card-intermediate::before {
+    @apply bg-gradient-to-r from-quiz-intermediate to-quiz-purple;
+  }
+
+  .quiz-card-advanced::before {
+    @apply bg-gradient-to-r from-quiz-advanced to-quiz-purple;
+  }
+
+  .animated-gradient-button {
+    background-size: 200% 200%;
+    background-position: 0 0;
+    transition: background-position 0.5s;
+  }
+  
+  .animated-gradient-button:hover {
+    background-position: 100% 0;
   }
 }

@@ -1,4 +1,18 @@
 "use client";
+<<<<<<< HEAD
+=======
+import React, { useState, useEffect, use, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle2,
+  BookOpen,
+  Timer,
+  AlertCircle,
+  Bookmark,
+} from "lucide-react";
+>>>>>>> 45104bc15548ce3c307814c5ea6bde165f45f863
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
@@ -13,7 +27,7 @@ import {
   Timer,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useTransition } from "react";
 import toast from 'react-hot-toast'; // Fixed import
 
 export default function QuizPage({ params }: { params: Promise<{ quizId: string }> }) {
@@ -28,7 +42,6 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   const [quizTitle, setQuizTitle] = useState("Quiz");
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
-
   // Add this new function to fetch bookmarked questions
   const fetchBookmarkedQuestions = async () => {
     if (!user) return;
@@ -36,7 +49,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     try {
       // Import these functions at the top of your file from Firebase
       const { doc, getDoc } = await import("firebase/firestore");
-      const { db } = await import("@/lib/firebase"); // Adjust path as needed
+      const { db } = await import("@/firebaseConfig"); // Adjust path as needed
       
       const userRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userRef);
@@ -56,7 +69,12 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
       console.error("Error fetching bookmarked questions:", error);
     }
   };
+  const [isPending, startTransition] = useTransition();
 
+  const handleNavigation = (path: string) => {
+    startTransition(() => {
+      router.push(path);
+    });
   useEffect(() => {
     const resetQuiz = async () => {
       try {
@@ -77,7 +95,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   const handleExit = async () => {
     try {
       await clearAttemptedOptions(quizId);
-      router.push("/quiz");
+      handleNavigation("/quiz");
     } catch (error) {
       console.error("Error exiting quiz:", error);
     }
@@ -240,7 +258,12 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     }
     
     // All questions are attempted, proceed to results
+<<<<<<< HEAD
     router.push(`/quiz/${quizId}/result`);
+=======
+    handleNavigation(`/quiz/${quizId}/result`);
+        
+>>>>>>> 45104bc15548ce3c307814c5ea6bde165f45f863
   };
 
   if (loading) {
@@ -257,6 +280,11 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   if (!questions.length) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      {isPending && (
+        <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+        </div>
+      )}
         <Card className="max-w-md w-full p-6">
           <h2 className="text-xl font-bold text-center mb-4">Quiz Not Found</h2>
           <p className="text-gray-600 mb-6 text-center">
@@ -264,7 +292,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
           </p>
           <Button 
             className="w-full" 
-            onClick={() => router.push('/quiz')}
+            onClick={() => handleNavigation('/quiz')}
           >
             Return to Quiz List
           </Button>

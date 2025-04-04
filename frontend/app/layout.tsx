@@ -1,5 +1,4 @@
 "use client"
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "react-hot-toast";
@@ -7,7 +6,6 @@ import Loading from "@/components/Loading";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
@@ -22,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body >
         <AuthProvider>
             {loading && <Loading />}
             {children}

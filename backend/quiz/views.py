@@ -1,5 +1,4 @@
 import json
-from firebase_admin import auth, credentials, firestore
 from .utils import generate_questions
 import re
 from django.contrib.auth.decorators import login_required
