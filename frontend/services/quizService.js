@@ -422,3 +422,24 @@ export const clearAttemptedOptions = async (quizId) => {
     throw error;
   }
 };
+
+
+
+export const getQuizReviewById = async (quizId) => {
+  try {
+    const quizRef = doc(db, "quizzes", quizId);
+    const quizDoc = await getDoc(quizRef);
+
+    if (!quizDoc.exists()) {
+      throw new Error("Quiz not found");
+    }
+
+    return {
+      id: quizDoc.id,
+      ...quizDoc.data()
+    };
+  } catch (error) {
+    console.error("Error fetching quiz:", error);
+    throw error;
+  }
+};

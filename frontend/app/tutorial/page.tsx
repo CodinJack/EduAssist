@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { 
   Search, 
   BookOpen, 
@@ -94,7 +94,7 @@ const TutorialPage = () => {
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const navigate = useNavigate();
+  const router = useRouter();
   const { user } = useAuth();
   const searchInputRef = useRef<HTMLInputElement>(null);
   
