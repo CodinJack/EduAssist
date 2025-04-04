@@ -2,12 +2,14 @@ import json
 from firebase_admin import auth, credentials, firestore
 from .utils import generate_questions
 import re
+<<<<<<< HEAD
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from .models import UserStreak
 from datetime import timedelta
 from .models import UserStreak
 from django.contrib.auth.models import User
+=======
 import traceback
 from django.views.decorators.csrf import csrf_exempt
 from backend.settings import db
@@ -90,53 +92,4 @@ def create_quiz(request):
         }, status=200)
             
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-# @csrf_exempt
-# def update_streak_on_login(request):
-#     try:
-#         print("hello we are in update streak on login")
-#         streak, created = UserStreak.objects.get_or_create(user=request.user)
-#         streak.update_streak(attended_quiz=False)
-#         return JsonResponse({"streak": streak.streak_count, "last_login": streak.last_login_date})
-#     except Exception as e:
-#         return JsonResponse({"error": str(e)}, status=500)
-
-# @csrf_exempt
-# def update_streak_on_quiz(request):
-#     streak, created = UserStreak.objects.get_or_create(user=request.user)
-#     streak.update_streak(attended_quiz=True)
-#     return JsonResponse({"streak": streak.streak_count, "last_quiz": streak.last_quiz_date})
-
-# Ensure Firebase Admin SDK is initialized
-# if not firebase_admin._apps:
-#     from firebase_admin import credentials
-#     cred = credentials.Certificate("path/to/serviceAccountKey.json")  # 🔥 Use your Firebase Service Account
-#     firebase_admin.initialize_app(cred)
-
-def update_streak_on_quiz_submission(request):
-    """Verify Firebase token, find or create user, and update streak on quiz submission."""
-    auth_header = request.headers.get("Authorization")
-
-    if not auth_header or not auth_header.startswith("Bearer "):
-        return JsonResponse({"error": "No authentication token found"}, status=401)
-
-    try:
-        id_token = auth_header.split("Bearer ")[1]
-        decoded_token = auth.verify_id_token(id_token)
-        firebase_uid = decoded_token.get("uid")
-        email = decoded_token.get("email")
-
-        if not firebase_uid:
-            return JsonResponse({"error": "Invalid token"}, status=401)
-
-        user, _ = User.objects.get_or_create(username=firebase_uid, defaults={"email": email})
-        streak, _ = UserStreak.objects.get_or_create(user=user)
-        streak.update_streak(attended_quiz=True)
-
-        return JsonResponse({"streak": streak.streak_count, "last_quiz": streak.last_quiz_date})
-    
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        traceback.print_exc()
         return JsonResponse({"error": str(e)}, status=500)
