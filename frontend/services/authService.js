@@ -6,7 +6,7 @@ import {
     signInWithPopup, 
     signOut 
 } from "firebase/auth";
-import { db, doc, getDoc, setDoc } from "../firebaseConfig";
+import { db, doc, getDoc, setDoc, collection, getDocs} from "../firebaseConfig";
 
 // ✅ Register User
 export const registerUser = async (email, password) => {
@@ -16,8 +16,12 @@ export const registerUser = async (email, password) => {
         
         // Store ID token in cookies
         const idToken = await userCredential.user.getIdToken();
-        Cookies.set("idToken", idToken, { secure: true, sameSite: "Strict" });
-
+        Cookies.set("idToken", idToken, { 
+            secure: true, 
+            sameSite: "Strict", 
+            expires: 1 // 1 day (24 hours)
+          });
+          
         console.log("User registered successfully.");
         return userCredential; // Return the full userCredential
     } catch (error) {
@@ -34,8 +38,12 @@ export const loginUser = async (email, password) => {
 
         // Get ID token and store in cookies
         const idToken = await user.getIdToken();
-        Cookies.set("idToken", idToken, { secure: true, sameSite: "Strict" });
-
+        Cookies.set("idToken", idToken, { 
+            secure: true, 
+            sameSite: "Strict", 
+            expires: 1 // 1 day (24 hours)
+          });
+          
         console.log("Login successful, user ID:", user.uid);
         
         // Get user data from Firestore
@@ -83,8 +91,12 @@ export const signInWithGoogle = async () => {
 
         // Get ID token and store in cookies
         const idToken = await user.getIdToken();
-        Cookies.set("idToken", idToken, { secure: true, sameSite: "Strict" });
-
+        Cookies.set("idToken", idToken, { 
+            secure: true, 
+            sameSite: "Strict", 
+            expires: 1 // 1 day (24 hours)
+          });
+          
         console.log("Google Sign-In successful, user ID:", user.uid);
         
         // Check if user exists in Firestore, if not create a basic record
@@ -152,5 +164,22 @@ export const getUserData = async (uid) => {
     } catch (error) {
         console.error("Error getting user data:", error);
         return null;
+    }
+};
+
+export const getAllUsers = async () => {
+    try {
+        const usersCollectionRef = collection(db, "users");
+        const querySnapshot = await getDocs(usersCollectionRef);
+        
+        const users = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        return users;
+    } catch (error) {
+        console.error("Error fetching all users:", error);
+        return [];
     }
 };

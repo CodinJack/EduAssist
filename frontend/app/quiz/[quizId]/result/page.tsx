@@ -569,7 +569,10 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => startTransition(`/quiz/${quizId}/review`)}
+                onClick={() => startTransition(() => {
+                  router.push(`/quiz/${quizId}/review`);
+                })}
+                
                 className="px-6 py-3 bg-white text-blue-600 border border-blue-600 rounded-lg shadow-sm hover:bg-blue-50 transition-colors flex items-center justify-center"
               >
                 <Book className="w-5 h-5 mr-2" />

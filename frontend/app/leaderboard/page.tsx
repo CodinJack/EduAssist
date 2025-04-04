@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/dashboard/SideBar";
 import { motion } from "framer-motion";
 import { Trophy, Award } from "lucide-react";
+import { getAllUsers } from "@/services/authService";
 
 export default function Leaderboard() {
     const [collapsed, setCollapsed] = useState(true);
@@ -12,28 +13,17 @@ export default function Leaderboard() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch("http://localhost:8000/auth/all_users/", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
+                const allUsers = await getAllUsers();
     
-                if (!response.ok) {
-                    throw new Error("Failed to fetch users");
-                }
-    
-                const data = await response.json();
-    
-                if (data.users) {
-                    const sortedUsers = data.users
-                        .sort((a, b) => b.total_marks - a.total_marks) // Sort by highest marks
+                if (allUsers.length) {
+                    const sortedUsers = allUsers
+                        .sort((a, b) => b.averageMarks - a.averageMarks) // Sort by highest marks
                         .slice(0, 10); // Get top 10 users
     
                     const users = sortedUsers.map((user, index) => ({
                         rank: index + 1,
                         name: user.email.split("@")[0],
-                        score: user.total_marks.toFixed(2),
+                        score: user.averageMarks.toFixed(2),
                         avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${user.userID}`,
                         badge: index === 0 ? "Top Performer" : index < 3 ? "Rising Star" : "Consistent Learner",
                     }));
@@ -68,16 +58,19 @@ export default function Leaderboard() {
                         transition={{ duration: 0.5 }}
                     >
                         <div className="space-y-1 mt-1">
-                            <h1 className="text-4xl font-extrabold text-blue-700 drop-shadow-sm">
-                                Leaderboard
+                        <div className="flex items-center">
+                            <h1 className="text-3xl font-extrabold bg-gradient-to-r from-quiz-purple to-quiz-blue text-transparent bg-clip-text">
+                            Leaderboard
                             </h1>
-                            <p className="text-base text-black opacity-80">
-                                Top Performing Students
+                        </div>    
+                            <p className="text-sm font-normal bg-gradient-to-r from-quiz-purple to-quiz-blue text-transparent bg-clip-text">
+                            Top Performing Students
                             </p>
+                        
                         </div>
                         <div className="flex items-center space-x-4">
-                            <Trophy className="text-blue-700" size={32} />
-                            <span className="text-xl font-semibold text-blue-700">
+                            <Trophy className="bg-gradient-to-r from-quiz-purple to-quiz-blue text-transparent bg-clip-text" size={32} />
+                            <span className="text-2xl font-semibold bg-gradient-to-r from-quiz-purple to-quiz-blue text-transparent bg-clip-text">
                                 Performance Ranking
                             </span>
                         </div>
