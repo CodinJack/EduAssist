@@ -13,12 +13,11 @@ export const updateUserStreak = async (userId, completedAt) => {
     const userData = userDoc.data();
     const currentDate = new Date(completedAt);
 
-    const lastQuizDate = userData.last_quiz_date ? 
-      new Date(userData.last_quiz_date.seconds * 1000) : 
-      (userData.streak?.lastQuizDate ? 
-        new Date(userData.streak.lastQuizDate.seconds * 1000) : null);
+    const lastQuizDate = userData.lastQuizSubmissionDate ? 
+      new Date(userData.lastQuizSubmissionDate.seconds * 1000) : 
+      (null);
     
-    const currentStreak = userData.currentStreak || userData.streak?.count || 0;
+    const currentStreak = userData.currentStreak || 0;
     const maxStreak = userData.maxStreak || 0;
     
     let newStreak = currentStreak;
@@ -65,14 +64,8 @@ export const updateUserStreak = async (userId, completedAt) => {
       // Update top-level fields
       currentStreak: newStreak,
       maxStreak: newMaxStreak,
-      last_quiz_date: timestamp,
-      total_quizzes: increment(1),
-      
-      // Also update nested streak object
-      streak: {
-        count: newStreak,
-        lastQuizDate: timestamp
-      }
+      lastQuizSubmissionDate: timestamp,
+      numberOfTestsAttempted: increment(1),
     });
     
     return {

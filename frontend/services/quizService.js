@@ -195,9 +195,9 @@ export const submitQuiz = async (quizId, userId) => {
     const userData = userDoc.data();
     
     // Get current stats or initialize if they don't exist
-    const currentTests = userData.number_of_tests_attempted || 0;
-    const currentTotalMarks = userData.total_marks || 0;
-    const previousWrongTags = userData.wrong_tags || [];
+    const currentTests = userData.numberOfTestsAttempted || 0;
+    const currentTotalMarks = userData.averageMarks || 0;
+    const previousWrongTags = userData.weakTopics || [];
     
     // Calculate new average marks
     const newTestsCount = currentTests + 1;
@@ -221,10 +221,10 @@ export const submitQuiz = async (quizId, userId) => {
 
     // Update user document with new stats
     await updateDoc(userRef, {
-      number_of_tests_attempted: newTestsCount,
-      total_marks: newTotalMarks,
-      wrong_tags: newWrongTags,
-      last_quiz_date: new Date(),
+      numberOfTestsAttempted: newTestsCount,
+      averageMarks: newTotalMarks,
+      weakTopics: newWrongTags,
+      lastQuizSubmissionDate: new Date(),
       quiz_history: userData.quiz_history ? 
         [...userData.quiz_history, { 
           quizId, 

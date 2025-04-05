@@ -347,7 +347,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     }
     
     // All questions are attempted, proceed to results
-    router.push(`/quiz/${quizId}/result`);
+    handleNavigation(`/quiz/${quizId}/result`);
   };
   
   // Return your JSX component here (not included as it wasn't in the original code)

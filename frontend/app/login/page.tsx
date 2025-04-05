@@ -191,13 +191,13 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-hidden">
+    <div className="min-h-screen w-full overflow-auto relative">
       {isPending && (
         <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
         </div>
       )}
-      <AuroraBackground className="min-h-screen flex flex-col items-center justify-center">
+      <AuroraBackground className=" w-full flex flex-col items-center justify-center py-32 px-4">
         <div className="absolute top-5 left-5 z-10">
           <Link href="/">
             <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full backdrop-blur-md bg-white/10 hover:bg-blue-600 transition-all">
@@ -222,8 +222,8 @@ export default function Auth() {
             </motion.div>
           )}
           
-          <Card className="border border-white/20 shadow-xl dark:shadow-slate-950/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-xl overflow-hidden">
-            <CardHeader className="pb-6 pt-8 flex flex-col items-center space-y-2">
+          <div className="border border-white/20 shadow-xl dark:shadow-slate-950/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-xl overflow-hidden">
+            <div className="pb-6 pt-8 flex flex-col items-center space-y-2">
               <motion.div 
                 className="h-16 w-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mb-2 shadow-md"
                 whileHover={{ scale: 1.05 }}
@@ -231,19 +231,19 @@ export default function Auth() {
               >
                 <GraduationCap className="h-8 w-8 text-white" />
               </motion.div>
-              <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">Welcome to EduAssist</CardTitle>
-              <CardDescription className="text-center max-w-xs">
+              <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">Welcome to EduAssist</div>
+              <div className="text-center max-w-xs">
                 {activeTab === "login" 
                   ? "Sign in to continue your learning journey" 
                   : "Join our community of learners today"}
-              </CardDescription>
-            </CardHeader>
+              </div>
+            </div>
             
             <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="p-3">
                 <TabsList className="grid w-full grid-cols-2 mb-4 rounded-lg h-12 bg-slate-100/80 dark:bg-slate-800/80">
                   <TabsTrigger value="login" className="rounded-md text-sm p-2">Sign In</TabsTrigger>
-                  <TabsTrigger value="register" className="rounded-md text-sm p-2 ">Create Account</TabsTrigger>
+                  <TabsTrigger value="register" className="rounded-md text-sm p-2">Create Account</TabsTrigger>
                 </TabsList>
               </div>
               
@@ -256,7 +256,7 @@ export default function Auth() {
                     transition={{ duration: 0.3 }}
                   >
                     <form onSubmit={handleLogin}>
-                      <CardContent className="space-y-4 px-6">
+                      <div className="space-y-4 px-6">
                         <div className="space-y-2">
                           <label htmlFor="email" className="text-sm font-medium block mb-1">
                             Email address
@@ -303,9 +303,9 @@ export default function Auth() {
                             </Button>
                           </div>
                         </div>
-                      </CardContent>
+                      </div>
 
-                      <CardFooter className="flex flex-col px-6 pt-2 pb-6">
+                      <div className="flex flex-col px-6 pt-4 pb-6">
                         <motion.div
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
@@ -379,7 +379,7 @@ export default function Auth() {
                             Create one now
                           </button>
                         </div>
-                      </CardFooter>
+                      </div>
                     </form>
                   </motion.div>
                 </TabsContent>
@@ -392,7 +392,7 @@ export default function Auth() {
                     transition={{ duration: 0.3 }}
                   >
                     <form onSubmit={handleRegister}>
-                      <CardContent className="space-y-4 px-6">
+                      <div className="space-y-4 px-6">
                         <div className="space-y-2">
                           <label htmlFor="register-email" className="text-sm font-medium block mb-1">
                             Email address
@@ -472,9 +472,9 @@ export default function Auth() {
 
                           </div>
                         </div>
-                      </CardContent>
+                      </div>
                       
-                      <CardFooter className="flex flex-col px-6 pt-2 pb-6">
+                      <div className="flex flex-col px-6 pt-4 pb-6">
                         <motion.div
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
@@ -499,13 +499,13 @@ export default function Auth() {
                             Sign in
                           </button>
                         </div>
-                      </CardFooter>
+                      </div>
                     </form>
                   </motion.div>
                 </TabsContent>
               </AnimatePresence>
             </Tabs>
-          </Card>
+          </div>
 
           <div className="mt-8 text-center text-xs text-white/60">
             <p>© {new Date().getFullYear()} EduAssist. All rights reserved.</p>

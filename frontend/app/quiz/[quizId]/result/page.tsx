@@ -64,14 +64,11 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
       try {
         setLoading(true);
         const resultData = await submitQuiz(quizId, user.uid);
-        
+        console.log(resultData);
         // Calculate mock time data (in a real app, this would come from tracking actual time)
         const mockTimeSpent = Math.floor(Math.random() * 10) + 5; // 5-15 minutes
         setTimeSpent(mockTimeSpent);
         setAverageTimePerQuestion(mockTimeSpent * 60 / resultData.score.total);
-        
-        // Process analytics data
-        processAnalyticsData(resultData);
         
         setQuizResult(resultData);
         
@@ -89,32 +86,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
     
     submit();
   }, [quizId, user]);
-  
-  const processAnalyticsData = (resultData) => {
-    // In a real implementation, this would analyze actual data
-    // For now, we'll create mock strength/weakness data based on the score
-    
-    // Mock strength data (categories user did well in)
-    const mockStrengths = ["Logic", "Problem Solving", "Fundamentals"];
-    setStrengthData(mockStrengths.map(category => ({
-      category,
-      score: Math.floor(Math.random() * 20) + 80 // 80-100%
-    })));
-    
-    // Use the actual wrong tags if available, otherwise create mock weaknesses
-    if (resultData.new_wrong_tags && resultData.new_wrong_tags.length > 0) {
-      setWeaknessData(resultData.new_wrong_tags.map(tag => ({
-        category: tag,
-        score: Math.floor(Math.random() * 40) + 20 // 20-60%
-      })));
-    } else {
-      const mockWeaknesses = ["Advanced Topics", "Edge Cases", "Optimization"];
-      setWeaknessData(mockWeaknesses.map(category => ({
-        category,
-        score: Math.floor(Math.random() * 40) + 20 // 20-60%
-      })));
-    }
-  };
+
   
   if (loading) {
     return (
@@ -135,7 +107,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Results</h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button 
-            onClick={() => router.push("/quiz")}
+            onClick={() => handleNavigation("/quiz")}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors"
           >
             Return to Quizzes
@@ -165,7 +137,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
           className="mb-8"
         >
           <button
-            onClick={() => router.push("/quiz")}
+            onClick={() => handleNavigation("/quiz")}
             className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -222,16 +194,6 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
                 }`}
               >
                 Performance Analytics
-              </button>
-              <button
-                onClick={() => setActiveTab('strength')}
-                className={`py-4 px-4 font-medium text-sm whitespace-nowrap ${
-                  activeTab === 'strength'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Strengths & Weaknesses
               </button>
               <button
                 onClick={() => setActiveTab('recommendations')}
@@ -401,35 +363,6 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
                   </div>
                 </div>
                 
-                {/* Performance Comparison (mockup) */}
-                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
-                  <h4 className="text-md font-medium mb-3 flex items-center">
-                    <TrendingUp className="w-5 h-5 mr-2 text-blue-600" />
-                    Performance Comparison
-                  </h4>
-                  <div className="flex items-end gap-4 h-32">
-                    <div className="flex flex-col items-center">
-                      <div className="text-xs text-gray-500 mb-2">Average</div>
-                      <div className="bg-gray-300 w-8 rounded-t-md" style={{ height: '70%' }}></div>
-                      <div className="text-xs font-medium mt-1">72%</div>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <div className="text-xs text-gray-500 mb-2">Your Score</div>
-                      <div 
-                        className={`w-8 rounded-t-md ${
-                          quizResult.score.percentage >= 72 ? 'bg-green-500' : 'bg-orange-500'
-                        }`} 
-                        style={{ height: `${(quizResult.score.percentage / 100) * 100}%` }}
-                      ></div>
-                      <div className="text-xs font-medium mt-1">{Math.round(quizResult.score.percentage)}%</div>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <div className="text-xs text-gray-500 mb-2">Top Score</div>
-                      <div className="bg-blue-500 w-8 rounded-t-md" style={{ height: '90%' }}></div>
-                      <div className="text-xs font-medium mt-1">90%</div>
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -570,7 +503,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => startTransition(() => {
-                  router.push(`/quiz/${quizId}/review`);
+                  handleNavigation(`/quiz/${quizId}/review`);
                 })}
                 
                 className="px-6 py-3 bg-white text-blue-600 border border-blue-600 rounded-lg shadow-sm hover:bg-blue-50 transition-colors flex items-center justify-center"
@@ -592,7 +525,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => router.push("/tutorial")}
+                onClick={() => handleNavigation("/tutorial")}
                 className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-colors flex items-center justify-center"
               >
                 <Brain className="w-5 h-5 mr-2" />
@@ -601,19 +534,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
             </div>
           </div>
         </motion.div>
-        
-        {/* Share Results */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-6 flex justify-center"
-        >
-          <button className="text-blue-600 hover:text-blue-800 transition-colors text-sm flex items-center">
-            <Award className="w-4 h-4 mr-1" />
-            Share your results
-          </button>
-        </motion.div>
+    
       </div>
     </div>
   );

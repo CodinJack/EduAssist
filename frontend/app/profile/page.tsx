@@ -1,40 +1,32 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
+"use client"
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   AlertCircle, Award, BarChart, Bookmark, Calendar, 
-  ChevronRight, Flame, List, Trophy, Clock 
+  ChevronRight, Flame, List, Trophy, Clock, 
+  Github, Briefcase, Calendar as CalendarIcon
 } from "lucide-react";
 
 import Sidebar from "@/components/dashboard/SideBar";
-import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap"; // Import the new component
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/context/AuthContext";
-import { checkAndUpdateStreak } from "@/services/streakService";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
 
 const ProfilePage = () => {
     const [collapsed, setCollapsed] = useState(true);
-    const [error, setError] = useState(null);
-    const [fixcs , setcs] = useState(0);
-    const [fixms , setms] = useState(0);
-    const [fixismaintained , setfixismaintained] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [activityData, setActivityData] = useState<Array<{date: string, value: number}> | null>(null);
     
-    const [streakInfo, setStreakInfo] = useState({
-        currentStreak: 0,
-        maxStreak: 0,
-        streakActive: false
-    });
     const { user } = useAuth();
     const router = useRouter();
 
     // Format date for last quiz date
-    const formatDate = (timestamp) => {
+    const formatDate = (timestamp: any) => {
         if (!timestamp) return "No data";
         
         const date = timestamp.seconds 
@@ -49,7 +41,7 @@ const ProfilePage = () => {
     };
 
     // Check if streak is active (quiz completed within the last 24 hours)
-    const isStreakActive = (timestamp , userData) => {
+    const isStreakActive = (timestamp: any) => {
         if (!timestamp) return false;
         const currentDate = new Date();
         const lastQuizDay = new Date(timestamp);
@@ -59,52 +51,56 @@ const ProfilePage = () => {
         currentDay.setHours(0, 0, 0, 0);
         const isSameDay = lastQuizDay.getTime() === currentDay.getTime();
         
-        const timeDiff = currentDay - lastQuizDay;
+        const timeDiff = currentDay.getTime() - lastQuizDay.getTime();
         const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-        if(isSameDay || (daysDiff<=1)){
-            return true;
-        }
-        else return false;
+        return isSameDay || (daysDiff <= 1);
     };
 
-    // Check streak status on component mount
+    // Generate activity data based on user test history
     useEffect(() => {
-        const fetchStreak = () => {
-            try {
-                if (user?.uid) {
-                    // Get streak data from nested streak object if it exists, otherwise use top-level properties
-                    const currentStreak = user.currentStreak || 0;
-                    const maxStreak = user.maxStreak || 0;
-                                                
-                    // Check if streak is active
-                    const lastQuizDate = user.lastQuizSubmissionDate?.seconds
+        const generateActivityData = () => {
+            if (!user) return;
+            
+            const today = new Date();
+            const data = [];
+            
+            // Generate activity for the last 3 months (91 days)
+            for (let i = 90; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(today.getDate() - i);
+                
+                // Default to 0 activity
+                let value = 0;
+                
+                // If we have last submission date and it's the same as this date, show activity
+                if (user.lastQuizSubmissionDate) {
+                    const lastQuizDate = user.lastQuizSubmissionDate.seconds 
                         ? new Date(user.lastQuizSubmissionDate.seconds * 1000)
-                        : null;
-
-                    const streakActive = isStreakActive(lastQuizDate , user);
+                        : new Date(user.lastQuizSubmissionDate);
                     
-                    checkAndUpdateStreak(user.uid)
-                        .then(result => {
-                            setStreakInfo({
-                                currentStreak: currentStreak,
-                                maxStreak: maxStreak,
-                                streakActive: streakActive
-                            });
-                        })
-                        .catch(err => console.error("Error checking streak:", err));
-
-                        setcs(user.currentStreak);
-                        setms(user.maxStreak);
-                        const checkthis = isStreakActive(lastQuizDate , user);
-                        setfixismaintained(checkthis);
+                    // If this is the day a quiz was submitted
+                    if (date.toDateString() === lastQuizDate.toDateString()) {
+                        value = Math.min(user.numberOfTestsAttempted || 1, 4);
+                    }
                 }
-            }catch (err) {
-                console.error("Error checking streak:", err);
+                
+                data.push({
+                    date: date.toISOString().split('T')[0], // YYYY-MM-DD format
+                    value: value
+                });
             }
+            
+            return data;
         };
-          
-        fetchStreak();
-    }, [user,fixms,fixcs,fixismaintained]);
+        
+        try {
+            // Generate activity data from user data
+            setActivityData(generateActivityData() || []);
+        } catch (err) {
+            console.error("Error generating activity data:", err);
+            setError("Failed to load activity information");
+        }
+    }, [user]);
 
     // Animation variants
     const containerVariants = {
@@ -141,18 +137,11 @@ const ProfilePage = () => {
 
     // Calculate time until streak resets
     const getTimeUntilReset = () => {
-        const lastQuizTimestamp = 
-            (user.streak?.lastQuizDate && user.last_quiz_date) 
-                ? (user.streak.lastQuizDate.seconds > user.last_quiz_date.seconds 
-                    ? user.streak.lastQuizDate 
-                    : user.last_quiz_date)
-                : (user.streak?.lastQuizDate || user.last_quiz_date);
+        if (!user.lastQuizSubmissionDate) return "Complete a quiz to start your streak!";
     
-        if (!lastQuizTimestamp) return "Complete a quiz to start your streak!";
-    
-        const lastQuizDate = lastQuizTimestamp.seconds 
-            ? new Date(lastQuizTimestamp.seconds * 1000)
-            : new Date(lastQuizTimestamp);
+        const lastQuizDate = user.lastQuizSubmissionDate.seconds 
+            ? new Date(user.lastQuizSubmissionDate.seconds * 1000)
+            : new Date(user.lastQuizSubmissionDate);
     
         // Normalize lastQuizDate to midnight
         lastQuizDate.setHours(0, 0, 0, 0);
@@ -163,7 +152,7 @@ const ProfilePage = () => {
     
         const now = new Date();
     
-        const timeDiff = resetTime - now;
+        const timeDiff = resetTime.getTime() - now.getTime();
     
         if (timeDiff <= 0) return "Your streak has expired!";
     
@@ -173,6 +162,16 @@ const ProfilePage = () => {
         return `⏳ ${hours}h ${minutes}m left before your streak expires`;
     };
     
+    // Color scale for activity heatmap
+    const getActivityColor = (value: number) => {
+        if (value === 0) return "#ebedf0";
+        if (value === 1) return "#c6e48b";
+        if (value === 2) return "#7bc96f";
+        if (value === 3) return "#239a3b";
+        return "#196127"; // 4 or higher
+    };
+    
+    const isStreakMaintained = user.lastQuizSubmissionDate ? isStreakActive(user.lastQuizSubmissionDate) : false;
     
     return (
         <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -180,7 +179,7 @@ const ProfilePage = () => {
             <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
             {/* Main Content */}
-            <div className={`p-4 md:p-8 flex-1 transition-all duration-700 ${collapsed ? "ml-16" : "ml-64"}`}>
+            <div className={`p-4 md:p-8 flex-1 transition-all duration-700 ${collapsed ? "ml-20" : "ml-16"}`}>
                 <motion.div 
                     initial="hidden"
                     animate="visible"
@@ -191,32 +190,31 @@ const ProfilePage = () => {
                         variants={itemVariants}
                         className="flex flex-col md:flex-row items-center gap-6 bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500"
                     >
-                        {user ? (
                         <div className="relative">
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-purple-400 ring-offset-2">
-                            <Image
-                                src={user.photoURL || "https://source.unsplash.com/random/200x200/?portrait"}
-                                alt="Profile Picture"
-                                className="object-cover w-full h-full"
-                                fill
-                                unoptimized
-                                />
-                            </div>{fixismaintained ? (
+                                <Avatar className="w-full h-full">
+                                    <AvatarImage 
+                                        src={user.photoURL || ''} 
+                                        alt={user.displayName || 'User'}
+                                    />
+                                    <AvatarFallback className="bg-purple-200 text-3xl font-bold text-purple-600">
+                                        {user.displayName?.charAt(0) || user.email?.charAt(0) || "U"}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
+                            {isStreakMaintained ? (
                                 <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full p-2">
                                     <Flame size={20} className="text-white" />
                                 </div>
-                                ) : (
+                            ) : (
                                 <div className="absolute -bottom-2 -right-2 bg-gray-300 rounded-full p-2">
                                     <Flame size={20} className="text-gray-400 opacity-60" />
                                 </div>
-                                )}
-                        </div>  
-                        ) : (
-                        <div>Loading user data...</div>
-                        )}  
+                            )}
+                        </div>
                         <div className="flex-1 text-center md:text-left">
                             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                                {user ? user.displayName ?? "User" : "User"}
+                                {user.displayName || "User"}
                             </h1>
                             <p className="text-gray-500">{user.email}</p>
                             
@@ -224,13 +222,13 @@ const ProfilePage = () => {
                                 <TooltipProvider delayDuration={300}>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Badge variant="outline" className={`${fixismaintained ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-gray-50 text-gray-700 border-gray-200'} font-medium`}>
-                                                <Flame className={`w-3 h-3 mr-1 ${fixismaintained ? 'text-amber-500' : 'text-gray-500'}`} /> 
-                                                Streak: {fixcs || 0} days
+                                            <Badge variant="outline" className={`${isStreakMaintained ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-gray-50 text-gray-700 border-gray-200'} font-medium`}>
+                                                <Flame className={`w-3 h-3 mr-1 ${isStreakMaintained ? 'text-amber-500' : 'text-gray-500'}`} /> 
+                                                Streak: {user.currentStreak || 0} days
                                             </Badge>
                                         </TooltipTrigger>
                                         <TooltipContent className="p-3 max-w-xs">
-                                            <p>{fixismaintained ? 
+                                            <p>{isStreakMaintained ? 
                                                 `Your streak is active! ${getTimeUntilReset()}` : 
                                                 "Complete a quiz today to maintain your streak!"}
                                             </p>
@@ -239,10 +237,10 @@ const ProfilePage = () => {
                                 </TooltipProvider>
                                 
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
-                                    <Trophy className="w-3 h-3 mr-1" /> Best: {fixms || 0} days
+                                    <Trophy className="w-3 h-3 mr-1" /> Best: {user.maxStreak || 0} days
                                 </Badge>
                                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 font-medium">
-                                    <Calendar className="w-3 h-3 mr-1" /> Last Quiz: {formatDate(user.last_quiz_date)}
+                                    <Calendar className="w-3 h-3 mr-1" /> Last Quiz: {formatDate(user.lastQuizSubmissionDate)}
                                 </Badge>
                             </div>
                         </div>
@@ -261,12 +259,127 @@ const ProfilePage = () => {
                         </motion.div>
                     </motion.div>
 
-                    {/* Calendar Activity Heatmap - NEW SECTION */}
+                    {/* Calendar Activity Heatmap - FIXED SECTION */}
                     <motion.div
                         variants={itemVariants}
                         className="mt-6"
                     >
-                        <ActivityHeatmap userId={user.uid} />
+                        <Card className="bg-white shadow-md overflow-hidden border-none hover:shadow-lg transition-shadow duration-300">
+                            <CardHeader className="pb-2 border-b">
+                                <div className="flex justify-between items-center">
+                                    <CardTitle className="flex items-center gap-2 text-gray-700">
+                                        <div className="p-2 bg-green-100 rounded-lg">
+                                            <Github size={20} className="text-green-600" />
+                                        </div>
+                                        <span>Activity Calendar</span>
+                                    </CardTitle>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 rounded-sm bg-[#ebedf0]"></div>
+                                            <span className="text-xs text-gray-500">No activity</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 rounded-sm bg-[#c6e48b]"></div>
+                                            <span className="text-xs text-gray-500">Low</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 rounded-sm bg-[#7bc96f]"></div>
+                                            <span className="text-xs text-gray-500">Medium</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 rounded-sm bg-[#196127]"></div>
+                                            <span className="text-xs text-gray-500">High</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="pt-4">
+                                <div className="overflow-x-auto pb-4">
+                                    {/* Activity Calendar */}
+                                    <div className="min-w-full">
+                                        {/* Month labels */}
+                                        <div className="flex text-xs text-gray-500 pl-10 mb-1">
+                                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month) => (
+                                                <div key={month} className="flex-1 text-center">{month}</div>
+                                            ))}
+                                        </div>
+                                        
+                                        {/* Day labels and grid */}
+                                        <div className="flex">
+                                            {/* Day labels */}
+                                            <div className="flex flex-col justify-around pr-2 text-xs text-gray-500 h-24">
+                                                <span>Mon</span>
+                                                <span>Wed</span>
+                                                <span>Fri</span>
+                                            </div>
+                                            
+                                            {/* Calendar grid */}
+                                            <div className="flex-1 grid grid-cols-[repeat(52,minmax(0,1fr))] gap-1">
+                                                {activityData && activityData.map((day, index) => {
+                                                    const date = new Date(day.date);
+                                                    const formattedDate = date.toLocaleDateString('en-US', { 
+                                                        month: 'short', 
+                                                        day: 'numeric', 
+                                                        year: 'numeric' 
+                                                    });
+                                                    
+                                                    return (
+                                                        <TooltipProvider key={index} delayDuration={100}>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <div 
+                                                                        className="w-3 h-3 rounded-sm transition-colors duration-300 hover:opacity-80"
+                                                                        style={{ backgroundColor: getActivityColor(day.value) }}
+                                                                    ></div>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent side="top" className="p-2 text-xs">
+                                                                    <div className="font-medium">{formattedDate}</div>
+                                                                    <div>{day.value} {day.value === 1 ? 'activity' : 'activities'}</div>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Activity Stats */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2 pt-4 border-t">
+                                    <div>
+                                        <h4 className="text-sm text-gray-500 flex items-center gap-1">
+                                            <CalendarIcon size={14} />
+                                            Current Streak
+                                        </h4>
+                                        <p className="text-lg font-bold text-green-600">{user.currentStreak || 0} days</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm text-gray-500 flex items-center gap-1">
+                                            <Trophy size={14} />
+                                            Longest Streak
+                                        </h4>
+                                        <p className="text-lg font-bold text-blue-600">{user.maxStreak || 0} days</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm text-gray-500 flex items-center gap-1">
+                                            <Briefcase size={14} />
+                                            Total Quizzes
+                                        </h4>
+                                        <p className="text-lg font-bold text-purple-600">{user.numberOfTestsAttempted || 0}</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm text-gray-500 flex items-center gap-1">
+                                            <Flame size={14} />
+                                            Status
+                                        </h4>
+                                        <p className={`text-lg font-bold ${isStreakMaintained ? 'text-amber-600' : 'text-gray-600'}`}>
+                                            {isStreakMaintained ? 'Active 🔥' : 'Inactive ⏸️'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </motion.div>
 
                     {/* Streak Card */}
@@ -287,22 +400,22 @@ const ProfilePage = () => {
                                 <div className="flex justify-between items-center mb-4">
                                     <div>
                                         <p className="text-sm text-gray-500">Current Streak</p>
-                                        <p className="text-3xl font-bold text-amber-600">{fixcs || 0} days</p>
+                                        <p className="text-3xl font-bold text-amber-600">{user.currentStreak || 0} days</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm text-gray-500">Best Streak</p>
-                                        <p className="text-3xl font-bold text-blue-600">{fixms || 0} days</p>
+                                        <p className="text-3xl font-bold text-blue-600">{user.maxStreak || 0} days</p>
                                     </div>
                                 </div>
                                 
                                 <div className="bg-gray-100 h-8 rounded-full overflow-hidden relative">
                                     <div 
                                         className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-700"
-                                        style={{ width: `${Math.min((user.currentStreak || 0) / 10 * 100, 100)}%` }}
+                                        style={{ width: `${Math.min(((user.currentStreak || 0) / 10) * 100, 100)}%` }}
                                     ></div>
                                     <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-sm font-semibold">
-                                        {streakInfo.streakActive ? 
-                                            `${getTimeUntilReset()} to continue your streak` : 
+                                        {isStreakMaintained ? 
+                                            `${getTimeUntilReset()}` : 
                                             "Complete a quiz today to maintain your streak!"}
                                     </div>
                                 </div>
@@ -310,7 +423,7 @@ const ProfilePage = () => {
                                 <div className="mt-4 flex justify-between items-center">
                                     <div className="flex items-center gap-1 text-sm text-gray-500">
                                         <Clock size={14} />
-                                        <span>Last activity: {formatDate(user.last_quiz_date)}</span>
+                                        <span>Last activity: {formatDate(user.lastQuizSubmissionDate)}</span>
                                     </div>
                                     <button 
                                         onClick={() => router.push("/quiz")}
@@ -342,12 +455,12 @@ const ProfilePage = () => {
                             <CardContent>
                                 <div className="flex items-baseline">
                                     <p className="text-3xl font-bold text-purple-600">
-                                        {user?.number_of_tests_attempted || user?.numberOfTestsAttempted || 0}
+                                        {user.numberOfTestsAttempted || 0}
                                     </p>
                                     <span className="ml-2 text-sm text-gray-500">quizzes</span>
                                 </div>
                                 <Progress 
-                                    value={Math.min((user?.number_of_tests_attempted || 0) * 10, 100)} 
+                                    value={Math.min((user.numberOfTestsAttempted || 0) * 10, 100)} 
                                     className="h-1 mt-3 bg-purple-100" 
                                 />
                             </CardContent>
@@ -367,12 +480,12 @@ const ProfilePage = () => {
                             <CardContent>
                                 <div className="flex items-baseline">
                                     <p className="text-3xl font-bold text-blue-600">
-                                        {(user?.averageMarks || 0).toFixed(1)}
+                                        {(user.averageMarks || 0).toFixed(1)}
                                     </p>
                                     <span className="ml-2 text-sm text-gray-500">points</span>
                                 </div>
                                 <Progress 
-                                    value={Math.min((user?.total_marks || 0) * 10, 100)} 
+                                    value={Math.min((user.averageMarks || 0) * 10, 100)} 
                                     className="h-1 mt-3 bg-blue-100" 
                                 />
                             </CardContent>
@@ -392,12 +505,12 @@ const ProfilePage = () => {
                             <CardContent>
                                 <div className="flex items-baseline">
                                     <p className="text-3xl font-bold text-rose-600">
-                                        {user?.wrong_tags?.length || user?.weakTopics?.length || 0}
+                                        {user.weakTopics?.length || 0}
                                     </p>
                                     <span className="ml-2 text-sm text-gray-500">topics</span>
                                 </div>
                                 <Progress 
-                                    value={Math.min((user?.wrong_tags?.length || 0) * 10, 100)} 
+                                    value={Math.min((user.weakTopics?.length || 0) * 10, 100)} 
                                     className="h-1 mt-3 bg-rose-100" 
                                 />
                             </CardContent>
@@ -415,9 +528,9 @@ const ProfilePage = () => {
                         </div>
                         
                         <div className="bg-white shadow-md rounded-xl p-6 border border-gray-100">
-                            {(user?.wrong_tags?.length > 0 || user?.weakTopics?.length > 0) ? (
+                            {(user.weakTopics?.length > 0) ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    {(user.wrong_tags || user.weakTopics || []).map((topic, index) => (
+                                    {(user.weakTopics || []).map((topic, index) => (
                                         <div 
                                             key={index} 
                                             className="flex items-center gap-2 bg-gradient-to-r from-rose-50 to-white p-3 rounded-lg border border-rose-100"
@@ -439,7 +552,6 @@ const ProfilePage = () => {
                             )}
                         </div>
                     </motion.div>
-
                 </motion.div>
             </div>
         </div>
