@@ -1,6 +1,4 @@
 "use client";
-<<<<<<< HEAD
-=======
 import React, { useState, useEffect, use, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -11,24 +9,13 @@ import {
   Timer,
   AlertCircle,
   Bookmark,
+  Flame
 } from "lucide-react";
->>>>>>> 45104bc15548ce3c307814c5ea6bde165f45f863
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { clearAttemptedOptions, getQuizById, updateAnswer } from "@/services/quizService";
-import {
-  AlertCircle,
-  Bookmark,
-  BookOpen,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Timer,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { use, useEffect, useState, useTransition } from "react";
-import toast from 'react-hot-toast'; // Fixed import
+import toast from 'react-hot-toast';
 
 export default function QuizPage({ params }: { params: Promise<{ quizId: string }> }) {
   const router = useRouter();
@@ -42,6 +29,10 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   const [quizTitle, setQuizTitle] = useState("Quiz");
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
+  const [streakCount, setStreakCount] = useState(0);
+  const [lastQuizDate, setLastQuizDate] = useState<Date | null>(null);
+  const [isPending, startTransition] = useTransition();
+
   // Add this new function to fetch bookmarked questions
   const fetchBookmarkedQuestions = async () => {
     if (!user) return;
@@ -69,12 +60,36 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
       console.error("Error fetching bookmarked questions:", error);
     }
   };
-  const [isPending, startTransition] = useTransition();
+  
+  // New function to fetch user streak information
+  const fetchUserStreak = async () => {
+    if (!user) return;
+    
+    try {
+      const { doc, getDoc } = await import("firebase/firestore");
+      const { db } = await import("@/firebaseConfig");
+      
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData.streak) {
+          setStreakCount(userData.streak.count || 0);
+          setLastQuizDate(userData.streak.lastQuizDate ? new Date(userData.streak.lastQuizDate.toDate()) : null);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user streak:", error);
+    }
+  };
 
   const handleNavigation = (path: string) => {
     startTransition(() => {
       router.push(path);
     });
+  };
+
   useEffect(() => {
     const resetQuiz = async () => {
       try {
@@ -86,9 +101,10 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
 
     resetQuiz();
     
-    // Fetch bookmarked questions when component mounts
+    // Fetch bookmarked questions and user streak when component mounts
     if (user) {
       fetchBookmarkedQuestions();
+      fetchUserStreak();
     }
   }, [quizId, user]);
 
@@ -244,7 +260,75 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     }
   };
 
-  const submitQuiz = () => {
+  // Updated function to update user streak before submitting the quiz
+  const updateStreak = async () => {
+    if (!user) return;
+    
+    try {
+      const { doc, getDoc, updateDoc, serverTimestamp } = await import("firebase/firestore");
+      const { db } = await import("@/firebaseConfig");
+      
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Normalize to start of day
+      
+      let newStreakCount = 1; // Default to 1 if starting fresh
+      let streakUpdated = false;
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const lastQuizTimestamp = userData.streak?.lastQuizDate;
+        
+        if (lastQuizTimestamp) {
+          const lastQuizDate = new Date(lastQuizTimestamp.toDate());
+          lastQuizDate.setHours(0, 0, 0, 0); // Normalize to start of day
+          
+          const timeDiff = today.getTime() - lastQuizDate.getTime();
+          const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+          
+          if (daysDiff === 0) {
+            // Already completed a quiz today, keep streak the same
+            newStreakCount = userData.streak.count || 1;
+            streakUpdated = false;
+          } else if (daysDiff === 1) {
+            // Consecutive day, increment streak
+            newStreakCount = (userData.streak.count || 0) + 1;
+            streakUpdated = true;
+          } else {
+            // Streak broken (more than 1 day since last quiz)
+            newStreakCount = 1;
+            streakUpdated = true;
+          }
+        }
+      }
+      
+      // Update the streak in Firestore
+      await updateDoc(userRef, {
+        "streak.count": newStreakCount,
+        "streak.lastQuizDate": serverTimestamp()
+      });
+      
+      // Update local state
+      setStreakCount(newStreakCount);
+      
+      // Show streak notification if streak was updated
+      if (streakUpdated) {
+        toast.success(`🔥 ${newStreakCount} day streak! Keep it up!`, {
+          icon: '🔥',
+          duration: 3000
+        });
+      }
+      
+      return streakUpdated;
+    } catch (error) {
+      console.error("Error updating streak:", error);
+      return false;
+    }
+  };
+
+  const submitQuiz = async () => {
     // Check if all questions are attempted
     if (Object.keys(answers).length < questions.length) {
       setShowValidationMessage(true);
@@ -257,14 +341,18 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
       return;
     }
     
+    // Update streak before navigating to results
+    if (user) {
+      await updateStreak();
+    }
+    
     // All questions are attempted, proceed to results
-<<<<<<< HEAD
     router.push(`/quiz/${quizId}/result`);
-=======
-    handleNavigation(`/quiz/${quizId}/result`);
-        
->>>>>>> 45104bc15548ce3c307814c5ea6bde165f45f863
   };
+  
+  // Return your JSX component here (not included as it wasn't in the original code)
+  // ...
+
 
   if (loading) {
     return (

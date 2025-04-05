@@ -135,7 +135,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Results</h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button 
-            onClick={() => startTransition('/quiz')}
+            onClick={() => router.push("/quiz")}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors"
           >
             Return to Quizzes
@@ -165,7 +165,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
           className="mb-8"
         >
           <button
-            onClick={() => startTransition('/quiz')}
+            onClick={() => router.push("/quiz")}
             className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -592,7 +592,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => startTransition('/tutorial')}
+                onClick={() => router.push("/tutorial")}
                 className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-colors flex items-center justify-center"
               >
                 <Brain className="w-5 h-5 mr-2" />

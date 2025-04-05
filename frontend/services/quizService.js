@@ -1,7 +1,7 @@
 import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import Cookies from 'js-cookie';
 import { db } from '../firebaseConfig';
-
+import { updateUserStreak } from "./streakService";
 const BASE_URL = "http://127.0.0.1:8000/api/quizzes"; // For the backend API calls
 
 // Create a new quiz - generate questions with AI and then save to Firestore
@@ -217,6 +217,8 @@ export const submitQuiz = async (quizId, userId) => {
     const timeSpent = quizData.timeStarted ? 
       (new Date().getTime() - quizData.timeStarted) / (1000 * 60) : null;
 
+      
+
     // Update user document with new stats
     await updateDoc(userRef, {
       number_of_tests_attempted: newTestsCount,
@@ -247,6 +249,8 @@ export const submitQuiz = async (quizId, userId) => {
       timeSpent: timeSpent || null
     });
 
+    const streakResult = await updateUserStreak(userId, new Date());
+
     return {
       message: "Quiz submitted successfully",
       score: {
@@ -258,7 +262,8 @@ export const submitQuiz = async (quizId, userId) => {
       questionAnalysis,
       new_wrong_tags: significantWrongTags,
       persistent_wrong_tags: newWrongTags,
-      timeSpent
+      timeSpent,
+      ...streakResult
     };
   } catch (error) {
     console.error("Error submitting quiz:", error);
