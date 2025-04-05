@@ -2,7 +2,6 @@
 import { db } from '../firebaseConfig';
 import { doc, getDoc, updateDoc, serverTimestamp, increment } from "firebase/firestore";
 
-// Function to check and update streak after quiz completion
 export const updateUserStreak = async (userId, completedAt) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -13,14 +12,12 @@ export const updateUserStreak = async (userId, completedAt) => {
     }
     const userData = userDoc.data();
     const currentDate = new Date(completedAt);
-    
-    // Handle both data formats - standalone and nested streak fields
+
     const lastQuizDate = userData.last_quiz_date ? 
       new Date(userData.last_quiz_date.seconds * 1000) : 
       (userData.streak?.lastQuizDate ? 
         new Date(userData.streak.lastQuizDate.seconds * 1000) : null);
     
-    // Get current streak from either location
     const currentStreak = userData.currentStreak || userData.streak?.count || 0;
     const maxStreak = userData.maxStreak || 0;
     

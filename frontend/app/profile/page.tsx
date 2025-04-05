@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import Sidebar from "@/components/dashboard/SideBar";
+import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap"; // Import the new component
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -258,6 +259,14 @@ const ProfilePage = () => {
                                 <Bookmark size={18} /> View Bookmarks <ChevronRight size={16} />
                             </button>
                         </motion.div>
+                    </motion.div>
+
+                    {/* Calendar Activity Heatmap - NEW SECTION */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="mt-6"
+                    >
+                        <ActivityHeatmap userId={user.uid} />
                     </motion.div>
 
                     {/* Streak Card */}
