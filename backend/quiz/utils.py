@@ -7,7 +7,6 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
-os.environ["GEMINI_API_KEY"] = "AIzaSyDAnYOh-aVGs1pdkrcq_djJqZCWySdwiKo"
 def is_proxy_needed():
     """Check if we're likely in the hostel network that needs a proxy"""
     # First check if the user explicitly wants to use a proxy via flag file
