@@ -1,33 +1,117 @@
-
 "use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { 
+  AlertCircle, Award, BarChart, Bookmark, Calendar, 
+  ChevronRight, Flame, List, Trophy, Clock 
+} from "lucide-react";
 
 import Sidebar from "@/components/dashboard/SideBar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/context/AuthContext";
-import { motion } from "framer-motion";
-import { AlertCircle, Award, BarChart, Bookmark, Calendar, ChevronRight, Flame, List } from "lucide-react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { checkAndUpdateStreak } from "@/services/streakService";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const ProfilePage = () => {
     const [collapsed, setCollapsed] = useState(true);
     const [error, setError] = useState(null);
+    const [fixcs , setcs] = useState(0);
+    const [fixms , setms] = useState(0);
+    const [fixismaintained , setfixismaintained] = useState(false);
+    
+    const [streakInfo, setStreakInfo] = useState({
+        currentStreak: 0,
+        maxStreak: 0,
+        streakActive: false
+    });
     const { user } = useAuth();
     const router = useRouter();
 
     // Format date for last quiz date
     const formatDate = (timestamp) => {
         if (!timestamp) return "No data";
-        const date = new Date(timestamp.seconds * 1000);
+        
+        const date = timestamp.seconds 
+            ? new Date(timestamp.seconds * 1000)
+            : new Date(timestamp);
+            
         return date.toLocaleDateString("en-US", { 
             day: "numeric", 
             month: "short", 
             year: "numeric" 
         });
     };
+
+    // Check if streak is active (quiz completed within the last 24 hours)
+    const isStreakActive = (timestamp , userData) => {
+        if (!timestamp) return false;
+        const currentDate = new Date();
+        const lastQuizDay = new Date(timestamp);
+        lastQuizDay.setHours(0, 0, 0, 0);
+        
+        const currentDay = new Date(currentDate);
+        currentDay.setHours(0, 0, 0, 0);
+        const isSameDay = lastQuizDay.getTime() === currentDay.getTime();
+        
+        const timeDiff = currentDay - lastQuizDay;
+        const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        if(isSameDay || (daysDiff<=1)){
+            return true;
+        }
+        else return false;
+    };
+
+    // Check streak status on component mount
+    useEffect(() => {
+        const fetchStreak = () => {
+            try {
+                if (user?.uid) {
+                    // Get streak data from nested streak object if it exists, otherwise use top-level properties
+                    const currentStreak = user.streak?.count || user.currentStreak || 0;
+                    const maxStreak = user.maxStreak || 0;
+                    
+                    // Use the most recent timestamp between last_quiz_date and streak.lastQuizDate
+                    const lastQuizTimestamp = 
+                        (user.streak?.lastQuizDate && user.last_quiz_date) 
+                            ? (user.streak.lastQuizDate.seconds > user.last_quiz_date.seconds 
+                                ? user.streak.lastQuizDate 
+                                : user.last_quiz_date)
+                            : (user.streak?.lastQuizDate || user.last_quiz_date);
+                            
+                    // Check if streak is active
+                    const lastQuizDate = user.last_quiz_date ? 
+                        new Date(user.last_quiz_date.seconds * 1000) : 
+                        (user.streak?.lastQuizDate ? 
+                            new Date(user.streak.lastQuizDate.seconds * 1000) : null);
+                    const streakActive = isStreakActive(lastQuizDate , user);
+                    
+                    checkAndUpdateStreak(user.uid)
+                        .then(result => {
+                            setStreakInfo({
+                                currentStreak: currentStreak,
+                                maxStreak: maxStreak,
+                                streakActive: streakActive
+                            });
+                        })
+                        .catch(err => console.error("Error checking streak:", err));
+
+                        setcs(user.currentStreak);
+                        setms(user.maxStreak);
+                        const checkthis = isStreakActive(lastQuizDate , user);
+                        setfixismaintained(checkthis);
+                }
+            }catch (err) {
+                console.error("Error checking streak:", err);
+            }
+        };
+          
+        fetchStreak();
+    }, [user,fixms,fixcs,fixismaintained]);
 
     // Animation variants
     const containerVariants = {
@@ -49,6 +133,7 @@ const ProfilePage = () => {
         }
     };
 
+    // Loading state
     if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
     if (!user) {
         return (
@@ -59,8 +144,44 @@ const ProfilePage = () => {
             </div>
           </div>
         );
-      }
-          return (
+    }
+
+    // Calculate time until streak resets
+    const getTimeUntilReset = () => {
+        const lastQuizTimestamp = 
+            (user.streak?.lastQuizDate && user.last_quiz_date) 
+                ? (user.streak.lastQuizDate.seconds > user.last_quiz_date.seconds 
+                    ? user.streak.lastQuizDate 
+                    : user.last_quiz_date)
+                : (user.streak?.lastQuizDate || user.last_quiz_date);
+    
+        if (!lastQuizTimestamp) return "Complete a quiz to start your streak!";
+    
+        const lastQuizDate = lastQuizTimestamp.seconds 
+            ? new Date(lastQuizTimestamp.seconds * 1000)
+            : new Date(lastQuizTimestamp);
+    
+        // Normalize lastQuizDate to midnight
+        lastQuizDate.setHours(0, 0, 0, 0);
+    
+        // Reset time is next day at midnight
+        const resetTime = new Date(lastQuizDate);
+        resetTime.setDate(resetTime.getDate() + 1);
+    
+        const now = new Date();
+    
+        const timeDiff = resetTime - now;
+    
+        if (timeDiff <= 0) return "Your streak has expired!";
+    
+        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    
+        return `⏳ ${hours}h ${minutes}m left before your streak expires`;
+    };
+    
+    
+    return (
         <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             {/* Sidebar */}
             <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -80,34 +201,54 @@ const ProfilePage = () => {
                         {user ? (
                         <div className="relative">
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-purple-400 ring-offset-2">
-                                <Image
-                                    src={user.photoURL || "https://source.unsplash.com/random/200x200/?portrait"}
-                                    alt="Profile Picture"
-                                    width={128}
-                                    height={128}
-                                    className="object-cover w-full h-full"
-                                    priority
+                            <Image
+                                src={user.photoURL || "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o="}
+                                alt="Profile Picture"
+                                width={128}
+                                height={128}
+                                className="object-cover w-full h-full"
+                                priority
+                                unoptimized
                                 />
-                            </div>
-                            <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full p-2">
-                                <Flame size={20} className="text-white" />
-                            </div>
+                            </div>{fixismaintained ? (
+                                <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full p-2">
+                                    <Flame size={20} className="text-white" />
+                                </div>
+                                ) : (
+                                <div className="absolute -bottom-2 -right-2 bg-gray-300 rounded-full p-2">
+                                    <Flame size={20} className="text-gray-400 opacity-60" />
+                                </div>
+                                )}
                         </div>  
                         ) : (
                         <div>Loading user data...</div>
                         )}  
                         <div className="flex-1 text-center md:text-left">
                             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                                {user ? user.displayName?? user.displayName :"User"}
+                                {user ? user.displayName ?? "User" : "User"}
                             </h1>
                             <p className="text-gray-500">{user.email}</p>
                             
                             <div className="mt-3 flex flex-wrap gap-2 justify-center md:justify-start">
-                                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 font-medium">
-                                    <Flame className="w-3 h-3 mr-1" /> Streak: {user.currentStreak || 0} days
-                                </Badge>
+                                <TooltipProvider delayDuration={300}>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Badge variant="outline" className={`${fixismaintained ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-gray-50 text-gray-700 border-gray-200'} font-medium`}>
+                                                <Flame className={`w-3 h-3 mr-1 ${fixismaintained ? 'text-amber-500' : 'text-gray-500'}`} /> 
+                                                Streak: {fixcs || 0} days
+                                            </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="p-3 max-w-xs">
+                                            <p>{fixismaintained ? 
+                                                `Your streak is active! ${getTimeUntilReset()}` : 
+                                                "Complete a quiz today to maintain your streak!"}
+                                            </p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                
                                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
-                                    <Award className="w-3 h-3 mr-1" /> Best: {user.maxStreak || 0} days
+                                    <Trophy className="w-3 h-3 mr-1" /> Best: {fixms || 0} days
                                 </Badge>
                                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 font-medium">
                                     <Calendar className="w-3 h-3 mr-1" /> Last Quiz: {formatDate(user.last_quiz_date)}
@@ -127,6 +268,60 @@ const ProfilePage = () => {
                                 <Bookmark size={18} /> View Bookmarks <ChevronRight size={16} />
                             </button>
                         </motion.div>
+                    </motion.div>
+
+                    {/* Streak Card */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="mt-6"
+                    >
+                        <Card className="bg-white shadow-md overflow-hidden border-none hover:shadow-lg transition-shadow duration-300">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="flex items-center gap-2 text-gray-700">
+                                    <div className="p-2 bg-amber-100 rounded-lg">
+                                        <Flame size={20} className="text-amber-500" />
+                                    </div>
+                                    <span>Your Streak Progress</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex justify-between items-center mb-4">
+                                    <div>
+                                        <p className="text-sm text-gray-500">Current Streak</p>
+                                        <p className="text-3xl font-bold text-amber-600">{fixcs || 0} days</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm text-gray-500">Best Streak</p>
+                                        <p className="text-3xl font-bold text-blue-600">{fixms || 0} days</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-gray-100 h-8 rounded-full overflow-hidden relative">
+                                    <div 
+                                        className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-700"
+                                        style={{ width: `${Math.min((user.currentStreak || 0) / 10 * 100, 100)}%` }}
+                                    ></div>
+                                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-sm font-semibold">
+                                        {streakInfo.streakActive ? 
+                                            `${getTimeUntilReset()} to continue your streak` : 
+                                            "Complete a quiz today to maintain your streak!"}
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-4 flex justify-between items-center">
+                                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                                        <Clock size={14} />
+                                        <span>Last activity: {formatDate(user.last_quiz_date)}</span>
+                                    </div>
+                                    <button 
+                                        onClick={() => router.push("/quiz")}
+                                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors duration-300"
+                                    >
+                                        Take a Quiz
+                                    </button>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </motion.div>
 
                     {/* Quiz Performance Overview */}

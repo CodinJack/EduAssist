@@ -70,7 +70,8 @@ export const loginUser = async (email, password) => {
                 averageMarks: 0,
                 currentStreak: 0,
                 maxStreak: 0,
-                lastQuizSubmissionDate: null
+                lastQuizSubmissionDate: null,
+                isstreakmaintained:false
             };
             
             await setDoc(doc(db, "users", user.uid), newUserData);
@@ -113,6 +114,7 @@ export const signInWithGoogle = async () => {
                 currentStreak: 0,
                 maxStreak: 0,
                 lastQuizSubmissionDate: null,
+                isstreakmaintained:false
             };
             await setDoc(doc(db, "users", user.uid), newUser);
             console.log("Created new user document for Google auth");
