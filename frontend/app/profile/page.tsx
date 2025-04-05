@@ -72,22 +72,14 @@ const ProfilePage = () => {
             try {
                 if (user?.uid) {
                     // Get streak data from nested streak object if it exists, otherwise use top-level properties
-                    const currentStreak = user.streak?.count || user.currentStreak || 0;
+                    const currentStreak = user.currentStreak || 0;
                     const maxStreak = user.maxStreak || 0;
-                    
-                    // Use the most recent timestamp between last_quiz_date and streak.lastQuizDate
-                    const lastQuizTimestamp = 
-                        (user.streak?.lastQuizDate && user.last_quiz_date) 
-                            ? (user.streak.lastQuizDate.seconds > user.last_quiz_date.seconds 
-                                ? user.streak.lastQuizDate 
-                                : user.last_quiz_date)
-                            : (user.streak?.lastQuizDate || user.last_quiz_date);
-                            
+                                                
                     // Check if streak is active
-                    const lastQuizDate = user.last_quiz_date ? 
-                        new Date(user.last_quiz_date.seconds * 1000) : 
-                        (user.streak?.lastQuizDate ? 
-                            new Date(user.streak.lastQuizDate.seconds * 1000) : null);
+                    const lastQuizDate = user.lastQuizSubmissionDate?.seconds
+                        ? new Date(user.lastQuizSubmissionDate.seconds * 1000)
+                        : null;
+
                     const streakActive = isStreakActive(lastQuizDate , user);
                     
                     checkAndUpdateStreak(user.uid)
@@ -202,12 +194,10 @@ const ProfilePage = () => {
                         <div className="relative">
                             <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden ring-4 ring-purple-400 ring-offset-2">
                             <Image
-                                src={user.photoURL || "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o="}
+                                src={user.photoURL || "https://source.unsplash.com/random/200x200/?portrait"}
                                 alt="Profile Picture"
-                                width={128}
-                                height={128}
                                 className="object-cover w-full h-full"
-                                priority
+                                fill
                                 unoptimized
                                 />
                             </div>{fixismaintained ? (
