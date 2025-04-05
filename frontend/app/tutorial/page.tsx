@@ -24,8 +24,9 @@ import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/dashboard/SideBar";
 import toast from "react-hot-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { createTutorialNotes, getAllNotesForUserId, deleteNote } from "@/services/tutorialService";
+import { createTutorialNotes, getAllNotesForUserId, deleteNote, searchYouTubeVideos } from "@/services/tutorialService";
 import NotesRenderer from "@/components/NotesRenderer";
+import Image from "next/image";
 
 // Types
 interface Video {
@@ -77,29 +78,24 @@ const TutorialPage = () => {
       toast.error("Please enter a search term");
       return;
     }
-    
+  
     setLoading(true);
-    
+  
     try {
-      // In a real app, this would call your backend API endpoint that safely handles YouTube API keys
-      const response = await fetch(`/api/youtube?q=${encodeURIComponent(searchQuery)}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch videos');
-      }
-      
-      const data = await response.json();
-      
+      // Use the tutorialService to search YouTube
+      const data = await searchYouTubeVideos(searchQuery);
+      console.log(data);
       // Transform YouTube API response to our Video type
-      const formattedVideos: Video[] = data.items.map((item: any) => ({
-        id: item.id.videoId,
-        title: item.snippet.title,
-        description: item.snippet.description,
-        thumbnailUrl: item.snippet.thumbnails.medium.url,
-        channelTitle: item.snippet.channelTitle,
-        publishedAt: item.snippet.publishedAt
+      const formattedVideos: Video[] = data.videos.map((item: any) => ({
+        id: item.videoId,
+        title: item.title,
+        // Fix the thumbnailUrl extraction - assuming thumbnails contains a URL string
+        // If thumbnails is an object with different sizes, you'll need to extract the appropriate URL
+        thumbnailUrl: item.thumbnail,
+        channelTitle: item.channelTitle,
+        publishedAt: item.publishedAt,
       }));
-      
+  
       setVideos(formattedVideos);
       setTotalPages(Math.ceil(formattedVideos.length / 6));
       setPage(1);
@@ -110,7 +106,7 @@ const TutorialPage = () => {
       setLoading(false);
     }
   };
-
+  
   const getPaginatedVideos = () => {
     const start = (page - 1) * 6;
     const end = start + 6;
@@ -334,11 +330,19 @@ const TutorialPage = () => {
                           {getPaginatedVideos().map((video) => (
                             <Card key={video.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                               <div className="relative aspect-video">
-                                <img 
-                                  src={video.thumbnailUrl} 
-                                  alt={video.title} 
-                                  className="w-full h-full object-cover"
-                                />
+                                {video.thumbnailUrl ? (
+                                  <Image 
+                                    src={video.thumbnailUrl}
+                                    alt={video.title}
+                                    fill
+                                    unoptimized
+                                    className="object-cover rounded-md"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                    <PlayCircle className="w-12 h-12 text-gray-400" />
+                                  </div>
+                                )}
                                 <div 
                                   className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
                                   onClick={() => handleWatchVideo(video)}
@@ -353,9 +357,6 @@ const TutorialPage = () => {
                                 <div className="text-sm text-gray-500 mb-2">
                                   <span>{video.channelTitle}</span> • <span>{new Date(video.publishedAt).toLocaleDateString()}</span>
                                 </div>
-                                <p className="text-gray-600 text-sm line-clamp-2">
-                                  {video.description}
-                                </p>
                               </CardContent>
                               <CardFooter className="p-4 pt-0">
                                 <Button 
@@ -402,12 +403,6 @@ const TutorialPage = () => {
                         <p className="text-gray-500 mb-4 max-w-md">
                           Use the search bar above to find educational videos on your favorite topics.
                         </p>
-                        <Button onClick={() => {
-                          setSearchQuery("Khan Academy");
-                          fetchVideos();
-                        }}>
-                          <Search className="w-4 h-4 mr-2" /> Try an Educational Channel
-                        </Button>
                       </div>
                     )}
                   </div>
@@ -521,7 +516,6 @@ const TutorialPage = () => {
                           <>
                             <CardHeader>
                               <div className="flex items-center justify-between">
-                                {/* <CardTitle className="text-xl">{selectedNote.category}</CardTitle> */}
                                 <CardTitle className="text-xl text-quiz-purple">
                                   {selectedNote.category}
                                 </CardTitle>

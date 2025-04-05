@@ -90,3 +90,38 @@ export const deleteNote = async (noteId) => {
     }
   };
   
+
+// File: services/tutorialService.js
+
+export const searchYouTubeVideos = async (query) => {
+  try {
+    if (!query || !query.trim()) {
+      throw new Error("Search query is required");
+    }
+    const idToken = Cookies.get("idToken");
+    if (!idToken) {
+      throw new Error("Authentication token missing");
+    }
+
+    const response = await fetch(`${BASE_URL}/search_youtube`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ q:query }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to fetch YouTube videos");
+    }
+
+    const result = await response.json();
+    return result; 
+  } catch (error) {
+    console.error("Error fetching YouTube videos:", error);
+    throw error;
+  }
+};
