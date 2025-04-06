@@ -17,7 +17,7 @@ const PracticePage = () => {
   const { user } = useAuth();
   const weakTopics = user?.weakTopics || [];
   const [isPending, startTransition] = useTransition();
-  const [setUserId, userId] = useState("");
+  const [userId, setUserId] = useState("");
   const [suggestedTopics] = useState([
     { name: "Computer Science", icon: <Sparkles className="h-5 w-5 text-purple-500" />, description: "Algorithms, data structures, and programming concepts" },
     { name: "Mathematics", icon: <Target className="h-5 w-5 text-blue-500" />, description: "Algebra, calculus, and statistics" },
@@ -44,9 +44,10 @@ const PracticePage = () => {
   };
 
   useEffect(() => {
-    setUserId(user.uid);
-  }, [user])
-  
+    if (user && user.uid) {
+      setUserId(user.uid);
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50">
