@@ -10,9 +10,13 @@
 [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Gemini](https://img.shields.io/badge/Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
 
-[Live Demo](https://eduassist.rakim0.me/))
+[Live Demo](https://eduassist.rakim0.me/)
 
-![EduAssist Preview](https://storage.googleapis.com/eduassist-legal-docs/eduassistss.png)
+<p align="center">
+  <img src="https://storage.googleapis.com/eduassist-legal-docs/eduassistss.png" alt="EduAssist Preview1" width="33%" />
+  <img src="https://storage.googleapis.com/eduassist-legal-docs/ss1.png" alt="EduAssist Preview2" width="33%" />
+  <img src="https://storage.googleapis.com/eduassist-legal-docs/ss2.png" alt="EduAssist Preview3" width="33%" />
+</p>
 
 </div>
 
