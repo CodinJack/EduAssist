@@ -16,6 +16,7 @@
   <img src="https://storage.googleapis.com/eduassist-legal-docs/eduassistss.png" alt="EduAssist Preview1" width="33%" />
   <img src="https://storage.googleapis.com/eduassist-legal-docs/ss1.png" alt="EduAssist Preview2" width="33%" />
   <img src="https://storage.googleapis.com/eduassist-legal-docs/ss2.png" alt="EduAssist Preview3" width="33%" />
+  <img src="https://storage.googleapis.com/eduassist-legal-docs/ss3.png" alt="EduAssist Preview3" width="33%" />
 </p>
 
 </div>
