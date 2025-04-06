@@ -2,7 +2,7 @@ import { addDoc, collection, serverTimestamp, query, where, getDocs, deleteDoc, 
 import Cookies from 'js-cookie';
 import { db } from '../firebaseConfig';
 
-const BASE_URL = "http://127.0.0.1:8000/api/tutorials";
+const BASE_URL = process.env.PRODUCTION_BACKEND_URL || "http://127.0.0.1:8000";
 
 export const createTutorialNotes = async ({ topic, userId }) => {
   try {
@@ -12,7 +12,7 @@ export const createTutorialNotes = async ({ topic, userId }) => {
     }
 
     // 1. Generate notes from the backend
-    const response = await fetch(`${BASE_URL}/create_notes`, {
+    const response = await fetch(`${BASE_URL}/api/tutorials/create_notes`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -103,7 +103,7 @@ export const searchYouTubeVideos = async (query) => {
       throw new Error("Authentication token missing");
     }
 
-    const response = await fetch(`${BASE_URL}/search_youtube`, {
+    const response = await fetch(`${BASE_URL}/api/tutorials/search_youtube`, {
       method: "POST",
       credentials: "include",
       headers: {

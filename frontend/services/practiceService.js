@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
 
-const BASE_URL = process.env.PRODUCTION_BACKEND_URL || "http://127.0.0.1:8000/api/practice";
+const BASE_URL = process.env.PRODUCTION_BACKEND_URL || "http://127.0.0.1:8000";
 
 export const createPracticeQuestions = async (topic) => {
     try {
@@ -10,7 +10,7 @@ export const createPracticeQuestions = async (topic) => {
             throw new Error("Authentication token missing");
         }
 
-        const response = await fetch(`${BASE_URL}/create_practice_questions/`, {
+        const response = await fetch(`${BASE_URL}/api/practice/create_practice_questions/`, {
             method: "POST",
             credentials: "include", // Ensures cookies are sent
             headers: {

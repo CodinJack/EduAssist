@@ -2,7 +2,7 @@ import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, serverTimes
 import Cookies from 'js-cookie';
 import { db } from '../firebaseConfig';
 import { updateUserStreak } from "./streakService";
-const BASE_URL = "http://127.0.0.1:8000/api/quizzes"; // For the backend API calls
+const BASE_URL = process.env.PRODUCTION_BACKEND_URL || "http://127.0.0.1:8000";
 
 // Create a new quiz - generate questions with AI and then save to Firestore
 export const createQuiz = async ({ topic, difficulty, numQuestions, timeLimit, userId }) => {
@@ -14,7 +14,7 @@ export const createQuiz = async ({ topic, difficulty, numQuestions, timeLimit, u
     }
 
     // 1. First, generate questions through the backend
-    const response = await fetch(`${BASE_URL}/create_quiz`, {
+    const response = await fetch(`${BASE_URL}/api/quizzes/create_quiz`, {
         method: "POST",
         credentials: "include", // Ensures cookies are sent
         headers: {

@@ -52,13 +52,7 @@ SECRET_KEY = 'django-insecure-#76u*z^x%_w(p&1@ou+w@4)g+^i(-6&umz*7m1wq)kje+o593v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "eduassist-api-686191293102.us-central1.run.app",
-    ".run.app",
-    "localhost",
-    "127.0.0.1",
-    "https://eduassist.onrender.com"
-]
+ALLOWED_HOSTS = ['eduassist.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
