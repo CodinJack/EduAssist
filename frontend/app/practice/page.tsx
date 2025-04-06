@@ -39,10 +39,20 @@ const PracticePage = () => {
       toast.error("Please enter a topic!");
       return;
     }
+    handleNavigation(`/practice/${encodeURIComponent(topic)}`);
+  };
+  const handleWeakTopicStartPractice = async (topic: string) => {
+    if(!userId){
+      toast.error("Please login first!");
+      return;
+    }
+    if (!topic) {
+      toast.error("Please enter a topic!");
+      return;
+    }
     await deleteWeakTopic(userId, topic);
     handleNavigation(`/practice/${encodeURIComponent(topic)}`);
   };
-
   useEffect(() => {
     if (user && user.uid) {
       setUserId(user.uid);
@@ -123,7 +133,7 @@ const PracticePage = () => {
                           variant="outline"
                           className="bg-white hover:bg-gray-100 border border-gray-200 text-gray-800 flex items-center gap-1 animate-fade-in"
                           style={{ animationDelay: `${index * 100}ms` }}
-                          onClick={() => handleStartPractice(topic)}
+                          onClick={() => handleWeakTopicStartPractice(topic)}
                         >
                           {topic} <ChevronRight className="h-4 w-4 ml-1" />
                         </Button>
