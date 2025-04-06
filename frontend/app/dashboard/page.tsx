@@ -8,7 +8,7 @@ import {
   Globe, 
   Star, 
   ArrowRight, 
-  YouTube, 
+  Youtube, 
   BookmarkIcon, 
   PenTool,
   Brain,

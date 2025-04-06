@@ -11,7 +11,21 @@ import {
   Brain,
   Sparkles,
   BarChart,
-  Clock, 
+  Clock,
+  CheckCircle,
+  Youtube,
+  PenLine,
+  Target, 
+  Bookmark,
+  BookMarked,
+  ChevronRight,
+  Code,
+  Star,
+  ChevronDown,
+  ClipboardListIcon,
+  CheckCircleIcon,
+  BookmarkIcon,
+  BookOpenIcon,
 } from "lucide-react";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -42,48 +56,30 @@ export default function Landing() {
       icon: <Trophy className="h-6 w-6 text-primary" />
     }
   ];
-  
-  const stats = [
-    {
-      value: "500K+",
-      label: "Students"
-    },
-    {
-      value: "10M+",
-      label: "Quizzes Taken"
-    },
-    {
-      value: "95%",
-      label: "Improved Grades"
-    },
-    {
-      value: "1000+",
-      label: "Topics"
-    }
-  ];
 
   const process = [
     {
-      title: "Identify Needs",
-      description: "We analyze your knowledge gaps and learning style",
-      icon: Brain
+      title: "Discover Topics",
+      description: "Choose from a wide range of subjects and dive into what matters to you most.",
+      icon: BookOpenIcon,
     },
     {
-      title: "Create Quizzes",
-      description: "AI generates personalized quizzes for optimal learning",
-      icon: Sparkles
+      title: "Generate Quizzes",
+      description: "Let AI create tailored quizzes to test and sharpen your understanding.",
+      icon: ClipboardListIcon,
     },
     {
-      title: "Track Progress",
-      description: "Monitor your improvement with detailed analytics",
-      icon: BarChart
+      title: "Practice Smart",
+      description: "Reinforce weak areas with targeted practice sessions and track progress.",
+      icon: CheckCircleIcon,
     },
     {
-      title: "Continuous Learning",
-      description: "Adapt and improve based on your performance",
-      icon: Clock
-    }
+      title: "Bookmark & Note",
+      description: "Save tricky questions, take smart notes, and revisit them anytime.",
+      icon: BookmarkIcon,
+    },
   ];
+  
   
   const fadeInUpVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -96,6 +92,26 @@ export default function Landing() {
         ease: [0.215, 0.61, 0.355, 1],
       }
     })
+  };
+  // Animation variants
+  const containerVariant = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3,
+      },
+    },
+  };
+  
+  const itemVariant = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { type: "spring", stiffness: 100 },
+    },
   };
 
   return (
@@ -112,11 +128,11 @@ export default function Landing() {
           <div className="h-8 w-8 bg-primary rounded-lg flex-shrink-0 flex items-center justify-center mr-2">
             <GraduationCap className="h-5 w-5 text-white" />
           </div>
-          <span className="font-medium text-xl text-gradient">EduAssist</span>
+          <span className="font-bold text-3xl text-gradient">EduAssist</span>
         </div>
         
         <div className="absolute top-5 right-20 z-50">
-            <Button variant="ghost" onClick={()=>handleNavigation('/login')} >Login</Button>
+            <Button className="text-lg font-semibold" variant="ghost" onClick={()=>handleNavigation('/login')} >Login</Button>
         </div>
         
         <div className="container px-4 mx-auto max-w-7xl z-10">
@@ -182,102 +198,220 @@ export default function Landing() {
       </AuroraBackground>
 
       {/* Features Section */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-7xl">
+      <section id="features" className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <motion.h2 
-              className="text-3xl md:text-4xl font-bold mb-4"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeInUpVariants}
-              custom={0}
-            >
-              How EduAssist Works
-            </motion.h2>
-            <motion.p 
-              className="text-lg text-muted-foreground max-w-2xl mx-auto"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeInUpVariants}
-              custom={1}
-            >
-              Our platform uses advanced technology to create a personalized learning experience tailored to your needs.
-            </motion.p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Powerful Features to Enhance Your Learning</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Our platform combines AI technology with proven learning methods to help you master any subject efficiently.
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <motion.div 
-                key={index}
-                className="bg-white p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow glass-morphism"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeInUpVariants}
-                custom={index + 2}
-              >
-                <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 px-4 bg-secondary">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {stats.map((stat, index) => (
-              <motion.div 
-                key={index}
-                className="relative"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeInUpVariants}
-                custom={index}
-              >
-                <div className="text-4xl font-bold text-primary mb-2">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            variants={containerVariant}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            {/* AI Quiz Generator Feature */}
+            <motion.div 
+              className="bg-gradient-to-br from-white to-purple-50 p-8 rounded-xl shadow-lg"
+              variants={itemVariant}
+            >
+              <div className="w-14 h-14 bg-quiz-purple/10 rounded-full flex items-center justify-center mb-6">
+                <Brain className="h-7 w-7 text-quiz-purple" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">AI-Powered Quizzes</h3>
+              <p className="text-gray-600 mb-4">
+                Generate customized quizzes on any topic using our advanced AI. Test your knowledge and track your progress.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Personalized difficulty levels</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Instant feedback and scoring</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Track improvement over time</span>
+                </li>
+              </ul>
+            </motion.div>
+            
+            {/* Practice Sessions Feature */}
+            <motion.div 
+              className="bg-gradient-to-br from-white to-blue-50 p-8 rounded-xl shadow-lg"
+              variants={itemVariant}
+            >
+              <div className="w-14 h-14 bg-blue-500/10 rounded-full flex items-center justify-center mb-6">
+                <Target className="h-7 w-7 text-blue-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Focused Practice Sessions</h3>
+              <p className="text-gray-600 mb-4">
+                Target your weak areas with specialized practice sessions. Our AI adapts to your learning needs.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Identifies your weak topics</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Customized learning paths</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Progressive difficulty adjustment</span>
+                </li>
+              </ul>
+            </motion.div>
+            
+            {/* AI Notes Generator Feature */}
+            <motion.div 
+              className="bg-gradient-to-br from-white to-green-50 p-8 rounded-xl shadow-lg"
+              variants={itemVariant}
+            >
+              <div className="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mb-6">
+                <PenLine className="h-7 w-7 text-green-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">AI-Generated Study Notes</h3>
+              <p className="text-gray-600 mb-4">
+                Create comprehensive study notes on any topic instantly using our Gemini-powered AI assistant.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Concise and accurate summaries</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Custom formatting options</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Easy to save and share</span>
+                </li>
+              </ul>
+            </motion.div>
+            
+            {/* Educational Video Search Feature */}
+            <motion.div 
+              className="bg-gradient-to-br from-white to-red-50 p-8 rounded-xl shadow-lg"
+              variants={itemVariant}
+            >
+              <div className="w-14 h-14 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+                <Youtube className="h-7 w-7 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Educational Video Search</h3>
+              <p className="text-gray-600 mb-4">
+                Find the most relevant educational videos on your topic from trusted sources across the web.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Smart educational content filtering</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Integrated learning experience</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Save videos for later viewing</span>
+                </li>
+              </ul>
+            </motion.div>
+            
+            {/* Bookmark System Feature */}
+            <motion.div 
+              className="bg-gradient-to-br from-white to-amber-50 p-8 rounded-xl shadow-lg"
+              variants={itemVariant}
+            >
+              <div className="w-14 h-14 bg-amber-500/10 rounded-full flex items-center justify-center mb-6">
+                <BookMarked className="h-7 w-7 text-amber-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Question Bookmarking</h3>
+              <p className="text-gray-600 mb-4">
+                Save important questions for later review. Build your personal collection of learning materials.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Organize by topic and difficulty</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Custom study sessions from bookmarks</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Track mastery of bookmarked items</span>
+                </li>
+              </ul>
+            </motion.div>
+            
+            {/* Progress Tracking Feature */}
+            <motion.div 
+              className="bg-gradient-to-br from-white to-indigo-50 p-8 rounded-xl shadow-lg"
+              variants={itemVariant}
+            >
+              <div className="w-14 h-14 bg-indigo-500/10 rounded-full flex items-center justify-center mb-6">
+                <GraduationCap className="h-7 w-7 text-indigo-500" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Weakness Identification</h3>
+              <p className="text-gray-600 mb-4">
+                Automatically identify your weak topics through quiz performance and get recommendations to improve.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Detailed performance analytics</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Topic mastery visualization</span>
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> 
+                  <span>Personalized improvement plans</span>
+                </li>
+              </ul>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Process Section */}
-      <section className="py-20 px-4">
+      <section className="py-16 px-4 bg-secondary relative overflow-hidden">
         <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-16">
+          <div className="text-center mb-20">
             <motion.h2 
-              className="text-3xl md:text-4xl font-bold mb-4"
+              className="text-3xl md:text-4xl font-extrabold tracking-tight"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
               variants={fadeInUpVariants}
               custom={0}
             >
-              Our Learning Process
+              How EduAssist Helps You Learn Better
             </motion.h2>
             <motion.p 
-              className="text-lg text-muted-foreground max-w-2xl mx-auto"
+              className="text-base text-muted-foreground max-w-2xl mx-auto mt-4"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
               variants={fadeInUpVariants}
               custom={1}
             >
-              EduAssist adapts to your learning style and helps you focus on areas where you need improvement
+              From personalized quizzes to smart notes — everything you need to master any topic, all in one place.
             </motion.p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 relative z-10">
             {process.map((step, index) => (
               <motion.div 
                 key={index}
@@ -288,19 +422,23 @@ export default function Landing() {
                 variants={fadeInUpVariants}
                 custom={index}
               >
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 relative">
-                    <step.icon className="h-8 w-8 text-primary" />
-                    <div className="absolute -right-1 -top-1 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-lg font-bold">
+                <div className="flex flex-col items-center text-center px-4">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 relative shadow-md">
+                    <step.icon className="h-7 w-7 text-primary" />
+                    <div className="absolute -right-2 -top-2 w-7 h-7 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">
                       {index + 1}
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
-                  <p className="text-muted-foreground text-sm">{step.description}</p>
+                  <h3 className="text-lg font-semibold mb-1">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
                 </div>
-                
+
+                {/* Connecting Line */}
                 {index < process.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-full w-full h-0.5 bg-gradient-to-r from-primary/50 to-transparent" style={{ width: 'calc(100% - 4rem)' }}></div>
+                  <div
+                    className="hidden md:block absolute top-8 left-full h-0.5 bg-gradient-to-r from-primary/50 to-transparent"
+                    style={{ width: 'calc(100% - 4rem)' }}
+                  ></div>
                 )}
               </motion.div>
             ))}

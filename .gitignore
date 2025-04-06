@@ -4,6 +4,6 @@ backend/db.sqlite3
 backend/firebase_config.json
 .env
 .env.local
-firebaseConfig.ts
 **/__pycache__/
 __pycache__
+node_modules

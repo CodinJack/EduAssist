@@ -191,7 +191,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-auto relative">
+    <div className="min-h-screen w-full relative">
       {isPending && (
         <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
@@ -210,7 +210,7 @@ export default function Auth() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-md px-4 z-10"
+          className="w-full max-w-md px-4 z-10 mt-32"
         >
           {message && (
             <motion.div 

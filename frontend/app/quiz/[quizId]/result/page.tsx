@@ -8,7 +8,7 @@ import {
   TrendingUp, Book, CheckCircle, XCircle, BarChart2, AlertTriangle
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { submitQuiz } from "@/services/quizService";
+import { clearAttemptedOptions, submitQuiz } from "@/services/quizService";
 import { useAuth } from "@/context/AuthContext";
 
 // Performance evaluation helpers
@@ -49,44 +49,74 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
   const [averageTimePerQuestion, setAverageTimePerQuestion] = useState(0);
   const [strengthData, setStrengthData] = useState([]);
   const [weaknessData, setWeaknessData] = useState([]);  
+  const [extraSecondsSpent, setExtraSecondsSpent] = useState(0);
+  const [quizName, setQuizName] = useState(null);
   const [isPending, startTransition] = useTransition();
-  
+      const resetQuiz = async () => {
+        try {
+          await clearAttemptedOptions(quizId);
+        } catch (error) {
+          console.error("Failed to reset quiz:", error);
+        }
+      };
     const handleNavigation = (path: string) => {
       startTransition(() => {
         router.push(path);
       });
     };
   
-  useEffect(() => {
-    const submit = async () => {
-      if (!user) return;
-      
-      try {
-        setLoading(true);
-        const resultData = await submitQuiz(quizId, user.uid);
-        console.log(resultData);
-        // Calculate mock time data (in a real app, this would come from tracking actual time)
-        const mockTimeSpent = Math.floor(Math.random() * 10) + 5; // 5-15 minutes
-        setTimeSpent(mockTimeSpent);
-        setAverageTimePerQuestion(mockTimeSpent * 60 / resultData.score.total);
+    useEffect(() => {
+      const submit = async () => {
+        if (!user) return;
         
-        setQuizResult(resultData);
-        
-        if (resultData.score.percentage >= 80) {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 8000);
-        }
-      } catch (err) {
-        console.error("Error submitting quiz:", err);
-        setError("Failed to load quiz results. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    submit();
-  }, [quizId, user]);
+        try {
+          setLoading(true);
+          const resultData = await submitQuiz(quizId, user.uid);
+          console.log(resultData);
+          // Get time data from Firestore
+          const { doc, getDoc } = await import("firebase/firestore");
+          const { db } = await import("@/firebaseConfig");
+          
+          const quizRef = doc(db, "quizzes", quizId);
+          const quizDoc = await getDoc(quizRef);
+          
+          let timeSpentMinutes = 0;
+          let timeSpentSeconds = 0;
+          
+          if (quizDoc.exists()) {
+            const quizData = quizDoc.data();
+            if (quizData.timeStarted && quizData.timeEnded) {
+              const startTime = quizData.timeStarted.toDate();
+              const endTime = quizData.timeEnded.toDate();
+              timeSpentSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+              timeSpentMinutes = Math.floor(timeSpentSeconds / 60);
+            }
+            setQuizName(quizData.topic);
+          }
+          setExtraSecondsSpent(timeSpentSeconds%60);
+          setTimeSpent(timeSpentMinutes);
+          
+          if (resultData.score  && resultData.score.total > 0) {
+            setAverageTimePerQuestion(timeSpentSeconds / resultData.score.total);
+          }
+          
+          setQuizResult(resultData);
+          
+          if (resultData.score.percentage >= 80) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 8000);
+          }
 
+        } catch (err) {
+          console.error("Error submitting quiz:", err);
+          setError("Failed to load quiz results. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      submit();
+    }, [quizId, user]);
   
   if (loading) {
     return (
@@ -107,7 +137,10 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Results</h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button 
-            onClick={() => handleNavigation("/quiz")}
+            onClick={async () => {
+              await resetQuiz();
+              handleNavigation("/quiz")
+            }}                            
             className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors"
           >
             Return to Quizzes
@@ -155,7 +188,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 py-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-3xl font-bold mb-2">Quiz Completed!</h1>
+                <h1 className="text-3xl font-bold mb-2">{quizName} quiz completed!</h1>
                 <p className="text-blue-100 text-lg">
                   {getPerformanceMessage(quizResult.score.percentage)} {getPerformanceBadge(quizResult.score.percentage)}
                 </p>
@@ -249,6 +282,8 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
                     <div className="flex items-end justify-between">
                       <span className="text-2xl font-bold text-gray-800">{timeSpent}</span>
                       <span className="text-sm text-gray-500">minutes</span>
+                      <span className="text-2xl font-bold text-gray-800">{extraSecondsSpent}</span>
+                      <span className="text-sm text-gray-500">seconds</span>
                     </div>
                   </div>
                   
@@ -324,7 +359,7 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <div className="text-sm text-gray-500 mb-1">Total Time Spent</div>
-                      <div className="text-xl font-semibold">{timeSpent} minutes</div>
+                      <div className="text-xl font-semibold">{timeSpent} minutes  {extraSecondsSpent} seconds</div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500 mb-1">Avg. Time per Question</div>
@@ -515,7 +550,10 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => startTransition('/quiz')}
+                onClick={async () => {
+                  await resetQuiz();
+                  handleNavigation("/quiz")
+                }}                
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors flex items-center justify-center"
               >
                 <Trophy className="w-5 h-5 mr-2" />
@@ -525,7 +563,10 @@ export default function QuizResult({ params }: { params: Promise<{ quizId: strin
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => handleNavigation("/tutorial")}
+                onClick={async () => {
+                  await resetQuiz();
+                  handleNavigation("/tutorial")
+                }}
                 className="px-6 py-3 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition-colors flex items-center justify-center"
               >
                 <Brain className="w-5 h-5 mr-2" />

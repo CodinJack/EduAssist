@@ -90,7 +90,7 @@ const QuizList = () => {
     }
 
     toast.success("Cooking up a quiz...", {
-      duration: 6000,
+      duration: 10000,
       position: "top-center",
       style: {
         background: "#9b87f5",

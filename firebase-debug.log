@@ -1,0 +1,467 @@
+[debug] [2025-04-06T06:39:50.650Z] ----------------------------------------------------------------------
+[debug] [2025-04-06T06:39:50.657Z] Command:       F:\node.exe C:\Users\Jai Khanna\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2025-04-06T06:39:50.658Z] CLI Version:   14.1.0
+[debug] [2025-04-06T06:39:50.659Z] Platform:      win32
+[debug] [2025-04-06T06:39:50.659Z] Node Version:  v22.14.0
+[debug] [2025-04-06T06:39:50.661Z] Time:          Sun Apr 06 2025 12:09:50 GMT+0530 (India Standard Time)
+[debug] [2025-04-06T06:39:50.662Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-04-06T06:39:51.496Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-04-06T06:39:51.498Z] > authorizing via signed-in user (jaikhanna615@gmail.com)
+[debug] [2025-04-06T06:39:51.498Z] [iam] checking project eduassist-42fcd for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-04-06T06:39:51.502Z] Checked if tokens are valid: false, expires at: 1743903940230
+[debug] [2025-04-06T06:39:51.503Z] Checked if tokens are valid: false, expires at: 1743903940230
+[debug] [2025-04-06T06:39:51.504Z] > refreshing access token with scopes: []
+[debug] [2025-04-06T06:39:51.509Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-04-06T06:39:51.510Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-04-06T06:39:52.435Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-04-06T06:39:52.436Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-04-06T06:39:52.494Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions [none]
+[debug] [2025-04-06T06:39:52.495Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions x-goog-quota-user=projects/eduassist-42fcd
+[debug] [2025-04-06T06:39:52.495Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-04-06T06:39:54.751Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions 200
+[debug] [2025-04-06T06:39:54.752Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-04-06T06:39:54.755Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:39:54.755Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:39:54.756Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/eduassist-42fcd [none]
+[debug] [2025-04-06T06:39:55.765Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/eduassist-42fcd 200
+[debug] [2025-04-06T06:39:55.766Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/eduassist-42fcd {"projectId":"eduassist-42fcd","projectNumber":"145034793682","displayName":"EduAssist","name":"projects/eduassist-42fcd","resources":{"hostingSite":"eduassist-42fcd"},"state":"ACTIVE","etag":"1_157fefd4-fb0b-49a7-b0ef-82a4137cfa89"}
+[debug] [2025-04-06T06:40:03.539Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:40:03.540Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:40:03.541Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/eduassist-42fcd/sites pageToken=&pageSize=10
+[debug] [2025-04-06T06:40:05.302Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/eduassist-42fcd/sites 200
+[debug] [2025-04-06T06:40:05.305Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/eduassist-42fcd/sites {"sites":[{"name":"projects/eduassist-42fcd/sites/eduassist-42fcd","defaultUrl":"https://eduassist-42fcd.web.app","appId":"1:145034793682:web:eafea588cc1092ddd0130b","type":"DEFAULT_SITE"}]}
+[debug] [2025-04-06T06:40:05.307Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:40:05.307Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:40:05.308Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:145034793682:web:eafea588cc1092ddd0130b/config [none]
+[debug] [2025-04-06T06:40:06.933Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:145034793682:web:eafea588cc1092ddd0130b/config 200
+[debug] [2025-04-06T06:40:06.934Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:145034793682:web:eafea588cc1092ddd0130b/config {"projectId":"eduassist-42fcd","appId":"1:145034793682:web:eafea588cc1092ddd0130b","storageBucket":"eduassist-42fcd.firebasestorage.app","apiKey":"AIzaSyAhPgA8NmntMeOF3ze4Fo8jm_A3plcwnzI","authDomain":"eduassist-42fcd.firebaseapp.com","messagingSenderId":"145034793682","measurementId":"G-RF565LMDRV"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 15.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2025-04-06T06:40:19.244Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:40:19.244Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:40:19.245Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/eduassist-42fcd/sites/eduassist-42fcd [none]
+[debug] [2025-04-06T06:40:20.553Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/eduassist-42fcd/sites/eduassist-42fcd 200
+[debug] [2025-04-06T06:40:20.553Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/eduassist-42fcd/sites/eduassist-42fcd {"name":"projects/eduassist-42fcd/sites/eduassist-42fcd","defaultUrl":"https://eduassist-42fcd.web.app","appId":"1:145034793682:web:eafea588cc1092ddd0130b","type":"DEFAULT_SITE"}
+[info]    ▲ Next.js 15.2.4
+
+[info]    - Environments: .env
+
+
+[info]    Creating an optimized production build ...
+
+[info]  ✓ Compiled successfully
+
+[info]    Skipping validation of types
+
+[info]    Skipping linting
+
+[info]    Collecting page data ...
+
+[info]    Generating static pages (0/13) ...
+
+[info]    Generating static pages (3/13) 
+
+[info]    Generating static pages (6/13) 
+
+[info]    Generating static pages (9/13) 
+
+[info]  ✓ Generating static pages (13/13)
+
+[info]    Finalizing page optimization ...
+
+[info]    Collecting build traces ...
+
+[info] 
+
+[info] Route (app)                                 Size  First Load JS
+┌ ○ /                                    5.93 kB         152 kB
+├ ○ /_not-found                            136 B         101 kB
+├ ○ /bookmarked                          5.49 kB         252 kB
+├ ○ /dashboard                           2.86 kB         295 kB
+├ ○ /leaderboard                         1.66 kB         294 kB
+├ ○ /login                               12.7 kB         302 kB
+├ ○ /practice                             2.7 kB         295 kB
+├ ƒ /practice/[practiceId]                5.2 kB         257 kB
+├ ○ /profile                             10.2 kB         316 kB
+├ ○ /quiz                                11.4 kB         325 kB
+├ ƒ /quiz/[quizId]                       6.12 kB         258 kB
+├ ƒ /quiz/[quizId]/result                10.1 kB         285 kB
+├ ƒ /quiz/[quizId]/review                 2.8 kB         250 kB
+└ ○ /tutorial                             117 kB         421 kB
++ First Load JS shared by all             100 kB
+  ├ chunks/4bd1b696-c32109a45d8672e4.js  53.2 kB
+  ├ chunks/684-9b5b44098205aa76.js       45.2 kB
+  └ other shared chunks (total)          1.99 kB
+
+
+[info] 
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /practice/[practiceId]/page
+[info]  • non-static component /quiz/[quizId]/review/page
+[info]  • non-static component /quiz/[quizId]/result/page
+[info]  • non-static component /quiz/[quizId]/page
+[info] 
+[debug] [2025-04-06T06:43:00.778Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:43:00.779Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:43:00.779Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/eduassist-42fcd/sites/eduassist-42fcd [none]
+[debug] [2025-04-06T06:43:02.447Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/eduassist-42fcd/sites/eduassist-42fcd 200
+[debug] [2025-04-06T06:43:02.447Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/eduassist-42fcd/sites/eduassist-42fcd {"name":"projects/eduassist-42fcd/sites/eduassist-42fcd","defaultUrl":"https://eduassist-42fcd.web.app","appId":"1:145034793682:web:eafea588cc1092ddd0130b","type":"DEFAULT_SITE"}
+[warn] !  This integration expects Node version 16, 18, or 20. You're running version 22, problems may be encountered. 
+[debug] [2025-04-06T06:44:30.180Z] [web frameworks] effective firebase.json:  {
+  "hosting": [
+    {
+      "source": "frontend",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "frameworksBackend": {
+        "region": "asia-east1"
+      },
+      "site": "eduassist-42fcd",
+      "rewrites": [
+        {
+          "source": "**",
+          "function": {
+            "functionId": "ssreduassist42fcd",
+            "region": "asia-east1",
+            "pinTag": true
+          }
+        }
+      ],
+      "redirects": [],
+      "headers": [
+        {
+          "source": "/favicon.ico",
+          "headers": [
+            {
+              "key": "cache-control",
+              "value": "public, max-age=0, must-revalidate"
+            },
+            {
+              "key": "content-type",
+              "value": "image/x-icon"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/favicon.ico/layout,_N_T_/favicon.ico/route,_N_T_/favicon.ico"
+            }
+          ]
+        },
+        {
+          "source": "/_not-found",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "4294967294"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/_not-found/layout,_N_T_/_not-found/page,_N_T_/_not-found"
+            }
+          ]
+        },
+        {
+          "source": "/leaderboard",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "4294967294"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/leaderboard/layout,_N_T_/leaderboard/page,_N_T_/leaderboard"
+            }
+          ]
+        },
+        {
+          "source": "/dashboard",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "4294967294"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/dashboard/layout,_N_T_/dashboard/page,_N_T_/dashboard"
+            }
+          ]
+        },
+        {
+          "source": "/bookmarked",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "4294967294"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/bookmarked/layout,_N_T_/bookmarked/page,_N_T_/bookmarked"
+            }
+          ]
+        },
+        {
+          "source": "/practice",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "4294967294"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/practice/layout,_N_T_/practice/page,_N_T_/practice"
+            }
+          ]
+        },
+        {
+          "source": "/login",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "4294967294"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/login/layout,_N_T_/login/page,_N_T_/login"
+            }
+          ]
+        },
+        {
+          "source": "/profile",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "4294967294"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/profile/layout,_N_T_/profile/page,_N_T_/profile"
+            }
+          ]
+        },
+        {
+          "source": "/quiz",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "4294967294"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/quiz/layout,_N_T_/quiz/page,_N_T_/quiz"
+            }
+          ]
+        },
+        {
+          "source": "/tutorial",
+          "headers": [
+            {
+              "key": "x-nextjs-stale-time",
+              "value": "4294967294"
+            },
+            {
+              "key": "x-nextjs-prerender",
+              "value": "1"
+            },
+            {
+              "key": "x-next-cache-tags",
+              "value": "_N_T_/layout,_N_T_/tutorial/layout,_N_T_/tutorial/page,_N_T_/tutorial"
+            }
+          ]
+        },
+        {
+          "source": "**/*.[jt]s",
+          "headers": [
+            {
+              "key": "Set-Cookie",
+              "value": "__FIREBASE_DEFAULTS__=eyJjb25maWciOnsicHJvamVjdElkIjoiZWR1YXNzaXN0LTQyZmNkIiwiYXBwSWQiOiIxOjE0NTAzNDc5MzY4Mjp3ZWI6ZWFmZWE1ODhjYzEwOTJkZGQwMTMwYiIsInN0b3JhZ2VCdWNrZXQiOiJlZHVhc3Npc3QtNDJmY2QuZmlyZWJhc2VzdG9yYWdlLmFwcCIsImFwaUtleSI6IkFJemFTeUFoUGdBOE5tbnRNZU9GM3plNEZvOGptX0EzcGxjd256SSIsImF1dGhEb21haW4iOiJlZHVhc3Npc3QtNDJmY2QuZmlyZWJhc2VhcHAuY29tIiwibWVzc2FnaW5nU2VuZGVySWQiOiIxNDUwMzQ3OTM2ODIiLCJtZWFzdXJlbWVudElkIjoiRy1SRjU2NUxNRFJWIn0sIl9hdXRoVG9rZW5TeW5jVVJMIjoiL19fc2Vzc2lvbiJ9; SameSite=Strict; Expires=2027-03-01T17:24:30.180Z; Path=/;"
+            }
+          ]
+        }
+      ],
+      "cleanUrls": true,
+      "trailingSlash": false,
+      "public": ".firebase\\eduassist-42fcd\\hosting",
+      "webFramework": "next_ssr"
+    }
+  ],
+  "functions": [
+    {
+      "source": ".firebase\\eduassist-42fcd\\functions",
+      "codebase": "firebase-frameworks-eduassist-42fcd"
+    }
+  ]
+}
+[debug] [2025-04-06T06:44:30.181Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-04-06T06:44:30.183Z] > authorizing via signed-in user (jaikhanna615@gmail.com)
+[debug] [2025-04-06T06:44:30.183Z] [iam] checking project eduassist-42fcd for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2025-04-06T06:44:30.189Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:30.190Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:30.193Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions [none]
+[debug] [2025-04-06T06:44:30.193Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions x-goog-quota-user=projects/eduassist-42fcd
+[debug] [2025-04-06T06:44:30.193Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-04-06T06:44:32.148Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions 200
+[debug] [2025-04-06T06:44:32.149Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'eduassist-42fcd'...
+[info] 
+[info] i  deploying functions, hosting 
+[debug] [2025-04-06T06:44:32.189Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:32.189Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:32.191Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd [none]
+[debug] [2025-04-06T06:44:32.763Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd 200
+[debug] [2025-04-06T06:44:32.764Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/eduassist-42fcd {"projectNumber":"145034793682","projectId":"eduassist-42fcd","lifecycleState":"ACTIVE","name":"EduAssist","labels":{"firebase":"enabled","firebase-core":"disabled","generative-language":"enabled"},"createTime":"2025-03-17T09:27:48.332386Z"}
+[info] i  functions: preparing codebase firebase-frameworks-eduassist-42fcd for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[debug] [2025-04-06T06:44:32.771Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:32.772Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:32.773Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:32.773Z] Checked if tokens are valid: true, expires at: 1743925191437
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[debug] [2025-04-06T06:44:32.776Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:32.776Z] Checked if tokens are valid: true, expires at: 1743925191437
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2025-04-06T06:44:32.779Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:32.780Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:32.781Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/cloudfunctions.googleapis.com [none]
+[debug] [2025-04-06T06:44:32.781Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/eduassist-42fcd
+[debug] [2025-04-06T06:44:32.792Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/runtimeconfig.googleapis.com [none]
+[debug] [2025-04-06T06:44:32.793Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/eduassist-42fcd
+[debug] [2025-04-06T06:44:32.800Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/cloudbuild.googleapis.com [none]
+[debug] [2025-04-06T06:44:32.801Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/cloudbuild.googleapis.com x-goog-quota-user=projects/eduassist-42fcd
+[debug] [2025-04-06T06:44:32.805Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/artifactregistry.googleapis.com [none]
+[debug] [2025-04-06T06:44:32.805Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/artifactregistry.googleapis.com x-goog-quota-user=projects/eduassist-42fcd
+[debug] [2025-04-06T06:44:35.649Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/artifactregistry.googleapis.com 200
+[debug] [2025-04-06T06:44:35.649Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/artifactregistry.googleapis.com [omitted]
+[info] +  artifactregistry: required API artifactregistry.googleapis.com is enabled 
+[debug] [2025-04-06T06:44:35.656Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/cloudfunctions.googleapis.com 200
+[debug] [2025-04-06T06:44:35.656Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/cloudfunctions.googleapis.com [omitted]
+[info] +  functions: required API cloudfunctions.googleapis.com is enabled 
+[debug] [2025-04-06T06:44:35.659Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/runtimeconfig.googleapis.com 200
+[debug] [2025-04-06T06:44:35.660Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/runtimeconfig.googleapis.com [omitted]
+[debug] [2025-04-06T06:44:35.666Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/cloudbuild.googleapis.com 200
+[debug] [2025-04-06T06:44:35.667Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/eduassist-42fcd/services/cloudbuild.googleapis.com [omitted]
+[info] +  functions: required API cloudbuild.googleapis.com is enabled 
+[debug] [2025-04-06T06:44:35.669Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:35.669Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:35.670Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/eduassist-42fcd/adminSdkConfig [none]
+[debug] [2025-04-06T06:44:37.148Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/eduassist-42fcd/adminSdkConfig 200
+[debug] [2025-04-06T06:44:37.148Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/eduassist-42fcd/adminSdkConfig {"projectId":"eduassist-42fcd","storageBucket":"eduassist-42fcd.firebasestorage.app"}
+[debug] [2025-04-06T06:44:37.149Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:37.149Z] Checked if tokens are valid: true, expires at: 1743925191437
+[debug] [2025-04-06T06:44:37.150Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/eduassist-42fcd/configs [none]
+[debug] [2025-04-06T06:44:39.004Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/eduassist-42fcd/configs 200
+[debug] [2025-04-06T06:44:39.004Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/eduassist-42fcd/configs {}
+[debug] [2025-04-06T06:44:39.009Z] Validating nodejs source
+[debug] [2025-04-06T06:44:43.133Z] > [functions] package.json contents: {
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^6.4.2",
+    "@radix-ui/react-alert-dialog": "^1.1.6",
+    "@radix-ui/react-progress": "^1.1.2",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-tabs": "^1.1.3",
+    "@radix-ui/react-toast": "^1.2.6",
+    "@radix-ui/react-tooltip": "^1.1.8",
+    "@tanstack/react-query": "^5.69.0",
+    "@types/node": "22.13.1",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "19.0.3",
+    "autoprefixer": "10.4.20",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dotenv": "^16.4.7",
+    "eslint": "9.19.0",
+    "eslint-config-next": "15.1.6",
+    "firebase": "^11.6.0",
+    "firebase-tools": "^14.1.0",
+    "framer-motion": "^12.5.0",
+    "js-cookie": "^3.0.5",
+    "lucide-react": "^0.474.0",
+    "next": "^15.1.6",
+    "next-themes": "^0.4.6",
+    "postcss": "8.5.1",
+    "react": "19.0.0",
+    "react-confetti": "^6.2.2",
+    "react-dom": "19.0.0",
+    "react-hook-form": "^7.54.2",
+    "react-hot-toast": "^2.5.2",
+    "react-icons": "^5.5.0",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.4.0",
+    "recharts": "^2.15.1",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1",
+    "sonner": "^2.0.1",
+    "tailwind-merge": "^3.1.0",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "5.7.3",
+    "zustand": "^5.0.3",
+    "firebase-frameworks": "^0.11.0",
+    "firebase-functions": "^6.0.1",
+    "firebase-admin": "^11.11.1"
+  },
+  "main": "server.js",
+  "engines": {
+    "node": "20"
+  }
+}
+[debug] [2025-04-06T06:44:43.135Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase firebase-frameworks-eduassist-42fcd to determine what to deploy 
+[debug] [2025-04-06T06:44:43.139Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-04-06T06:44:43.226Z] Found firebase-functions binary at 'C:\Users\Jai Khanna\Desktop\EduAssist\EduAssist\.firebase\eduassist-42fcd\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8243
+
+[error] ^C

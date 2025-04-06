@@ -9,7 +9,8 @@ import {
   Timer,
   AlertCircle,
   Bookmark,
-  Flame
+  Flame,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -84,6 +85,35 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     }
   };
 
+  // Add timeStarted state to store the timestamp when quiz started
+  const [timeStarted, setTimeStartedTimestamp] = useState<any>(null);
+
+  // Modify setTimeStarted function
+  const setTimeStarted = async () => {
+    if (!user) return;
+
+    try {
+      const { doc, getDoc, updateDoc, serverTimestamp } = await import("firebase/firestore");
+      const { db } = await import("@/firebaseConfig");
+
+      const quizRef = doc(db, "quizzes", quizId);
+      const quizDoc = await getDoc(quizRef);
+
+      const timestamp = serverTimestamp();
+
+      if (quizDoc.exists()) {
+        await updateDoc(quizRef, {
+          timeStarted: timestamp,
+        });
+        setTimeStartedTimestamp(new Date());
+        console.log("Time started set successfully");
+      }
+    } catch (error) {
+      console.error("Error setting quiz start time:", error);
+    }
+  };
+
+  
   const handleNavigation = (path: string) => {
     startTransition(() => {
       router.push(path);
@@ -94,18 +124,25 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     const resetQuiz = async () => {
       try {
         await clearAttemptedOptions(quizId);
+        console.log("Cleared attempted options");
       } catch (error) {
         console.error("Failed to reset quiz:", error);
       }
     };
-
-    resetQuiz();
-    
-    // Fetch bookmarked questions and user streak when component mounts
-    if (user) {
+  
+    // Add a delay of 2 seconds before clearing attempted options
+    const timer = setTimeout(() => {
+      resetQuiz();
+    }, 2000);
+  
+    // Cleanup to prevent memory leaks if component unmounts before timeout
+    return () => clearTimeout(timer);
+  }, [quizId]);
+  
+  useEffect(() => {
+      setTimeStarted();
       fetchBookmarkedQuestions();
       fetchUserStreak();
-    }
   }, [quizId, user]);
 
   const handleExit = async () => {
@@ -123,10 +160,9 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
       try {
         setLoading(true);
         const data = await getQuizById(quizId);
-        console.log(data);
         if (data && data.questions) {
           setQuestions(data.questions);
-          setQuizTitle(data.title || "Quiz");
+          setQuizTitle(data.topic || "Quiz");
           
           // Set timer based on quiz timeLimit
           if (data.timeLimit) {
@@ -157,19 +193,20 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
   }, [quizId]);
 
   useEffect(() => {
-    // Only start timer when timeLeft is set and questions are loaded
     if (timeLeft <= 0 || questions.length === 0) return;
-    
+  
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          submitQuiz();
+          toast.error("⏰ Quiz time ran out! Try again.");
+          router.push("/quiz");
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
+  
     return () => clearInterval(timer);
   }, [timeLeft, questions]);
   
@@ -328,17 +365,29 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     }
   };
 
+// In submitQuiz function in quiz page
   const submitQuiz = async () => {
     // Check if all questions are attempted
     if (Object.keys(answers).length < questions.length) {
       setShowValidationMessage(true);
-      
-      // Auto-hide the message after 3 seconds
+      // Auto-hide message after 3 seconds
       setTimeout(() => {
         setShowValidationMessage(false);
       }, 3000);
-      
       return;
+    }
+    
+    try {
+      // Record end time in Firestore
+      const { doc, updateDoc, serverTimestamp } = await import("firebase/firestore");
+      const { db } = await import("@/firebaseConfig");
+      
+      const quizRef = doc(db, "quizzes", quizId);
+      await updateDoc(quizRef, {
+        timeEnded: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error recording quiz end time:", error);
     }
     
     // Update streak before navigating to results
@@ -349,10 +398,6 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     // All questions are attempted, proceed to results
     handleNavigation(`/quiz/${quizId}/result`);
   };
-  
-  // Return your JSX component here (not included as it wasn't in the original code)
-  // ...
-
 
   if (loading) {
     return (
@@ -412,6 +457,7 @@ export default function QuizPage({ params }: { params: Promise<{ quizId: string 
     <div className="bg-slate-50 min-h-screen py-8 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
+
         <Card className="mb-6 border-none shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">

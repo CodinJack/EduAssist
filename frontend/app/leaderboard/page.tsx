@@ -5,9 +5,23 @@ import { motion } from "framer-motion";
 import { Trophy, Award } from "lucide-react";
 import { getAllUsers } from "@/services/authService";
 
+interface UserData {
+  userID: string;
+  email: string;
+  averageMarks: number;
+}
+
+interface LeaderboardEntry {
+  rank: number;
+  name: string;
+  score: string;
+  avatar: string;
+  badge: string;
+}
+
 export default function Leaderboard() {
     const [collapsed, setCollapsed] = useState(true);
-    const [leaderboardData, setLeaderboardData] = useState([]);
+    const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -17,10 +31,10 @@ export default function Leaderboard() {
     
                 if (allUsers.length) {
                     const sortedUsers = allUsers
-                        .sort((a, b) => b.averageMarks - a.averageMarks) // Sort by highest marks
+                        .sort((a: UserData, b: UserData) => b.averageMarks - a.averageMarks) // Sort by highest marks
                         .slice(0, 10); // Get top 10 users
     
-                    const users = sortedUsers.map((user, index) => ({
+                    const users = sortedUsers.map((user: UserData, index: number) => ({
                         rank: index + 1,
                         name: user.email.split("@")[0],
                         score: user.averageMarks.toFixed(2),

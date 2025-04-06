@@ -7,7 +7,8 @@ import {
   ChevronRight, Flame, List, Trophy, Clock, 
   Github, Briefcase, Calendar as CalendarIcon
 } from "lucide-react";
-
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/firebaseConfig";
 import Sidebar from "@/components/dashboard/SideBar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,29 @@ const ProfilePage = () => {
     
     const { user } = useAuth();
     const router = useRouter();
-
+    
+    useEffect(() => {
+      const updateMaxStreakInFirestore = async () => {
+        if (user && user.uid) {
+          const updatedMaxStreak = Math.max(user.maxStreak, (user.currentStreak || user.streak?.count || 0));
+    
+          if (updatedMaxStreak > user.maxStreak) {
+            try {
+              const userRef = doc(db, "users", user.uid);
+              await updateDoc(userRef, {
+                maxStreak: updatedMaxStreak,
+              });
+            } catch (error) {
+              console.error("Error updating maxStreak:", error);
+            }
+          }
+        }
+      };
+    
+      updateMaxStreakInFirestore();
+    }, [user]);
+    
+      
     // Format date for last quiz date
     const formatDate = (timestamp: any) => {
         if (!timestamp) return "No data";
@@ -174,12 +197,12 @@ const ProfilePage = () => {
     const isStreakMaintained = user.lastQuizSubmissionDate ? isStreakActive(user.lastQuizSubmissionDate) : false;
     
     return (
-        <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className=" min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             {/* Sidebar */}
             <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
             {/* Main Content */}
-            <div className={`p-4 md:p-8 flex-1 transition-all duration-700 ${collapsed ? "ml-20" : "ml-16"}`}>
+            <div className={`p-4 md:p-8 flex-1 transition-all duration-500 ${collapsed ? "ml-20" : "ml-64"}`}>
                 <motion.div 
                     initial="hidden"
                     animate="visible"
@@ -224,7 +247,7 @@ const ProfilePage = () => {
                                         <TooltipTrigger asChild>
                                             <Badge variant="outline" className={`${isStreakMaintained ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-gray-50 text-gray-700 border-gray-200'} font-medium`}>
                                                 <Flame className={`w-3 h-3 mr-1 ${isStreakMaintained ? 'text-amber-500' : 'text-gray-500'}`} /> 
-                                                Streak: {user.currentStreak || 0} days
+                                                Streak: {user.currentStreak || user.streak?.count  ||0} days
                                             </Badge>
                                         </TooltipTrigger>
                                         <TooltipContent className="p-3 max-w-xs">
@@ -352,7 +375,7 @@ const ProfilePage = () => {
                                             <CalendarIcon size={14} />
                                             Current Streak
                                         </h4>
-                                        <p className="text-lg font-bold text-green-600">{user.currentStreak || 0} days</p>
+                                        <p className="text-lg font-bold text-green-600">{user.currentStreak || user.streak?.count || 0} days</p>
                                     </div>
                                     <div>
                                         <h4 className="text-sm text-gray-500 flex items-center gap-1">
@@ -400,7 +423,7 @@ const ProfilePage = () => {
                                 <div className="flex justify-between items-center mb-4">
                                     <div>
                                         <p className="text-sm text-gray-500">Current Streak</p>
-                                        <p className="text-3xl font-bold text-amber-600">{user.currentStreak || 0} days</p>
+                                        <p className="text-3xl font-bold text-amber-600">{user.currentStreak || user.streak?.count || 0} days</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm text-gray-500">Best Streak</p>
@@ -411,7 +434,7 @@ const ProfilePage = () => {
                                 <div className="bg-gray-100 h-8 rounded-full overflow-hidden relative">
                                     <div 
                                         className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-700"
-                                        style={{ width: `${Math.min(((user.currentStreak || 0) / 10) * 100, 100)}%` }}
+                                        style={{ width: `${Math.min(((user.currentStreak || user.streak?.count || 0) / 10) * 100, 100)}%` }}
                                     ></div>
                                     <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-sm font-semibold">
                                         {isStreakMaintained ? 

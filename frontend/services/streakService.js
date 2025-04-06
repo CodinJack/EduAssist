@@ -94,7 +94,7 @@ export const getUserStreakData = async (userId) => {
     
     // Handle both data formats
     const currentStreak = userData.currentStreak || userData.streak?.count || 0;
-    const lastQuizDate = userData.last_quiz_date || userData.streak?.lastQuizDate || null;
+    const lastQuizDate = userData.lastQuizSubmissionDate || userData.streak?.lastQuizDate || null;
     
     return {
       currentStreak: currentStreak,
@@ -121,8 +121,8 @@ export const checkAndUpdateStreak = async (userId) => {
     const userData = userDoc.data();
     
     // Get last quiz date from either location
-    const lastQuizDate = userData.last_quiz_date ? 
-      new Date(userData.last_quiz_date.seconds * 1000) : 
+    const lastQuizDate = userData.lastQuizSubmissionDate ? 
+      new Date(userData.lastQuizSubmissionDate.seconds * 1000) : 
       (userData.streak?.lastQuizDate ? 
         new Date(userData.streak.lastQuizDate.seconds * 1000) : null);
     
@@ -166,9 +166,7 @@ export const checkAndUpdateStreak = async (userId) => {
     } else {
         // Same day → Already updated today, do nothing
         return { streakReset: false, currentStreak };
-    }
-    return { streakReset: false, currentStreak };
-    
+    }    
   } catch (error) {
     console.error("Error checking streak:", error);
     return { streakReset: false };

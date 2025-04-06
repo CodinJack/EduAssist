@@ -1,15 +1,24 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, use, useTransition } from 'react';
 import { getQuizReviewById } from '@/services/quizService';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 const ReviewPage = ({ params }: { params: Promise<{ quizId: string }> }) => {
   const [quizData, setQuizData] = useState(null);
   const { quizId } = use(params);
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [isPending, startTransition] = useTransition();
 
+  const handleNavigation = (path: string) => {
+    startTransition(() => {
+      router.push(path);
+    });
+  };
   useEffect(() => {
     getQuizReviewById(quizId).then((data) => {
       if (!data) {
@@ -62,7 +71,20 @@ const ReviewPage = ({ params }: { params: Promise<{ quizId: string }> }) => {
   return (
     <div className="max-w-4xl mx-auto py-6 px-4 min-h-screen">
       <h1 className="text-3xl font-bold mb-6 text-center">Quiz Review</h1>
-
+      {isPending && (
+        <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+        </div>
+      )}
+                    {/* Back Button */}
+                    <Button
+                        variant="ghost"
+                        className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition"
+                        onClick={() => handleNavigation(`/quiz/${quizId}/result`)}
+                    >
+                        <ArrowLeft size={18} /> Back to Results
+                    </Button>
+        
       {/* Quiz Summary Card */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -77,9 +99,6 @@ const ReviewPage = ({ params }: { params: Promise<{ quizId: string }> }) => {
             </p>
             <p className="mb-2">
               <span className="font-semibold">Time Limit:</span> {quizData.timeLimit} minutes
-            </p>
-            <p className="mb-2">
-              <span className="font-semibold">Time Spent:</span> {quizData.timeSpent || 'N/A'}
             </p>
           </div>
         </div>

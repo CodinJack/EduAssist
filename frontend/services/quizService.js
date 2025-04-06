@@ -191,7 +191,8 @@ export const submitQuiz = async (quizId, userId) => {
     if (!userDoc.exists()) {
       throw new Error("User not found");
     }
-    
+    const streakResult = await updateUserStreak(userId, new Date());
+
     const userData = userDoc.data();
     
     // Get current stats or initialize if they don't exist
@@ -216,8 +217,6 @@ export const submitQuiz = async (quizId, userId) => {
     // Calculate improvement areas
     const timeSpent = quizData.timeStarted ? 
       (new Date().getTime() - quizData.timeStarted) / (1000 * 60) : null;
-
-      
 
     // Update user document with new stats
     await updateDoc(userRef, {
@@ -248,8 +247,6 @@ export const submitQuiz = async (quizId, userId) => {
       score: scorePercentage,
       timeSpent: timeSpent || null
     });
-
-    const streakResult = await updateUserStreak(userId, new Date());
 
     return {
       message: "Quiz submitted successfully",

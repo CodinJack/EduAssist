@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { db, doc, getDoc, setDoc, collection, getDocs} from "../firebaseConfig";
 
+  
 // ✅ Register User
 export const registerUser = async (email, password) => {
     try {

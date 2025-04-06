@@ -14,7 +14,7 @@ const PracticePage = () => {
   const [selectedTopic, setSelectedTopic] = useState("");
   const router = useRouter();
   const { user } = useAuth();
-  const weakTopics = user?.wrong_tags || [];
+  const weakTopics = user?.weakTopics || [];
   const [isPending, startTransition] = useTransition();
   const [suggestedTopics] = useState([
     { name: "Computer Science", icon: <Sparkles className="h-5 w-5 text-purple-500" />, description: "Algorithms, data structures, and programming concepts" },
@@ -39,13 +39,12 @@ const PracticePage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <div className={`transition-all duration-500 ${collapsed ? "ml-20" : "ml-64"}`}>
       {isPending && (
         <div className="fixed z-50 top-0 left-0 w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
         </div>
       )}
-      
-      <div className={`transition-all duration-500 ${collapsed ? "ml-20" : "ml-64"}`}>
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
