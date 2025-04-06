@@ -95,7 +95,7 @@ const ReviewPage = ({ params }: { params: Promise<{ quizId: string }> }) => {
           </div>
           <div>
             <p className="mb-2">
-              <span className="font-semibold">Score:</span> {quizData.score} / {quizData.numQuestions}
+              <span className="font-semibold">Score:</span> {quizData.score}%
             </p>
             <p className="mb-2">
               <span className="font-semibold">Time Limit:</span> {quizData.timeLimit} minutes
