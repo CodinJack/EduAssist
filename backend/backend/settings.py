@@ -57,6 +57,7 @@ ALLOWED_HOSTS = [
     ".run.app",
     "localhost",
     "127.0.0.1",
+    "https://eduassist.onrender.com"
 ]
 
 
