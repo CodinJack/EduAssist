@@ -31,6 +31,10 @@ const PracticePage = () => {
   };
 
   const handleStartPractice = async (topic: string) => {
+    if(!userId){
+      toast.error("Please login first!");
+      return;
+    }
     if (!topic) {
       toast.error("Please enter a topic!");
       return;
