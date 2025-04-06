@@ -9,7 +9,6 @@ import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { deleteWeakTopic } from "@/services/practiceService";
 const PracticePage = () => {
   const [collapsed, setCollapsed] = useState(true);
   const [selectedTopic, setSelectedTopic] = useState("");
@@ -31,33 +30,12 @@ const PracticePage = () => {
   };
 
   const handleStartPractice = async (topic: string) => {
-    if(!userId){
-      toast.error("Please login first!");
-      return;
-    }
     if (!topic) {
       toast.error("Please enter a topic!");
       return;
     }
     handleNavigation(`/practice/${encodeURIComponent(topic)}`);
   };
-  const handleWeakTopicStartPractice = async (topic: string) => {
-    if(!userId){
-      toast.error("Please login first!");
-      return;
-    }
-    if (!topic) {
-      toast.error("Please enter a topic!");
-      return;
-    }
-    await deleteWeakTopic(userId, topic);
-    handleNavigation(`/practice/${encodeURIComponent(topic)}`);
-  };
-  useEffect(() => {
-    if (user && user.uid) {
-      setUserId(user.uid);
-    }
-  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50">
