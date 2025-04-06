@@ -42,3 +42,35 @@ export const createPracticeQuestions = async (topic) => {
         return [];
     }
 };
+
+import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
+import { db } from "@/lib/firebase"; // Adjust this import based on your setup
+
+export const deleteWeakTopic = async (userId, weakTopic) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      throw new Error("User not found");
+    }
+
+    const userData = userSnap.data();
+    const currentWeakTopics = userData.weakTopics || [];
+
+    // Check if the weakTopic exists
+    if (!currentWeakTopics.includes(weakTopic)) {
+      return { message: "Weak Topic not present — no changes made" };
+    }
+
+    // Remove the weakTopic from the array
+    await updateDoc(userRef, {
+      weakTopics: arrayRemove(weakTopic),
+    });
+
+    return { message: "Weak Topic deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting Weak Topic:", error);
+    throw error;
+  }
+};
