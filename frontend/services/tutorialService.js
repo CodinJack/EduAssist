@@ -2,7 +2,7 @@ import { addDoc, collection, serverTimestamp, query, where, getDocs, deleteDoc, 
 import Cookies from 'js-cookie';
 import { db } from '../firebaseConfig';
 
-const BASE_URL = process.env.PRODUCTION_BACKEND_URL || "http://127.0.0.1:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
 
 export const createTutorialNotes = async ({ topic, userId }) => {
   try {
