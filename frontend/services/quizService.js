@@ -2,7 +2,7 @@ import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, serverTimes
 import Cookies from 'js-cookie';
 import { db } from '../firebaseConfig';
 import { updateUserStreak } from "./streakService";
-const BASE_URL = process.env.PRODUCTION_BACKEND_URL || "http://127.0.0.1:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
 
 // Create a new quiz - generate questions with AI and then save to Firestore
 export const createQuiz = async ({ topic, difficulty, numQuestions, timeLimit, userId }) => {
